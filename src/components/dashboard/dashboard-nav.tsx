@@ -48,6 +48,7 @@ export function DashboardNav({
           label: "Bagikan informasi",
           icon: FilePlus2,
         },
+        { href: "/dashboard/laporan", label: "Laporan saya", icon: Flag },
       ],
     },
   ];

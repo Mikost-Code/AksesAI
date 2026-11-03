@@ -3,12 +3,12 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 4 selesai (alur kontribusi).
-**Status keseluruhan:** 🟡 Alur kontribusi berjalan end-to-end terhadap Supabase lokal
-(buat draf → kirim → review → terbit), terverifikasi lewat tes unit, tes RLS/integrasi,
-dan smoke test HTTP terhadap dev server nyata.
-Belum production ready: review/moderation (PHASE 5), admin (PHASE 6), hardening CI
-(PHASE 7), E2E (PHASE 8), dan rilis/deploy (PHASE 9–11) belum dikerjakan.
+**Terakhir diperbarui:** PHASE 5 selesai (reviewer & moderasi).
+**Status keseluruhan:** 🟡 Alur kontribusi → review → terbit → moderasi berjalan
+end-to-end terhadap Supabase lokal, terverifikasi lewat tes unit, tes RLS/integrasi,
+smoke test HTTP, dan build produksi.
+Belum production ready: admin dashboard (PHASE 6), hardening CI (PHASE 7), E2E
+(PHASE 8), dan rilis/deploy (PHASE 9–11) belum dikerjakan.
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
 
@@ -209,12 +209,31 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 5 — Reviewer & Moderation
 
-- [ ] `/review` antrean FIFO + filter + umur tunggu
-- [ ] `/review/[id]` panel review + checklist + aksi
-- [ ] Claim/release + kedaluwarsa
-- [ ] `/moderation/reports` antrean prioritas
-- [ ] Aksi moderasi (dismiss/reopen/archive/ban/resolve) + catatan wajib
-- [ ] Cron `/api/cron/expire` (CRON_SECRET) + pembersihan hash IP & claim
+- [x] `/review` antrean FIFO + filter klaim (semua/belum diklaim/diklaim saya) + umur tunggu
+- [x] `/review/[id]` panel review + checklist + aksi (klaim, verifikasi, revisi, tolak)
+- [x] Claim/release 30 menit (RPC `claim_program`; kedaluwarsa otomatis via cron)
+- [x] `/moderation/reports` antrean prioritas (alasan + terlama) + filter status/alasan
+- [x] Aksi moderasi (dismiss/resolve/reopen/archive/ban) + catatan wajib (RPC `resolve_report`)
+- [x] `/dashboard/laporan` (laporan milik pengguna)
+- [x] Cron `/api/cron/expire` + `/api/cron/cleanup` (CRON_SECRET, perbandingan konstanta-waktu)
+
+### Bukti verifikasi PHASE 5 (dijalankan nyata)
+
+| Perintah / uji | Hasil |
+|---|---|
+| `pnpm typecheck` | 0 error |
+| `pnpm lint` | 0 error, 0 warning |
+| `pnpm test` | **66 tes lulus** (6 file) |
+| `pnpm test:rls` | **29 tes lulus** (5 file): +8 tes alur reviewer terhadap DB nyata |
+| `next build` | Sukses; 24 route termasuk `/review`, `/review/[id]`, `/moderation/reports`, `/dashboard/laporan`, `/api/cron/{expire,cleanup}` |
+| `scripts/smoke-staff.mjs` | **10/10 PASS**: reviewer lihat antrean & panel; member → redirect; moderator lihat laporan; reviewer ≠ moderator (terpisah); cron tanpa/salah secret → 401 |
+| Cron dengan secret valid | `expire` → `{"ok":true,"expired":0}`; `cleanup` → `{"ok":true,...}` (jalur service_role terverifikasi) |
+
+> Catatan: satu lint error nyata ditemukan & diperbaiki — `Date.now()` dipanggil saat
+> render di `/review/[id]` (melanggar aturan purity React). Perhitungan status klaim
+> dipindahkan ke data layer. Tes reviewer juga mengungkap aturan produk yang benar:
+> kontributor baru dibatasi 3 kiriman dalam peninjauan; tes memakai kontributor baru
+> per kiriman agar deterministik.
 
 ## PHASE 6 — Admin Dashboard
 

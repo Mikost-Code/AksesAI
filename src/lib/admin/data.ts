@@ -209,7 +209,7 @@ export async function listUsers(options: {
 }): Promise<{ items: AdminUser[]; total: number; pageSize: number }> {
   const supabase = await createSupabaseServerClient();
   const pageSize = 50;
-  const page = Math.max(1, options.page ?? 1);
+  const page = Math.min(500, Math.max(1, Math.trunc(options.page ?? 1)));
   const from = (page - 1) * pageSize;
 
   let query = supabase

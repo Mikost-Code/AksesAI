@@ -18,13 +18,14 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentUser, hasRole } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ADMIN_REASON_MIN, type AppRole } from "@/lib/constants/labels";
 import {
-  CATEGORY_DESCRIPTION_MAX,
-  CATEGORY_NAME_MAX,
-  CATEGORY_NAME_MIN,
-  ADMIN_REASON_MIN,
-  type AppRole,
-} from "@/lib/constants/labels";
+  categoryInputSchema,
+  grantRoleSchema,
+  revokeRoleSchema,
+  setBannedSchema,
+  type CategoryInputValidated,
+} from "@/lib/validation/staff";
 
 export type AdminResult = { ok: true; message: string } | { ok: false; message: string };
 
@@ -90,12 +91,20 @@ export async function grantUserRole(
   const auth = await requireAdmin();
   if (!auth.ok) return auth;
 
+  const parsed = grantRoleSchema.safeParse({ userId, role });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Input tidak valid." };
+  }
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("grant_role", { p_user_id: userId, p_role: role });
+  const { error } = await supabase.rpc("grant_role", {
+    p_user_id: parsed.data.userId,
+    p_role: parsed.data.role,
+  });
   if (error) return { ok: false, message: mapAdminError(error.message) };
 
   revalidateAdmin();
-  return { ok: true, message: `Role ${role} diberikan.` };
+  return { ok: true, message: `Role ${parsed.data.role} diberikan.` };
 }
 
 /** Mencabut role staf dari pengguna. Admin terakhir dilindungi oleh RPC. */
@@ -114,12 +123,20 @@ export async function revokeUserRole(
     };
   }
 
+  const parsed = revokeRoleSchema.safeParse({ userId, role });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Input tidak valid." };
+  }
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("revoke_role", { p_user_id: userId, p_role: role });
+  const { error } = await supabase.rpc("revoke_role", {
+    p_user_id: parsed.data.userId,
+    p_role: parsed.data.role,
+  });
   if (error) return { ok: false, message: mapAdminError(error.message) };
 
   revalidateAdmin();
-  return { ok: true, message: `Role ${role} dicabut.` };
+  return { ok: true, message: `Role ${parsed.data.role} dicabut.` };
 }
 
 // ---------------------------------------------------------------------------
@@ -138,28 +155,33 @@ export async function setUserBanned(
   if (userId === auth.userId) {
     return { ok: false, message: "Anda tidak dapat memblokir akun sendiri." };
   }
-  const trimmed = typeof reason === "string" ? reason.trim() : "";
-  if (trimmed.length < ADMIN_REASON_MIN) {
-    return { ok: false, message: `Alasan minimal ${ADMIN_REASON_MIN} karakter.` };
+
+  const parsed = setBannedSchema.safeParse({ userId, banned, reason });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? `Alasan minimal ${ADMIN_REASON_MIN} karakter.`,
+    };
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("set_user_banned", {
-    p_user_id: userId,
-    p_banned: banned,
-    p_reason: trimmed,
+    p_user_id: parsed.data.userId,
+    p_banned: parsed.data.banned,
+    p_reason: parsed.data.reason,
   });
   if (error) return { ok: false, message: mapAdminError(error.message) };
 
   revalidateAdmin();
-  return { ok: true, message: banned ? "Pengguna diblokir." : "Blokir pengguna dibuka." };
+  return {
+    ok: true,
+    message: parsed.data.banned ? "Pengguna diblokir." : "Blokir pengguna dibuka.",
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Kategori
 // ---------------------------------------------------------------------------
-
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export type CategoryInput = {
   id: string | null;
@@ -172,46 +194,27 @@ export type CategoryInput = {
 
 /**
  * Membuat atau memperbarui kategori lewat RPC `upsert_category`.
- * Validasi bentuk (nama, slug, panjang) dilakukan di sini; RPC menangani
+ * Bentuk input divalidasi Zod (`categoryInputSchema`); RPC menangani
  * otorisasi, audit log, dan konflik slug di database.
  */
 export async function saveCategory(input: CategoryInput): Promise<AdminResult> {
   const auth = await requireAdmin();
   if (!auth.ok) return auth;
 
-  const name = typeof input.name === "string" ? input.name.trim() : "";
-  const slug = typeof input.slug === "string" ? input.slug.trim() : "";
-  const description =
-    typeof input.description === "string" ? input.description.trim() : "";
-
-  if (name.length < CATEGORY_NAME_MIN || name.length > CATEGORY_NAME_MAX) {
-    return {
-      ok: false,
-      message: `Nama kategori ${CATEGORY_NAME_MIN}–${CATEGORY_NAME_MAX} karakter.`,
-    };
+  const parsed = categoryInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Input tidak valid." };
   }
-  if (!SLUG_PATTERN.test(slug)) {
-    return {
-      ok: false,
-      message: "Slug hanya huruf kecil, angka, dan tanda hubung (contoh: bantuan-pendidikan).",
-    };
-  }
-  if (description.length > CATEGORY_DESCRIPTION_MAX) {
-    return {
-      ok: false,
-      message: `Deskripsi maksimal ${CATEGORY_DESCRIPTION_MAX} karakter.`,
-    };
-  }
-  const sortOrder = Number.isFinite(input.sortOrder) ? Math.trunc(input.sortOrder) : 0;
+  const data: CategoryInputValidated = parsed.data;
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("upsert_category", {
-    p_id: input.id,
-    p_name: name,
-    p_slug: slug,
-    p_description: description || null,
-    p_is_active: Boolean(input.isActive),
-    p_sort_order: sortOrder,
+    p_id: data.id,
+    p_name: data.name,
+    p_slug: data.slug,
+    p_description: data.description || null,
+    p_is_active: data.isActive,
+    p_sort_order: data.sortOrder,
   });
   if (error) return { ok: false, message: mapAdminError(error.message) };
 
@@ -221,6 +224,6 @@ export async function saveCategory(input: CategoryInput): Promise<AdminResult> {
   revalidatePath("/kategori/[slug]", "layout");
   return {
     ok: true,
-    message: input.id ? "Kategori diperbarui." : "Kategori dibuat.",
+    message: data.id ? "Kategori diperbarui." : "Kategori dibuat.",
   };
 }

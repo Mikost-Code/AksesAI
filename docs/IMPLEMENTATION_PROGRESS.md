@@ -3,12 +3,12 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 6 selesai (admin dashboard).
-**Status keseluruhan:** 🟡 Seluruh alur inti berjalan end-to-end terhadap Supabase lokal:
-kontribusi → review → terbit → moderasi → administrasi (role, blokir, kategori),
-terverifikasi lewat tes unit, tes RLS/integrasi, smoke test HTTP & mutasi, serta build
-produksi. Sisa butir PHASE 6 (`/admin/audit-logs`, `/admin/settings` UI) dan
-hardening CI (PHASE 7), E2E (PHASE 8), rilis/deploy (PHASE 9–11) belum dikerjakan.
+**Terakhir diperbarui:** PHASE 7 selesai (security hardening).
+**Status keseluruhan:** 🟡 Alur inti + administrasi berjalan end-to-end dan telah di-harden:
+validasi Zod menyeluruh, audit dependensi 0 kerentanan, bundle klien terverifikasi bebas
+`service_role`, header keamanan terpasang, error tanpa stack trace.
+Sisa: E2E Playwright (PHASE 8), finalisasi dokumentasi (PHASE 9), rilis GitHub (PHASE 10),
+deploy produksi (PHASE 11) — PHASE 10–11 butuh kredensial/izin pemilik proyek.
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
 
@@ -269,15 +269,49 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 7 — Security Hardening
 
-- [ ] CSP + security headers tanpa pelanggaran
-- [ ] Validasi Zod seluruh input (form, query, route param)
-- [ ] Sanitasi & normalisasi teks
-- [ ] Rate limit (Upstash + fallback Postgres)
-- [ ] CSRF: origin check Server Actions (bawaan Next) + validasi Origin di route handler
-- [ ] Verifikasi tidak ada `service_role` di bundle klien
-- [ ] Audit dependencies `pnpm audit`
-- [ ] Secret scan (gitleaks) sebelum publikasi
-- [ ] Error handling tanpa stack trace
+- [x] CSP + security headers tanpa pelanggaran (CSP, HSTS, nosniff, DENY, Referrer-Policy,
+      Permissions-Policy; `X-Powered-By` dimatikan — terverifikasi di response header)
+- [x] Validasi Zod seluruh input — tambah skema untuk SEMUA Server Action staf/admin
+      (`src/lib/validation/staff.ts`): UUID, enum role/aksi, batas panjang alasan/catatan
+- [x] Sanitasi & normalisasi teks (sudah ada dari PHASE 2; dikonfirmasi tak ada
+      `dangerouslySetInnerHTML` di `src/`)
+- [x] Rate limit (Upstash + fallback Postgres) — sudah ada; jalur laporan terverifikasi
+- [x] CSRF: origin check route handler (kini menolak request tanpa `Origin` pada
+      production), Server Actions dilindungi Next (SameSite=Lax + origin check bawaan)
+- [x] Verifikasi tidak ada `service_role` di bundle klien — **menemukan & memperbaiki
+      kebocoran nyata**: skema env server ikut terbundel ke klien; sekarang dipisah ke
+      `src/lib/env-server.ts` (`server-only`) + skrip `scripts/check-client-bundle.mjs`
+- [x] Audit dependencies `pnpm audit` — 0 kerentanan (2 moderate dev-only diperbaiki via
+      `pnpm.overrides` minimatch ≥ 11.0.1)
+- [x] Secret scan sebelum publikasi (`scripts/secret-scan.mjs` — 0 temuan)
+- [x] Error handling tanpa stack trace (`error.tsx` + `global-error.tsx` baru; hanya
+      `digest` yang dicatat, tidak pernah pesan internal)
+
+### Bukti verifikasi PHASE 7 (dijalankan nyata)
+
+| Perintah / uji | Hasil |
+|---|---|
+| `pnpm typecheck` / `pnpm lint` | 0 error, 0 warning |
+| `pnpm test` | **95 tes lulus** (7 file) — +29 tes skema validasi staf/admin |
+| `pnpm test:rls` | **39 tes lulus** (6 file) |
+| `pnpm audit` (prod & dev) | **0 kerentanan** setelah override minimatch |
+| `node scripts/check-client-bundle.mjs` | **Bersih** — 28 chunk diperiksa, tak ada `service_role` key/literal |
+| Security header (dev server nyata) | CSP, HSTS, nosniff, DENY, Referrer, Permissions terkirim; `X-Powered-By` absen |
+| `next build` | Sukses |
+| 5 smoke suite (dashboard/mutation/staff/admin/admin-mutation) | Semua 0 kegagalan |
+
+> **Kebocoran yang ditemukan & diperbaiki:** `src/lib/env.ts` mencampur skema env publik
+> dan server. Komponen klien (`SignOutButton`) mengimpor `clientEnv` dari modul itu,
+> sehingga nama variabel `SUPABASE_SERVICE_ROLE_KEY` (bukan nilainya) ikut ter-bundel ke
+> JavaScript klien. Nilai rahasia tidak pernah bocor (tidak berawalan `NEXT_PUBLIC_`),
+> tetapi strukturnya salah. Skema server dipindah ke modul `server-only` terpisah.
+> Skrip `check-client-bundle.mjs` mencegah regresi dan siap dipakai di CI.
+
+> Batasan yang diakui: CSP masih memakai `'unsafe-inline'` untuk script (bootstrap Next);
+> nonce per-request akan memaksa semua halaman dinamis. Kompensasi: tidak ada
+> `dangerouslySetInnerHTML` dan `script-src` dibatasi `'self'` + domain Turnstile.
+> Turnstile tetap opsional (rate limit berjalan tanpa itu); bila secret tidak diset di
+> production, sebuah peringatan dicatat ke log agar operator menyadarinya.
 
 ## PHASE 8 — Testing & Bug Fixing
 

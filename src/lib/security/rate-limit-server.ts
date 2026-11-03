@@ -5,7 +5,7 @@ import {
   type RateLimitResult,
   type RateLimitRule,
 } from "@/lib/security/rate-limit";
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env-server";
 import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin";
 
 /**

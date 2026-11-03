@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { reportIdSchema, resolveReportSchema } from "@/lib/validation/staff";
 
 export type ModerationResult =
   | { ok: true; message: string }
@@ -48,20 +49,27 @@ export async function resolveReport(
   const auth = await requireModerator();
   if (!auth.ok) return auth;
 
-  const trimmed = typeof note === "string" ? note.trim() : "";
-  const needsNote =
-    action === "reopen_for_review" ||
-    action === "archive_program" ||
-    action === "ban_contributor";
-  if (needsNote && trimmed.length < 10) {
-    return { ok: false, message: "Catatan minimal 10 karakter untuk aksi ini." };
+  const parsed = resolveReportSchema.safeParse({ reportId, action, note });
+  if (!parsed.success) {
+    const needsNote =
+      action === "reopen_for_review" ||
+      action === "archive_program" ||
+      action === "ban_contributor";
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message
+        ? parsed.error.issues[0].message
+        : needsNote
+          ? "Catatan minimal 10 karakter untuk aksi ini."
+          : "Input tidak valid.",
+    };
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("resolve_report", {
-    p_report_id: reportId,
-    p_action: action,
-    p_note: trimmed || null,
+    p_report_id: parsed.data.reportId,
+    p_action: parsed.data.action,
+    p_note: parsed.data.note || null,
   });
   if (error) {
     if (/sudah diselesaikan/i.test(error.message)) {
@@ -82,8 +90,13 @@ export async function markReportInReview(reportId: string): Promise<ModerationRe
   const auth = await requireModerator();
   if (!auth.ok) return auth;
 
+  const parsed = reportIdSchema.safeParse({ reportId });
+  if (!parsed.success) return { ok: false, message: "ID laporan tidak valid." };
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("mark_report_in_review", { p_report_id: reportId });
+  const { error } = await supabase.rpc("mark_report_in_review", {
+    p_report_id: parsed.data.reportId,
+  });
   if (error) {
     console.error("[moderation] RPC mark_report_in_review gagal:", error.message);
     return { ok: false, message: "Gagal menandai laporan. Mungkin sudah diproses." };

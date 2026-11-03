@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env-server";
 import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin";
 import { timingSafeEqualString } from "@/lib/security/timing-safe";
 

@@ -7,6 +7,7 @@ import { UserActions } from "@/components/admin/user-actions";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listUsers } from "@/lib/admin/data";
 import { APP_ROLE_LABEL } from "@/lib/constants/labels";
+import { adminUserSearchSchema } from "@/lib/validation/staff";
 import { formatDateID } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Pengguna & role", robots: { index: false } };
@@ -21,8 +22,10 @@ export default async function AdminUsersPage({
   if (!current) return null;
 
   const params = await searchParams;
-  const search = typeof params.q === "string" ? params.q.trim() : "";
-  const page = Math.max(1, Number.parseInt(params.halaman ?? "1", 10) || 1);
+  const { page, search } = adminUserSearchSchema.parse({
+    page: params.halaman,
+    search: params.q,
+  });
 
   const { items, total, pageSize } = await listUsers({ search, page });
   const totalPages = Math.max(1, Math.ceil(total / pageSize));

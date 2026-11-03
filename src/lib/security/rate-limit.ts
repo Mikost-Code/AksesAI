@@ -3,7 +3,7 @@ import "server-only";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env-server";
 
 /**
  * Rate limiting (docs/SECURITY.md §7).

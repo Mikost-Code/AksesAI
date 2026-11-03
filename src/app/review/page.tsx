@@ -5,6 +5,7 @@ import { Clock, Inbox, UserCheck } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { listReviewQueue, QUEUE_PAGE_SIZE } from "@/lib/programs/review";
+import { paginationSchema } from "@/lib/validation/staff";
 import { formatDateTimeID } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Antrean review", robots: { index: false } };
@@ -34,7 +35,7 @@ export default async function ReviewQueuePage({
   const claimed = (CLAIM_FILTERS.some((f) => f.value === params.klaim)
     ? params.klaim
     : "semua") as "semua" | "bebas" | "saya";
-  const page = Math.max(1, Number.parseInt(params.halaman ?? "1", 10) || 1);
+  const { page } = paginationSchema.parse({ page: params.halaman });
 
   const { items, total } = await listReviewQueue({
     reviewerId: user.id,

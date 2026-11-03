@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env-server";
 import { reportInputSchema } from "@/lib/validation/report";
 import { scanSensitiveText, sensitiveScanUserMessage } from "@/lib/security/sensitive-scan";
 import { hashIpAddress, getClientIp } from "@/lib/security/ip-hash";
@@ -10,9 +10,25 @@ import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin
 
 export const runtime = "nodejs";
 
+/**
+ * Verifikasi Turnstile.
+ *
+ * Turnstile bersifat OPSIONAL: bila `TURNSTILE_SECRET_KEY` tidak diset, laporan
+ * tetap diterima (rate limit per-IP & per-program tetap berlaku). Namun di
+ * PRODUCTION, ketiadaan secret dicatat sebagai peringatan agar operator sadar
+ * bahwa lapisan anti-bot tidak aktif — keputusan ini sengaja tidak memblokir
+ * pengguna sungguhan hanya karena konfigurasi belum diisi.
+ */
 async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
   const secret = serverEnv().TURNSTILE_SECRET_KEY;
-  if (!secret) return true; // Turnstile opsional; rate limit tetap berlaku.
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "[reports] TURNSTILE_SECRET_KEY tidak diset di production — verifikasi anti-bot NONAKTIF; rate limit tetap berlaku.",
+      );
+    }
+    return true;
+  }
   if (!token) return false;
   try {
     const body = new URLSearchParams({ secret, response: token, remoteip: ip });
@@ -27,9 +43,19 @@ async function verifyTurnstile(token: string | undefined, ip: string): Promise<b
   }
 }
 
+/**
+ * Pemeriksaan origin untuk permintaan yang mengubah data (CSRF).
+ *
+ * Browser selalu mengirim `Origin` pada POST lintas/asal-sama; `SameSite=Lax`
+ * pada cookie sesi sudah menahan CSRF, ini lapisan kedua. Bila header tidak ada
+ * (klien non-browser/curl), kita TOLAK di production dan izinkan di dev agar
+ * `curl`/skrip lokal mudah dipakai.
+ */
 function sameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
-  if (!origin) return true;
+  if (!origin) {
+    return process.env.NODE_ENV !== "production";
+  }
   try {
     return new URL(origin).host === request.headers.get("host");
   } catch {

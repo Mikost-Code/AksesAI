@@ -14,7 +14,12 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { REVIEW_REASON_MAX, REVIEW_REASON_MIN } from "@/lib/constants/labels";
+import { REVIEW_REASON_MIN } from "@/lib/constants/labels";
+import {
+  markExpiredSchema,
+  programIdSchema,
+  reviewReasonSchema,
+} from "@/lib/validation/staff";
 
 export type ReviewActionResult =
   | { ok: true; message: string }
@@ -66,11 +71,14 @@ export async function claimProgram(programId: string): Promise<ReviewActionResul
   const auth = await requireReviewer();
   if (!auth.ok) return auth;
 
+  const parsed = programIdSchema.safeParse({ programId });
+  if (!parsed.success) return { ok: false, message: "ID kontribusi tidak valid." };
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("claim_program", { p_program_id: programId });
+  const { error } = await supabase.rpc("claim_program", { p_program_id: parsed.data.programId });
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
-  revalidateReview(programId);
+  revalidateReview(parsed.data.programId);
   return { ok: true, message: "Item diambil. Anda punya 30 menit untuk meninjau." };
 }
 
@@ -79,11 +87,14 @@ export async function verifyProgram(programId: string): Promise<ReviewActionResu
   const auth = await requireReviewer();
   if (!auth.ok) return auth;
 
+  const parsed = programIdSchema.safeParse({ programId });
+  if (!parsed.success) return { ok: false, message: "ID kontribusi tidak valid." };
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("verify_program", { p_program_id: programId });
+  const { error } = await supabase.rpc("verify_program", { p_program_id: parsed.data.programId });
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
-  revalidateReview(programId);
+  revalidateReview(parsed.data.programId);
   return { ok: true, message: "Kontribusi diverifikasi dan tampil publik." };
 }
 
@@ -95,25 +106,24 @@ export async function requestChanges(
   const auth = await requireReviewer();
   if (!auth.ok) return auth;
 
-  const trimmed = typeof reason === "string" ? reason.trim() : "";
-  if (trimmed.length < REVIEW_REASON_MIN) {
+  const parsed = reviewReasonSchema.safeParse({ programId, reason });
+  if (!parsed.success) {
     return {
       ok: false,
-      message: `Alasan minimal ${REVIEW_REASON_MIN} karakter agar kontributor tahu apa yang harus diperbaiki.`,
+      message:
+        parsed.error.issues[0]?.message ??
+        `Alasan minimal ${REVIEW_REASON_MIN} karakter agar kontributor tahu apa yang harus diperbaiki.`,
     };
-  }
-  if (trimmed.length > REVIEW_REASON_MAX) {
-    return { ok: false, message: `Alasan maksimal ${REVIEW_REASON_MAX} karakter.` };
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("request_changes", {
-    p_program_id: programId,
-    p_reason: trimmed,
+    p_program_id: parsed.data.programId,
+    p_reason: parsed.data.reason,
   });
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
-  revalidateReview(programId);
+  revalidateReview(parsed.data.programId);
   return { ok: true, message: "Permintaan revisi dikirim ke kontributor." };
 }
 
@@ -125,22 +135,22 @@ export async function rejectProgram(
   const auth = await requireReviewer();
   if (!auth.ok) return auth;
 
-  const trimmed = typeof reason === "string" ? reason.trim() : "";
-  if (trimmed.length < REVIEW_REASON_MIN) {
-    return { ok: false, message: `Alasan minimal ${REVIEW_REASON_MIN} karakter.` };
-  }
-  if (trimmed.length > REVIEW_REASON_MAX) {
-    return { ok: false, message: `Alasan maksimal ${REVIEW_REASON_MAX} karakter.` };
+  const parsed = reviewReasonSchema.safeParse({ programId, reason });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? `Alasan minimal ${REVIEW_REASON_MIN} karakter.`,
+    };
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("reject_program", {
-    p_program_id: programId,
-    p_reason: trimmed,
+    p_program_id: parsed.data.programId,
+    p_reason: parsed.data.reason,
   });
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
-  revalidateReview(programId);
+  revalidateReview(parsed.data.programId);
   return { ok: true, message: "Kontribusi ditolak." };
 }
 
@@ -152,14 +162,17 @@ export async function markExpired(
   const auth = await requireReviewer();
   if (!auth.ok) return auth;
 
+  const parsed = markExpiredSchema.safeParse({ programId, reason });
+  if (!parsed.success) return { ok: false, message: "ID kontribusi tidak valid." };
+
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("mark_expired", {
-    p_program_id: programId,
-    p_reason: reason?.trim() || null,
+    p_program_id: parsed.data.programId,
+    p_reason: parsed.data.reason?.trim() || null,
   });
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
-  revalidateReview(programId);
+  revalidateReview(parsed.data.programId);
   revalidatePath("/bansos");
   return { ok: true, message: "Program ditandai kedaluwarsa." };
 }

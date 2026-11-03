@@ -60,7 +60,7 @@ export async function listReviewQueue(options: {
   page?: number;
 }): Promise<{ items: ReviewQueueItem[]; total: number }> {
   const supabase = await createSupabaseServerClient();
-  const page = Math.max(1, options.page ?? 1);
+  const page = Math.min(500, Math.max(1, Math.trunc(options.page ?? 1)));
   const from = (page - 1) * QUEUE_PAGE_SIZE;
 
   let query = supabase

@@ -2,7 +2,8 @@ import "server-only";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { isSupabaseConfigured, requireServerEnv, requireSupabasePublicEnv } from "@/lib/env";
+import { isSupabaseConfigured, requireSupabasePublicEnv } from "@/lib/env";
+import { requireServerEnv } from "@/lib/env-server";
 
 /**
  * SERVICE_ROLE client — melewati RLS. HANYA untuk operasi server yang memang

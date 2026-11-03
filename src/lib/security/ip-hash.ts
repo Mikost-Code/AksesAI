@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { requireServerEnv } from "@/lib/env";
+import { requireServerEnv } from "@/lib/env-server";
 
 /**
  * Hash IP pelapor: sha256(ip + IP_HASH_SALT).

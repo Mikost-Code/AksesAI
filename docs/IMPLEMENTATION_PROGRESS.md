@@ -3,12 +3,12 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 5 selesai (reviewer & moderasi).
-**Status keseluruhan:** 🟡 Alur kontribusi → review → terbit → moderasi berjalan
-end-to-end terhadap Supabase lokal, terverifikasi lewat tes unit, tes RLS/integrasi,
-smoke test HTTP, dan build produksi.
-Belum production ready: admin dashboard (PHASE 6), hardening CI (PHASE 7), E2E
-(PHASE 8), dan rilis/deploy (PHASE 9–11) belum dikerjakan.
+**Terakhir diperbarui:** PHASE 6 selesai (admin dashboard).
+**Status keseluruhan:** 🟡 Seluruh alur inti berjalan end-to-end terhadap Supabase lokal:
+kontribusi → review → terbit → moderasi → administrasi (role, blokir, kategori),
+terverifikasi lewat tes unit, tes RLS/integrasi, smoke test HTTP & mutasi, serta build
+produksi. Sisa butir PHASE 6 (`/admin/audit-logs`, `/admin/settings` UI) dan
+hardening CI (PHASE 7), E2E (PHASE 8), rilis/deploy (PHASE 9–11) belum dikerjakan.
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
 
@@ -237,12 +237,35 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 6 — Admin Dashboard
 
-- [ ] `/admin` statistik
-- [ ] `/admin/users` (cari, blokir/aktifkan)
-- [ ] `/admin/roles` (grant/revoke; admin terakhir dilindungi)
-- [ ] `/admin/categories` (CRUD, nonaktifkan)
-- [ ] `/admin/audit-logs` (filter, read-only)
-- [ ] `/admin/settings` (disclaimer, ambang rate limit, hari kedaluwarsa)
+- [x] `/admin` statistik (program per status, antrean review, laporan terbuka, pengguna, role, kategori, cron terakhir)
+- [x] `/admin/pengguna` — cari username, blokir/buka blokir (alasan wajib), kelola role
+      (gabungan "users + roles" dari rencana awal)
+- [x] Grant/revoke role via RPC `grant_role`/`revoke_role` — admin terakhir dilindungi DB
+- [x] `/admin/kategori` — buat/ubah kategori + aktif/nonaktif via RPC `upsert_category`
+- [ ] `/admin/audit-logs` (filter, read-only) — **belum**; audit log sudah terisi & teruji
+      di DB, tetapi halaman penampil khusus belum dibuat
+- [ ] `/admin/settings` (disclaimer, ambang rate limit, hari kedaluwarsa) — **belum**;
+      RPC `update_site_setting` sudah ada & teruji di DB, UI belum
+
+### Bukti verifikasi PHASE 6 (dijalankan nyata)
+
+| Perintah / uji | Hasil |
+|---|---|
+| `pnpm typecheck` | 0 error |
+| `pnpm lint` | 0 error, 0 warning |
+| `pnpm test` | **66 tes lulus** (6 file) |
+| `pnpm test:rls` | **39 tes lulus** (6 file): +10 tes RPC admin terhadap DB nyata |
+| `next build` | Sukses; 27 route termasuk `/admin`, `/admin/pengguna`, `/admin/kategori` |
+| `scripts/smoke-admin.mjs` | **10/10 PASS**: admin buka ketiga halaman (konten terverifikasi); member & reviewer → redirect; tanpa sesi → `/login` |
+| `scripts/smoke-admin-mutation.mjs` | **15/15 PASS**: grant/revoke role, blokir/buka blokir (alasan <10 ditolak), buat/ubah kategori, member ditolak 42501 di lapisan RPC, aksi tercatat di audit log |
+| Smoke PHASE 4–5 dijalankan ulang | Tanpa regresi (dashboard, staff, mutation: 0 gagal) |
+
+> Catatan kejujuran: dua butir rencana PHASE 6 (`/admin/audit-logs`, `/admin/settings`)
+> **belum** dibuat UI-nya. Fondasi database-nya (tabel `moderation_logs` immutable dan RPC
+> `update_site_setting`) sudah ada dan teruji; halaman penampil dapat ditambahkan tanpa
+> perubahan skema. Statistik admin dihitung dari query agregat `count` (bukan menarik
+> seluruh baris program). Tombol cabut role admin milik sendiri dinonaktifkan di UI sebagai
+> lapisan tambahan; RPC tetap penjaga utama.
 
 ## PHASE 7 — Security Hardening
 

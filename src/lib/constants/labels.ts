@@ -173,6 +173,12 @@ export const REVIEW_REASON_MAX = 1000;
 export const REPORT_DESCRIPTION_MIN = 10;
 export const REPORT_DESCRIPTION_MAX = 1000;
 
+/** Batas form admin (kategori & alasan blokir) — dipakai aksi server & UI. */
+export const CATEGORY_NAME_MIN = 2;
+export const CATEGORY_NAME_MAX = 60;
+export const CATEGORY_DESCRIPTION_MAX = 300;
+export const ADMIN_REASON_MIN = 10;
+
 /** Disclaimer wajib tampil di halaman detail (UI_UX §6.3). */
 export const DEFAULT_DISCLAIMER_TEXT =
   "Terverifikasi berarti informasi telah diperiksa oleh reviewer berdasarkan sumber yang tersedia. Ini bukan jaminan pemerintah dan bukan jaminan bantuan masih tersedia. Selalu periksa sumber resmi.";

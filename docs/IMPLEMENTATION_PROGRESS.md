@@ -1,0 +1,236 @@
+# Implementation Progress — BantuWarga
+
+> Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
+> Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
+
+**Terakhir diperbarui:** PHASE 0 (audit awal) — belum ada implementasi kode.
+**Status keseluruhan:** 🔴 Belum production ready. Hanya dokumentasi. `src/` kosong.
+
+---
+
+## Ringkasan Kondisi Saat Ini (PHASE 0)
+
+| Area | Kondisi |
+|---|---|
+| Dokumentasi | Lengkap (README, PRD, CONTRIBUTING, LICENSE, 8 dokumen di `docs/`) |
+| Kode aplikasi | **Belum ada.** `src/` kosong, tidak ada `package.json` |
+| Database/migrasi | **Belum ada.** `supabase/` tidak ada |
+| Repositori Git | **Belum diinisialisasi** (`git status` → not a git repository) |
+| CI/CD | **Belum ada** `.github/workflows` |
+| Konfigurasi tooling | **Belum ada** (tsconfig, next.config, eslint, postcss, components.json, .gitignore) |
+| `.env.example` | Ada; berisi daftar variabel yang dibutuhkan |
+| `pnpm-lock.yaml` | Belum ada (dibuat saat `pnpm install` di Fase 1) |
+
+Dokumen yang **belum** tersedia dan wajib dibuat:
+- `docs/IMPLEMENTATION_PROGRESS.md` (dokumen ini — dibuat pada Fase 0)
+- `README.md` perlu screenshot, tabel env, bagian testing & deployment yang lebih rinci (saat ini masih ringkas)
+- `docs/DATABASE_SCHEMA.md` perlu diselaraskan dengan migrasi aktual setelah implementasi
+- `docs/SECURITY.md` masih berisi placeholder `[ISI email keamanan]`
+- Konten `/tentang`, `/panduan`, `/kebijakan-privasi` masih berupa rencana (placeholder `[ISI]`)
+
+---
+
+## PHASE 0 — Audit Repository & Dokumentasi
+
+### 0.1 Inventaris file
+
+- [x] Membaca seluruh dokumentasi (9 file markdown + LICENSE + .env.example)
+- [x] Memastikan `src/` kosong (0 entri) — belum ada implementasi
+- [x] Memeriksa status Git — **belum ada repositori Git**
+- [x] Memeriksa tooling lokal: Node v25.2.1, pnpm 10.28.2, git 2.50.1
+- [x] Menulis `docs/IMPLEMENTATION_PROGRESS.md`
+
+### 0.2 Temuan konflik & kekurangan dokumentasi
+
+| # | Temuan | Dampak | Rekomendasi | Status |
+|---|---|---|---|---|
+| C1 | `DATABASE_SCHEMA.md` §3.1 mendefinisikan trigger `handle_new_user` yang menyisipkan ke `user_roles` **sebelum** `user_roles` didefinisikan pada §3.2 — urutan DDL error jika dieksekusi apa adanya | Migrasi gagal | Migrasi dibuat berurutan: enum → tabel → fungsi → trigger | `[!]` akan diselesaikan di Fase 3 |
+| C2 | `handle_new_user` memakai metadata `user_name`; jika kosong membuat `'user-'||left(id,8)` yang **tidak menjamin unique** → insert `profiles` gagal (`github_username` unique) | Login gagal untuk akun tanpa username GitHub | Tambahkan loop/`on conflict` + fallback deterministik; handle perubahan username saat login ulang | `[!]` |
+| C3 | Kolom `region` adalah *generated column* yang memakai `coalesce(city || ', ', '') || coalesce(province,'Nasional')` — untuk `region_scope='nasional'` menghasilkan string `'Nasional'` OK, tetapi jika province diisi maka `region` ≠ scope | Label wilayah tidak konsisten | Buat fungsi SQL/TS pembentuk label wilayah; dokumentasikan bahwa `region` hanya label tampilan | `[!]` |
+| C4 | Policy `profiles_update_own` memakai subquery ke `profiles` dari dalam policy `profiles` → berpotensi **infinite recursion** saat RLS aktif | Semua SELECT profil gagal (error 42P17) | Ganti dengan fungsi `security definer` (`is_banned(auth.uid())`) atau kolom terpisah yang tidak bisa diubah | `[!]` KRITIS |
+| C5 | Policy `programs_owner_update` `with check (status in ('draft','needs_changes'))` **memblokir** `withdraw` (pending→draft) secara aman, tapi juga memungkinkan pemilik mengubah `status` antar draft↔needs_changes secara langsung (dalam RLS); perpindahan status wajib lewat RPC | Bypass aturan transisi status | Tambahkan trigger `forbid_status_change_from_client` (cek `current_user`) atau pindahkan semua tulis ke RPC | `[!]` |
+| C6 | `sources_owner_write` memakai `for all` → pemilik bisa **DELETE** sumber saat draft/needs_changes; saat program dipindah ke pending, reviewer butuh kemampuan melihat (ada) tetapi tidak disebut cara reviewer mengoreksi sumber | Kebutuhan fungsional tidak jelas | Tetapkan: reviewer koreksi sumber lewat RPC `reviewer_edit_program` yang menyentuh `sources` — perlu policy/RPC eksplisit | `[!]` |
+| C7 | `reports_insert_auth` memungkinkan user login insert dengan `reporter_id = auth.uid()`, tetapi laporan anonim memakai `service_role`. Tidak ada policy/tabel untuk *rate limit fallback Postgres* yang disebut PRD §10 | Rate limit bisa gagal jika Upstash tidak dikonfigurasi | Buat tabel `rate_limit_buckets` + fungsi `check_rate_limit` (security definer) sebagai fallback | `[!]` |
+| C8 | PRD FR-REV-6 *claim* 30 menit & PRD §10 menyebut "bersihkan claim" via cron; tidak ada mekanisme pelepasan claim saat reviewer logout / claim kedaluwarsa selain cron | Item bisa "nyangkut" 30 menit | RPC `claim_program` otomatis menimpa claim kedaluwarsa; cron membersihkan | `[!]` |
+| C9 | `resolve_report(id, action, note)` — action `ban` pada tabel `reports` merujuk ke `set_user_banned`; tidak ada FK antara report & program yang bisa di-archive | Implementasi harus multitahap | RPC `resolve_report` memanggil helper internal (`archive_program_internal`, `set_user_banned_internal`) | `[!]` |
+| C10 | `view public_programs` tidak memuat `reviewer_username`, padahal FR-DET-3 memerlukan kartu reviewer | Field hilang | Tambahkan join `profiles` untuk reviewer | `[!]` |
+| C11 | Tabel `sources` tidak punya policy tulis untuk reviewer; FR-REV-4 (koreksi minor) mencakup sumber | Review macet | Implementasikan RPC `reviewer_update_source` | `[!]` |
+| C12 | `site_settings` policy `using(true)` → terbaca publik; tidak ada kunci rahasia di sana (OK), tetapi `max_pending_per_day` dibaca klien bila digunakan → perlu dibaca server-side saja | Info minor | Baca setting di server; jangan ekspos ke klien kecuali `disclaimer_text` | `[!]` |
+| C13 | README menyebut `pnpm test:rls`; mekanisme tes RLS (pgTAP vs skrip SQL) belum dipilih | Ambigu | **Keputusan yang diambil:** skrip Node (`scripts/test-rls.ts`) memakai `supabase` lokal + `psql`/`postgrest` atau SQL langsung; dijalankan di CI bila Supabase CLI tersedia | `[!]` |
+| C14 | `README.md` menyebut "Lihat [LICENSE](LICENSE)" tanpa dekripsi; LICENSE MIT sudah ada | OK | Tidak ada aksi | `[x]` |
+| C15 | SECURITY.md masih berisi `[ISI email keamanan]` | Wajib diisi pemilik | `[!]` butuh input pemilik proyek | `[!]` |
+| C16 | UI_UX §6.5 menyebut "simpan draf otomatis (debounce)" — server action + client debounce rawan spam request; tidak ada rate limit untuk autosave | Beban server | Autosave hanya ke localStorage sampai tombol simpan; autosave server opsional | `[!]` |
+| C17 | PRD §2 Next.js versi tidak ditentukan; dokumentasi menyebut App Router. Versi terbaru saat audit: Next 16.x, React 19.x | Pilihan versi | Pin versi stabil Next 16 + React 19 (dikonfirmasi saat Fase 1, dikunci di lockfile) | `[!]` |
+| C18 | `.env.example` mencantumkan `SUPABASE_SERVICE_ROLE_KEY` (konsisten dengan aturan server-only), namun tidak ada penanda environment (`APP_ENV`) untuk membedakan local/staging/production | Tidak krusial | Tambahkan bila perlu di Fase 1 | `[ ]` |
+| C19 | Tidak ada dokumentasi bagaimana *Preview deployment* mengarah ke staging Supabase; hanya disebut "jangan berbagi DB" | Risiko konfig | Dokumentasikan di DEPLOYMENT_GUIDE saat rilis | `[!]` |
+
+### 0.3 Risiko arsitektur & keamanan (terurut prioritas)
+
+1. **KRITIS — RLS recursion pada `profiles`** (C4): akan mematahkan seluruh pembacaan profil. Harus diperbaiki di migrasi pertama.
+2. **TINGGI — Bypass transisi status via RLS `UPDATE`** (C5): pemilik bisa mengubah `status` secara langsung. Mitigasi: trigger penjaga + semua status via RPC `security definer`.
+3. **TINGGI — Privilege escalation melalui trigger** (C2): `handle_new_user` harus `security definer` dengan `search_path` terkunci; tidak boleh mempercayai `raw_user_meta_data` untuk role.
+4. **TINGGI — Service role di klien**: aturan keras — `lib/supabase/admin.ts` diberi `import "server-only"`; CI memindai `.next/static` untuk string `service_role`.
+5. **TINGGI — SSRF & link mati**: sistem hanya menerima URL sebagai *tautan keluar* (tidak di-fetch di server pada MVP). Jika fetch ditambahkan nanti, wajib `ssrf-guard`.
+6. **SEDANG — Rate limit keterbatasan Upstash**: sediakan fallback Postgres (C7) supaya situs tidak gagal jika tidak ada kredensial.
+7. **SEDANG — Laporan anonim**: hash IP wajib (salt dari env), Turnstile wajib bila dikonfigurasi; tanpa Turnstile, rate-limit wajib tetap aktif. Tidak boleh menampilkan IP mentah.
+8. **SEDANG — Data sensitif di teks bebas**: pemindai NIK/KK/rekening berbasis regex hanya *lapis tambahan*; UI harus mendidik, reviewer memeriksa manual (sesuai §6 prompt).
+9. **SEDANG — Cache ISR + data privat**: halaman publik pakai `unstable_cache`/`revalidate` pada query; jangan pernah cache hasil query ber-scope pengguna.
+10. **RENDAH — SEO/slug stabil**: slug tidak berubah setelah Verified; perlu kolom `slug` immutable + validasi regex.
+11. **RENDAH — Ketergantungan tier gratis**: Supabase free bisa dijeda; dokumentasikan keep-alive.
+
+### 0.4 Kebutuhan konfigurasi eksternal (blocker untuk phase lanjut, bukan untuk kode)
+
+| Kebutuhan | Untuk apa | Blocker untuk |
+|---|---|---|
+| Proyek Supabase (dev/staging/prod) + URL & anon key | DB & Auth | Fase 3 verifikasi runtime, migrasi remote |
+| GitHub OAuth App (Client ID/Secret) | Login | Fase 3 login e2e |
+| `SUPABASE_SERVICE_ROLE_KEY` | Laporan anonim & cron | Fase 5 |
+| Upstash Redis (opsional, ada fallback) | Rate limit | Fase 7 hardening |
+| Cloudflare Turnstile (opsional, ada fallback) | Anti-bot laporan | Fase 5/7 |
+| Domain produksi | OAuth redirect, SEO | Fase 11 |
+| Email/kontak resmi & konten kebijakan privasi final | Halaman statis | Fase 9 (placeholder `[ISI]` sampai diisi) |
+| Repositori GitHub (`<GITHUB_USERNAME>/BantuWarga`) & izin push | Publikasi | Fase 10 |
+| Akun Vercel | Deploy | Fase 11 |
+| Keputusan lisensi (MIT default sudah ada) | — | Tidak ada |
+
+---
+
+## PHASE 1 — Setup Project & Konfigurasi Dasar
+
+- [ ] Inisialisasi Git (`main`), `.gitignore`, `.gitattributes`
+- [ ] `package.json` + pnpm + `pnpm-lock.yaml`
+- [ ] `tsconfig.json` strict, path alias `@/*`
+- [ ] `next.config.ts` (security headers, images allowlist)
+- [ ] `postcss.config.mjs`, Tailwind v4 + design tokens UI/UX
+- [ ] `eslint.config.mjs`, `components.json` (shadcn/ui)
+- [ ] Struktur folder sesuai `SYSTEM_ARCHITECTURE.md` §3
+- [ ] Script: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:e2e`, `test:rls`
+- [ ] `lib/env.ts` (validasi env dengan Zod, server & client terpisah)
+- [ ] Buat `.env.example` final (selaras `lib/env.ts`)
+
+## PHASE 2 — UI Foundation & Halaman Publik
+
+- [ ] Layout: Navbar, Footer, skip-link, container
+- [ ] Komponen dasar shadcn yang dipakai saja (button, input, card, badge, dialog, select, table, toast, sheet, pagination, skeleton)
+- [ ] Komponen domain: `ProgramCard`, `StatusBadge`, `SearchBar`, `FilterBar`, `SourceList`, `DisclaimerBanner`, `EmptyState`
+- [ ] Homepage (FR-HOME-1..7)
+- [ ] Direktori `/bansos` + query string (FR-DIR-1..6)
+- [ ] Detail `/bansos/[slug]` (FR-DET-1..6) + `generateMetadata` + OG
+- [ ] `/kategori/[slug]`
+- [ ] `/kontributor/[username]` (FR-PRO)
+- [ ] `/tentang`, `/panduan`, `/kebijakan-privasi`
+- [ ] `not-found.tsx`, `error.tsx`, `loading.tsx`, sitemap, robots
+- [ ] Responsif 360/768/1280 & a11y dasar
+
+## PHASE 3 — Database, Auth, Authorization
+
+- [ ] Migrasi `supabase/migrations/*` mengikuti skema (dengan perbaikan C1–C12)
+- [ ] Seed kategori + `site_settings`
+- [ ] RPC transisi status (submit/withdraw/claim/verify/reject/request_changes/reviewer_edit/mark_expired/archive/reopen/resolve_report/grant_role/revoke_role/set_user_banned/expire_due_programs)
+- [ ] Trigger append-only `moderation_logs` & `contribution_history`
+- [ ] RLS semua tabel + view publik `security_invoker`
+- [ ] Tabel fallback rate limit
+- [ ] Client Supabase browser/server/admin + `middleware.ts`
+- [ ] GitHub OAuth login → callback → session → logout
+- [ ] `getSession`, `requireRole`, guard layout per area
+- [ ] TypeScript types database (generated/supabase types)
+- [ ] Bootstrap admin terdokumentasi (SQL manual, bukan otomatis)
+- [ ] Tes RLS: visitor/member A/member B/reviewer/moderator/admin
+
+## PHASE 4 — Contribution Workflow
+
+- [ ] Form kontribusi multi-bagian + Zod client & server (FR-CON-1..7)
+- [ ] Sumber 1–5 (URL, judul, tipe, primary)
+- [ ] Deteksi duplikasi `source_url_normalized` + peringatan trigram
+- [ ] Pemindai data sensitif
+- [ ] Draft / submit / withdraw
+- [ ] `/dashboard`, `/dashboard/kontribusi`, edit, riwayat, status
+- [ ] `/dashboard/laporan` (laporan milik user)
+- [ ] System laporan publik (FR-REP-1..2) via route handler + rate limit + Turnstile opsional
+
+## PHASE 5 — Reviewer & Moderation
+
+- [ ] `/review` antrean FIFO + filter + umur tunggu
+- [ ] `/review/[id]` panel review + checklist + aksi
+- [ ] Claim/release + kedaluwarsa
+- [ ] `/moderation/reports` antrean prioritas
+- [ ] Aksi moderasi (dismiss/reopen/archive/ban/resolve) + catatan wajib
+- [ ] Cron `/api/cron/expire` (CRON_SECRET) + pembersihan hash IP & claim
+
+## PHASE 6 — Admin Dashboard
+
+- [ ] `/admin` statistik
+- [ ] `/admin/users` (cari, blokir/aktifkan)
+- [ ] `/admin/roles` (grant/revoke; admin terakhir dilindungi)
+- [ ] `/admin/categories` (CRUD, nonaktifkan)
+- [ ] `/admin/audit-logs` (filter, read-only)
+- [ ] `/admin/settings` (disclaimer, ambang rate limit, hari kedaluwarsa)
+
+## PHASE 7 — Security Hardening
+
+- [ ] CSP + security headers tanpa pelanggaran
+- [ ] Validasi Zod seluruh input (form, query, route param)
+- [ ] Sanitasi & normalisasi teks
+- [ ] Rate limit (Upstash + fallback Postgres)
+- [ ] CSRF: origin check Server Actions (bawaan Next) + validasi Origin di route handler
+- [ ] Verifikasi tidak ada `service_role` di bundle klien
+- [ ] Audit dependencies `pnpm audit`
+- [ ] Secret scan (gitleaks) sebelum publikasi
+- [ ] Error handling tanpa stack trace
+
+## PHASE 8 — Testing & Bug Fixing
+
+- [ ] Unit: validasi Zod, util slug/normalizeUrl, sensitive-scan, transisi status
+- [ ] Integration: server action kontribusi & review (Supabase lokal)
+- [ ] Authorization: member ≠ admin, role tidak bisa diubah sendiri
+- [ ] RLS: 12 skenario wajib dari brief
+- [ ] E2E Playwright: alur publik, login, kontribusi, review, laporan, admin
+- [ ] Build test & responsive test
+
+## PHASE 9 — Documentation Finalization
+
+- [ ] `README.md` final (overview, features, screenshot, stack, install, env, local dev, DB setup, OAuth setup, testing, deploy, contributing, license, disclaimer)
+- [ ] Update `DATABASE_SCHEMA.md` sesuai migrasi
+- [ ] Update `SYSTEM_ARCHITECTURE.md` sesuai struktur aktual
+- [ ] Update `SECURITY.md` (tanpa `[ISI]` yang bisa diisi; sisakan yang memang butuh kepemilikan)
+- [ ] `docs/IMPLEMENTATION_PROGRESS.md` final
+- [ ] `CONTRIBUTING.md` sinkron
+
+## PHASE 10 — GitHub Public Release
+
+- [ ] Inisialisasi repo & remote (butuh keputusan pemilik: `<GITHUB_USERNAME>`)
+- [ ] GitHub Actions: install → lint → typecheck → test → build
+- [ ] Gitleaks / secret scan
+- [ ] Cek tidak ada `.env.local`, credential, dump DB
+- [ ] Push branch `feat/*` → PR → `main`
+- [ ] Repo public
+
+## PHASE 11 — Production Deployment
+
+- [ ] Proyek Supabase staging + prod + migrasi + seed + RLS
+- [ ] GitHub OAuth App per environment
+- [ ] Env Vercel (preview → staging; production → prod)
+- [ ] Vercel Cron
+- [ ] Smoke test produksi (9 langkah DEPLOYMENT_GUIDE §7)
+- [ ] Verifikasi header keamanan & tidak ada error konsol
+
+---
+
+## Blocker yang Membutuhkan Keputusan/Credential Pemilik Proyek
+
+| # | Blocker | Fase terdampak | Keterangan |
+|---|---|---|---|
+| B1 | URL & anon key Supabase (dev) | 3, 4, 5, 6, 8 | Tanpa ini runtime tidak dapat diverifikasi terhadap DB nyata |
+| B2 | GitHub OAuth Client ID/Secret | 3, 8 | Login end-to-end tidak bisa diuji |
+| B3 | `SUPABASE_SERVICE_ROLE_KEY` | 5, 7 | Laporan anonim, cron |
+| B4 | Email keamanan & kontak resmi | 9 | Placeholder di SECURITY.md & halaman statis |
+| B5 | Domain produksi | 11 | OAuth redirect, SEO |
+| B6 | Izinkan push/remote GitHub (`<GITHUB_USERNAME>`) | 10, 11 | Prompt melarang push tanpa persetujuan |
+| B7 | Setuju `.env.local` diisi lokal (bukan dibagikan) | 3 | Tidak ada secret di repo |
+
+---
+
+## Catatan Kejujuran
+
+- Sampai dokumen ini dibuat, **tidak ada satu pun fitur yang diimplementasikan**. Semua status `[ ]`.
+- PHASE 7–11 tidak dapat diselesaikan tanpa credential `B1–B7`. Kode dan dokumentasi dapat disiapkan, tetapi klaim "production ready" tidak akan diberikan sampai smoke test dijalankan.

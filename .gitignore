@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build/
+
+# testing
+/coverage/
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
+
+# supabase (local volume & temp)
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# env files — JANGAN pernah commit nilai asli
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# tooling AI developer (API key pribadi)
+.9router/
+opencode.json

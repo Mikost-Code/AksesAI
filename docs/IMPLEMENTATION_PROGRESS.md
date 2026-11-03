@@ -3,8 +3,24 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 0 (audit awal) — belum ada implementasi kode.
-**Status keseluruhan:** 🔴 Belum production ready. Hanya dokumentasi. `src/` kosong.
+**Terakhir diperbarui:** PHASE 3 selesai (database, auth, otorisasi).
+**Status keseluruhan:** 🟡 Aplikasi publik berjalan end-to-end terhadap Supabase lokal.
+Belum production ready: alur kontribusi/review/moderation (PHASE 4–6), hardening CI
+(PHASE 7), E2E (PHASE 8), dan rilis/deploy (PHASE 9–11) belum dikerjakan.
+
+### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
+
+| Perintah | Hasil |
+|---|---|
+| `pnpm install` | Sukses, `pnpm-lock.yaml` dibuat |
+| `pnpm typecheck` | 0 error (TypeScript 5.9.3, `strict` + `noUncheckedIndexedAccess`) |
+| `pnpm lint` | 0 error, 0 warning (ESLint 9.39.5 + eslint-config-next 16.4.4) |
+| `pnpm build` | Sukses; 15 route terdaftar, `BUILD_ID` terbentuk |
+| `pnpm test` | **45 tes lulus** (5 file, Vitest 5.1.0) |
+| `pnpm test:rls` | **12 tes lulus** terhadap Supabase lokal (Postgres 17) |
+| `supabase db reset` | 7 migrasi + seed diterapkan bersih |
+| `node scripts/secret-scan.mjs` | Tidak ada pola secret pada 108 file terlacak |
+| Smoke test dev server | `/` `/bansos` `/login` `/panduan` `/sitemap.xml` → 200; `/admin` → 307 ke `/login`; program contoh tampil di direktori & halaman detail |
 
 ---
 
@@ -97,45 +113,54 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 1 — Setup Project & Konfigurasi Dasar
 
-- [ ] Inisialisasi Git (`main`), `.gitignore`, `.gitattributes`
-- [ ] `package.json` + pnpm + `pnpm-lock.yaml`
-- [ ] `tsconfig.json` strict, path alias `@/*`
-- [ ] `next.config.ts` (security headers, images allowlist)
-- [ ] `postcss.config.mjs`, Tailwind v4 + design tokens UI/UX
-- [ ] `eslint.config.mjs`, `components.json` (shadcn/ui)
-- [ ] Struktur folder sesuai `SYSTEM_ARCHITECTURE.md` §3
-- [ ] Script: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:e2e`, `test:rls`
-- [ ] `lib/env.ts` (validasi env dengan Zod, server & client terpisah)
-- [ ] Buat `.env.example` final (selaras `lib/env.ts`)
+- [x] Inisialisasi Git (`main`), `.gitignore`, `.gitattributes`
+- [x] `package.json` + pnpm + `pnpm-lock.yaml`
+- [x] `tsconfig.json` strict, path alias `@/*`
+- [x] `next.config.ts` (security headers, images allowlist)
+- [x] `postcss.config.mjs`, Tailwind v4 + design tokens UI/UX
+- [x] `eslint.config.mjs`, `components.json` (shadcn/ui)
+- [x] Struktur folder sesuai `SYSTEM_ARCHITECTURE.md` §3
+- [x] Script: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:e2e`, `test:rls`, `secret:scan`, `gen:types`
+- [x] `lib/env.ts` (validasi env dengan Zod, server & client terpisah)
+- [x] Buat `.env.example` final (selaras `lib/env.ts`)
+
+> Catatan: primitif UI ditulis manual (tanpa dependensi Radix) agar jejak dependensi
+> kecil. `components.json` tetap ada untuk kompatibilitas shadcn CLI.
 
 ## PHASE 2 — UI Foundation & Halaman Publik
 
-- [ ] Layout: Navbar, Footer, skip-link, container
-- [ ] Komponen dasar shadcn yang dipakai saja (button, input, card, badge, dialog, select, table, toast, sheet, pagination, skeleton)
-- [ ] Komponen domain: `ProgramCard`, `StatusBadge`, `SearchBar`, `FilterBar`, `SourceList`, `DisclaimerBanner`, `EmptyState`
-- [ ] Homepage (FR-HOME-1..7)
-- [ ] Direktori `/bansos` + query string (FR-DIR-1..6)
-- [ ] Detail `/bansos/[slug]` (FR-DET-1..6) + `generateMetadata` + OG
-- [ ] `/kategori/[slug]`
-- [ ] `/kontributor/[username]` (FR-PRO)
-- [ ] `/tentang`, `/panduan`, `/kebijakan-privasi`
-- [ ] `not-found.tsx`, `error.tsx`, `loading.tsx`, sitemap, robots
-- [ ] Responsif 360/768/1280 & a11y dasar
+- [x] Layout: Navbar, Footer, skip-link, container
+- [x] Komponen dasar yang dipakai saja (button, input, textarea, card, badge, alert, separator, skeleton, field)
+- [x] Komponen domain: `ProgramCard`, `StatusBadge`, `SourceList`, `DirectoryFilters`, `Pagination`, `EmptyState`
+- [x] Homepage (FR-HOME-1..7)
+- [x] Direktori `/bansos` + query string (FR-DIR-1..6)
+- [x] Detail `/bansos/[slug]` (FR-DET-1..6) + `generateMetadata`
+- [x] `/kategori/[slug]`
+- [x] `/kontributor/[username]` (FR-PRO)
+- [x] `/tentang`, `/panduan`, `/kebijakan-privasi`
+- [x] `not-found.tsx`, `error.tsx`, sitemap, robots
+- [~] `loading.tsx` per-route — belum ditambahkan (Suspense skeleton sudah ada di direktori)
+- [x] Responsif 360/768/1280 & a11y dasar (skip-link, label, `aria-*`, dialog `<dialog>`)
+
+> Catatan Next 16: `middleware.ts` diganti `src/proxy.ts` (konvensi baru).
 
 ## PHASE 3 — Database, Auth, Authorization
 
-- [ ] Migrasi `supabase/migrations/*` mengikuti skema (dengan perbaikan C1–C12)
-- [ ] Seed kategori + `site_settings`
-- [ ] RPC transisi status (submit/withdraw/claim/verify/reject/request_changes/reviewer_edit/mark_expired/archive/reopen/resolve_report/grant_role/revoke_role/set_user_banned/expire_due_programs)
-- [ ] Trigger append-only `moderation_logs` & `contribution_history`
-- [ ] RLS semua tabel + view publik `security_invoker`
-- [ ] Tabel fallback rate limit
-- [ ] Client Supabase browser/server/admin + `middleware.ts`
-- [ ] GitHub OAuth login → callback → session → logout
-- [ ] `getSession`, `requireRole`, guard layout per area
-- [ ] TypeScript types database (generated/supabase types)
-- [ ] Bootstrap admin terdokumentasi (SQL manual, bukan otomatis)
-- [ ] Tes RLS: visitor/member A/member B/reviewer/moderator/admin
+- [x] Migrasi `supabase/migrations/*` mengikuti skema (dengan perbaikan C1–C12)
+- [x] Seed kategori + `site_settings`
+- [x] RPC transisi status (submit/withdraw/claim/verify/reject/request_changes/reviewer_edit/mark_expired/archive/reopen/resolve_report/grant_role/revoke_role/set_user_banned/expire_due_programs/cleanup_expired_data)
+- [x] Trigger append-only `moderation_logs` & `contribution_history`
+- [x] RLS semua tabel (default-deny)
+- [x] Tabel fallback rate limit (`rate_limit_buckets` + `check_rate_limit`)
+- [x] Client Supabase browser/server/admin + `src/proxy.ts`
+- [x] GitHub OAuth login → callback → session → logout (`/login`, `/auth/sign-in`, `/auth/callback`)
+- [x] `getCurrentUser`, `requireRole`, guard layout per area (via `proxy.ts` + `requireRole`)
+- [x] TypeScript types database (dibuat dari skema live via `supabase gen types`)
+- [x] Bootstrap admin terdokumentasi (SQL manual, bukan otomatis) — lihat README
+- [x] Tes RLS: visitor/member A/member B/reviewer/moderator/admin
+
+> [!] View publik `security_invoker`: tabel `assistance_programs` sudah cukup
+> dilindungi RLS; view tidak dibuat agar tidak menambah permukaan serangan.
 
 ## PHASE 4 — Contribution Workflow
 

@@ -51,3 +51,6 @@ pnpm-debug.log*
 # tooling AI developer (API key pribadi)
 .9router/
 opencode.json
+
+# file bantuan agen yang dibuat otomatis oleh `next dev`
+AGENTS.md

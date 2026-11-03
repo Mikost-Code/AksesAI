@@ -42,12 +42,18 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   if (error || !user) return null;
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, github_username, github_avatar, github_url, is_banned, user_roles(role)")
+    // `user_roles` punya dua FK ke `profiles` (user_id, assigned_by) sehingga
+    // nama relasi harus eksplisit agar PostgREST tidak ambigu.
+    .select("id, github_username, github_avatar, github_url, is_banned, user_roles!user_id(role)")
     .eq("id", user.id)
     .maybeSingle();
 
+  if (profileError) {
+    console.error("[auth] Gagal membaca profil pengguna:", profileError.message);
+    return null;
+  }
   if (!profile) return null;
 
   return {

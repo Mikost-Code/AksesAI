@@ -3,9 +3,11 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 3 selesai (database, auth, otorisasi).
-**Status keseluruhan:** 🟡 Aplikasi publik berjalan end-to-end terhadap Supabase lokal.
-Belum production ready: alur kontribusi/review/moderation (PHASE 4–6), hardening CI
+**Terakhir diperbarui:** PHASE 4 selesai (alur kontribusi).
+**Status keseluruhan:** 🟡 Alur kontribusi berjalan end-to-end terhadap Supabase lokal
+(buat draf → kirim → review → terbit), terverifikasi lewat tes unit, tes RLS/integrasi,
+dan smoke test HTTP terhadap dev server nyata.
+Belum production ready: review/moderation (PHASE 5), admin (PHASE 6), hardening CI
 (PHASE 7), E2E (PHASE 8), dan rilis/deploy (PHASE 9–11) belum dikerjakan.
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
@@ -164,14 +166,46 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 4 — Contribution Workflow
 
-- [ ] Form kontribusi multi-bagian + Zod client & server (FR-CON-1..7)
-- [ ] Sumber 1–5 (URL, judul, tipe, primary)
-- [ ] Deteksi duplikasi `source_url_normalized` + peringatan trigram
-- [ ] Pemindai data sensitif
-- [ ] Draft / submit / withdraw
-- [ ] `/dashboard`, `/dashboard/kontribusi`, edit, riwayat, status
-- [ ] `/dashboard/laporan` (laporan milik user)
-- [ ] System laporan publik (FR-REP-1..2) via route handler + rate limit + Turnstile opsional
+- [x] Form kontribusi multi-bagian + Zod client & server (FR-CON-1..7)
+- [x] Sumber 1–5 (URL, judul, tipe, primary) — tepat satu primary, otomatis bila tidak ditandai
+- [x] Deteksi duplikasi `source_url_normalized` + peringatan judul (di halaman edit)
+- [x] Pemindai data sensitif (NIK/KK/rekening) — menolak simpan bila terdeteksi
+- [x] Draft / submit / withdraw (via RPC `submit_program` / `withdraw_program`)
+- [x] `/dashboard`, `/dashboard/kontribusi`, edit, status + catatan reviewer
+- [~] Riwayat kontribusi: tabel `contribution_history` terisi & teruji di DB;
+      tampilan timeline di dasbor belum dibuat (status + catatan reviewer sudah tampil)
+- [ ] `/dashboard/laporan` (laporan milik user) — **belum**; daftar laporan pengguna
+      akan dikerjakan bersama PHASE 5
+- [x] Laporan publik (FR-REP-1..2) via route handler `/api/reports` + rate limit
+      + pemindaian data sensitif + Turnstile opsional (dari PHASE 2)
+
+### Bukti verifikasi PHASE 4 (dijalankan nyata)
+
+| Perintah / uji | Hasil |
+|---|---|
+| `pnpm typecheck` | 0 error |
+| `pnpm lint` | 0 error, 0 warning |
+| `pnpm test` | **66 tes lulus** (6 file) — 21 di antaranya skema kontribusi |
+| `pnpm test:rls` | **21 tes lulus** (4 file): 12 RLS + 4 integrasi alur + 5 regresi profil |
+| `next build` | Sukses; 16 route termasuk `/dashboard`, `/dashboard/kontribusi`, `/[id]`, `/baru` |
+| `scripts/smoke-dashboard.mjs` | **9/9 PASS** terhadap dev server nyata: dasbor 200, empty state, form termuat, tanpa sesi → redirect, id asing → 404 |
+| `scripts/smoke-mutation.mjs` | **8/8 PASS**: draf tersimpan, tampil di daftar, halaman edit memuat data, pengguna lain → 404 |
+
+> **Dua bug produksi ditemukan & diperbaiki selama PHASE 4:**
+> 1. `getCurrentUser()` memakai embed PostgREST `user_roles(role)` yang **ambigu**
+>    (`user_roles` punya dua FK ke `profiles`: `user_id` dan `assigned_by`). Query
+>    gagal sehingga fungsi mengembalikan `null` untuk **semua** pengguna → seluruh
+>    area login tidak dapat diakses. Diperbaiki dengan `user_roles!user_id(role)`,
+>    plus tes regresi `tests/integration/profile-query.test.ts`.
+> 2. Skema Zod: `isoDate` menolak string kosong (form mengirim `""`) dan
+>    `organizer` memakai `organizerMax` sebagai batas minimal **dan** maksimal.
+>    Keduanya diperbaiki; tes unit menangkapnya.
+> 3. `package.json` `test:rls` menunjuk `vitest.rls.config.ts` padahal berkasnya
+>    `.mts` — skrip gagal jalan. Diperbaiki.
+
+> Catatan kejujuran: smoke test memakai cookie sesi Supabase yang dirangkai seperti
+> `@supabase/ssr` (prefix `base64-` + base64url JSON). Jalur yang diuji sama dengan
+> browser; bedanya alur OAuth GitHub diganti login email/password khusus lokal.
 
 ## PHASE 5 — Reviewer & Moderation
 

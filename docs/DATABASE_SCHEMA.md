@@ -1,6 +1,6 @@
 # Database Schema — BantuWarga
 
-Supabase PostgreSQL. Semua tabel di schema `public`, **RLS aktif**. SQL di bawah adalah acuan awal untuk file migrasi; sesuaikan tipe/relasi saat implementasi dan perbarui dokumen ini.
+Supabase PostgreSQL. Semua tabel di schema `public`, **RLS aktif**. Dokumen ini mencerminkan **implementasi nyata** di `supabase/migrations/` (7 migrasi, `20260101000001`–`20260101000007`). Bila mengubah skema, perbarui dokumen ini pada PR yang sama.
 
 ## 1. Diagram Relasi
 
@@ -215,6 +215,25 @@ create table site_settings (
 -- keys: disclaimer_text, expiring_soon_days (14), max_pending_per_day (10), report_rate_per_hour (5)
 ```
 
+### 3.10 rate_limit_buckets
+
+Fallback rate limiting berbasis PostgreSQL, dipakai ketika Upstash Redis tidak
+dikonfigurasi.
+
+```sql
+create table public.rate_limit_buckets (
+  bucket_key   text not null,
+  window_start timestamptz not null,
+  count        integer not null default 0,
+  primary key (bucket_key, window_start)
+);
+create index rate_limit_buckets_window_idx on public.rate_limit_buckets (window_start);
+```
+
+- Hanya ditulis lewat fungsi `security definer` `check_rate_limit` — tidak ada
+  policy INSERT/UPDATE untuk klien, sehingga pengguna tidak bisa memalsukan counter.
+- Baris lama dibersihkan oleh cron `/api/cron/cleanup`.
+
 ## 4. Fungsi Bantu
 
 ```sql
@@ -372,17 +391,22 @@ Semua fungsi: memeriksa `auth.uid()`, role, status saat ini (transisi valid), me
 | `grant_role / revoke_role(uid, role)` | admin | — | tolak jika mencabut admin terakhir |
 | `expire_due_programs()` | cron (service_role) | verified → expired jika `end_date < current_date` | |
 
-## 7. View Publik
+## 7. Akses Data Publik (tanpa view)
+
+**Tidak ada view publik** di implementasi ini. Keputusan ini disengaja: view
+`public_programs` sempat direncanakan, tetapi dibatalkan karena (a) view dengan
+`security_invoker = true` tetap tunduk pada RLS tabel dasar sehingga tidak menambah
+keamanan, dan (b) view tanpa `security_invoker` akan **melewati** RLS (risiko
+kebocoran draft). Query publik cukup memakai RLS pada `assistance_programs`:
 
 ```sql
-create view public_programs as
-select p.id, p.title, p.slug, p.description, p.category_id, p.region, p.province, p.city,
-       p.organizer, p.requirements, p.published_at, p.start_date, p.end_date, p.status,
-       p.verified_at, pr.github_username as contributor_username, pr.github_avatar as contributor_avatar
-from assistance_programs p join profiles pr on pr.id = p.contributor_id
-where p.status in ('verified','expired');
+-- policy SELECT untuk anon & authenticated
+using (status in ('verified', 'expired'))
 ```
-Gunakan `security_invoker = true` bila memakai view agar RLS tetap berlaku.
+
+Klien (anon key) hanya melihat baris berstatus `verified`/`expired`; draft, pending,
+dan rejected tidak pernah terlihat publik — diverifikasi oleh
+`tests/rls/access-control.test.ts`.
 
 ## 8. Query Pencarian (contoh)
 

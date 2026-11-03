@@ -42,12 +42,14 @@ Lihat [README.md](README.md). Jangan commit `.env.local`.
 
 | Jenis | Alat | Kapan wajib |
 |---|---|---|
-| Unit | Vitest | Logika validasi, util, transisi status |
-| RLS | pgTAP / skrip SQL | Setiap tabel/kebijakan baru, per role |
+| Unit | Vitest (jsdom) | Logika validasi, util, transisi status |
+| RLS & integrasi | Vitest terhadap Supabase lokal (`pnpm test:rls`, kebutuhan Docker) | Setiap tabel/kebijakan baru, per role |
 | E2E | Playwright | Alur kritis: cari, login, kontribusi, review, laporan |
-| A11y | axe + Lighthouse | Halaman baru |
+| A11y | axe + Lighthouse (manual) | Halaman baru |
 
-Checklist sebelum PR: `pnpm lint && pnpm typecheck && pnpm test`.
+Checklist sebelum PR: `pnpm lint && pnpm typecheck && pnpm test`. Bila mengubah
+migrasi/RLS, jalankan juga `pnpm test:rls`. Bila mengubah alur pengguna, jalankan
+`pnpm test:e2e`.
 
 ## Keamanan Rahasia
 

@@ -28,47 +28,56 @@ Dokumen serah terima ringkas untuk tim pengembang. Detail kebutuhan ada di [PRD.
 | Area | Rute |
 |---|---|
 | Publik | `/`, `/bansos`, `/bansos/[slug]`, `/kategori/[slug]`, `/kontributor/[username]`, `/tentang`, `/panduan`, `/kebijakan-privasi` |
-| Auth | `/login`, `/auth/callback` |
-| Member | `/dashboard`, `/dashboard/kontribusi`, `/dashboard/kontribusi/buat`, `/dashboard/kontribusi/[id]/edit`, `/dashboard/laporan` |
+| Auth | `/login`, `/auth/sign-in` (POST), `/auth/callback` |
+| Member | `/dashboard`, `/dashboard/kontribusi`, `/dashboard/kontribusi/baru`, `/dashboard/kontribusi/[id]`, `/dashboard/laporan` |
 | Reviewer | `/review`, `/review/[id]` |
-| Moderator | `/moderation`, `/moderation/reports` |
-| Admin | `/admin`, `/admin/users`, `/admin/roles`, `/admin/categories`, `/admin/audit-logs`, `/admin/settings` |
+| Moderator | `/moderation/reports` |
+| Admin | `/admin`, `/admin/pengguna`, `/admin/kategori` |
+| API | `/api/reports`, `/api/cron/expire`, `/api/cron/cleanup` |
 
-Proteksi rute: `middleware.ts` memeriksa sesi + role; pemeriksaan ulang wajib di server action/route handler dan RLS (defense in depth).
+Proteksi rute: `src/proxy.ts` (pengganti `middleware.ts` di Next 16) memeriksa sesi untuk
+redirect awal; **pemeriksaan otorisasi sesungguhnya** dilakukan di layout & server action
+(`hasAnyRole`) dan ditegakkan ulang oleh RLS/RPC di database (defense in depth).
 
-## 4. Roadmap Fase
+> Catatan: `/admin/roles`, `/admin/users`, `/admin/categories`, `/admin/audit-logs`, dan
+> `/admin/settings` **tidak** diimplementasikan. Manajemen role & blokir berada di
+> `/admin/pengguna`; kategori di `/admin/kategori`. Audit log dapat dibaca lewat query
+> database (tidak ada UI khusus).
 
-### Phase 1 — Foundation
-- [ ] Repository, branch protection, CI (lint, typecheck, test)
-- [ ] Next.js + TypeScript, Tailwind, shadcn/ui
-- [ ] Proyek Supabase (dev & prod terpisah)
-- [ ] GitHub OAuth + trigger pembuatan profil
-- [ ] Migrasi skema + RLS + seed kategori
+## 4. Roadmap Fase — Status Implementasi
 
-### Phase 2 — Public Platform
-- [ ] Homepage (FR-HOME)
-- [ ] Direktori + search/filter (FR-DIR)
-- [ ] Detail (FR-DET)
-- [ ] Profil kontributor (FR-PRO)
-- [ ] `/tentang`, `/panduan`, `/kebijakan-privasi` + disclaimer
+Dirinci dengan bukti uji di [`IMPLEMENTATION_PROGRESS.md`](IMPLEMENTATION_PROGRESS.md).
 
-### Phase 3 — Contribution
-- [ ] Form kontribusi + validasi (FR-CON)
-- [ ] Dashboard member, riwayat, status
-- [ ] Validasi sumber, deteksi duplikasi, pemindai data sensitif
+### Phase 1 — Foundation ✅
+- [x] Repo, Next.js + TypeScript strict, Tailwind, komponen UI (tanpa Radix)
+- [x] Supabase lokal (Docker) + 7 migrasi (skema, RLS, RPC, trigger)
+- [x] GitHub OAuth + trigger pembuatan profil (role hanya `member`)
+- [x] Skema + RLS + seed kategori
+- [x] CI workflow ditulis (`.github/workflows/ci.yml`) — belum dijalankan di GitHub
 
-### Phase 4 — Moderation
-- [ ] Dashboard reviewer, claim, aksi review (FR-REV)
-- [ ] Sistem laporan + dashboard moderator (FR-REP, FR-MOD)
-- [ ] Admin: user, role, kategori, audit log (FR-ADM)
-- [ ] Cron auto-expire
+### Phase 2 — Public Platform ✅
+- [x] Beranda, direktori + pencarian/filter, halaman detail + sumber
+- [x] Profil kontributor publik
+- [x] `/tentang`, `/panduan`, `/kebijakan-privasi` + disclaimer
 
-### Phase 5 — Production Readiness
-- [ ] Security review & tes RLS semua role
-- [ ] Responsif & aksesibilitas
-- [ ] Error handling, halaman 404/500
-- [ ] Optimasi performa & SEO
-- [ ] Deployment & smoke test produksi
+### Phase 3 — Contribution ✅
+- [x] Form kontribusi + validasi Zod + pemindai data sensitif
+- [x] Dashboard member, riwayat, status
+- [x] Validasi sumber (SSRF guard) & deteksi duplikasi
+
+### Phase 4 — Moderation ✅
+- [x] Antrean reviewer, klaim 30 menit, aksi review (verifikasi/revisi/tolak/kedaluwarsa)
+- [x] Laporan publik + dashboard moderator
+- [x] Admin: pengguna (blokir + role), kategori
+- [x] Cron auto-expire & cleanup (`vercel.json`)
+
+### Phase 5 — Production Readiness ✅ (kode) / ⏳ (deploy)
+- [x] Security hardening: validasi Zod menyeluruh, CSP & header, audit 0 kerentanan,
+      bundle klien bebas `service_role`, error tanpa stack trace
+- [x] Tes berlapis: 107 unit, 39 RLS/integrasi, 36 E2E (termasuk responsif)
+- [x] Error handling, halaman 404/500
+- [x] SEO (metadata, sitemap, robots)
+- [ ] **Deploy & smoke test produksi** — belum, butuh kredensial pemilik
 
 ## 5. Konvensi Penting
 
@@ -80,7 +89,7 @@ Proteksi rute: `middleware.ts` memeriksa sesi + role; pemeriksaan ulang wajib di
 
 | Item | Catatan |
 |---|---|
-| Nama & kontak resmi (email) untuk halaman tentang/kebijakan privasi | Placeholder `[ISI]` di konten |
+| Nama & kontak resmi (email) untuk halaman tentang/kebijakan privasi | Konten sudah lengkap; email khusus belum ada (kanal GitHub dipakai) |
 | Domain produksi | Diperlukan untuk OAuth redirect & SEO |
 | Tim reviewer awal (min. 2 orang) | Agar aturan "tidak review milik sendiri" tetap workable |
 | Lisensi | Default MIT; ganti bila perlu |

@@ -16,7 +16,7 @@ Tidak ada komponen AI pada runtime.
 
 ## 2. Prinsip
 
-1. **Defense in depth:** middleware → server action → RLS/RPC. Tidak boleh bergantung pada satu lapis.
+1. **Defense in depth:** `proxy.ts` → layout/server action → RLS/RPC. Tidak boleh bergantung pada satu lapis.
 2. **Server sebagai sumber kebenaran:** validasi klien hanya UX.
 3. **Least privilege:** klien memakai anon key + sesi; `service_role` hanya server, dipakai minimal.
 4. **Mutasi status terpusat** di RPC agar atomik dan selalu tercatat.
@@ -43,19 +43,27 @@ src/
 │   ├── supabase/            # server.ts, client.ts, admin.ts (service_role, server-only)
 │   ├── auth/                # getSession, requireRole
 │   ├── validation/          # skema Zod
-│   ├── security/            # sanitize, sensitive-scan, ssrf-guard, ratelimit
-│   ├── programs/            # query, slug, normalizeUrl
+│   ├── security/            # sanitize, sensitive-scan, ssrf-guard, rate-limit, timing-safe
+│   ├── programs/            # query, review, detail (data layer halaman publik)
+│   ├── admin/               # data layer area admin
 │   └── constants/           # label status, teks UI (Bahasa Indonesia)
-├── middleware.ts
+│   ├── env.ts               # env publik (NEXT_PUBLIC_*)
+│   ├── env-server.ts        # env rahasia (server-only)
+│   ├── slug.ts  utils.ts
+├── proxy.ts                 # pengganti middleware.ts di Next 16
 └── types/
 ```
 
 ## 4. Autentikasi & Otorisasi
 
 - Supabase Auth, provider GitHub. Callback `/auth/callback` menukar kode → sesi (cookie httpOnly via `@supabase/ssr`).
-- Trigger `handle_new_user` membuat `profiles` + role `member`.
-- `requireRole(roles[])` dipakai di layout & server action; menarik role dari `user_roles` di server (bukan dari klaim klien).
-- `middleware.ts`: redirect ke `/login?next=` untuk rute terproteksi; **bukan** satu-satunya pemeriksaan.
+- Trigger `handle_new_user` membuat `profiles` + role `member` (username unik dijamin
+  trigger, role lain tidak pernah dibuat otomatis).
+- `hasAnyRole`/`hasRole`/`getCurrentUser` (`src/lib/auth/session.ts`) dipakai di layout &
+  server action; role dibaca dari `user_roles` di server (bukan dari klaim klien).
+- **`src/proxy.ts`** (Next 16 mengganti nama `middleware.ts` → `proxy.ts`, fungsi
+  diekspor sebagai `proxy`): redirect ke `/login?next=` untuk rute terproteksi; **bukan**
+  satu-satunya pemeriksaan — layout & RPC tetap memeriksa peran.
 - Akun `is_banned`: ditolak pada RPC/policy.
 
 ## 5. Alur Utama

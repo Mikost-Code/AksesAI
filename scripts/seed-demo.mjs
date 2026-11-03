@@ -1,6 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-/** Seed satu program VERIFIED ke Supabase lokal untuk smoke test. */
+/**
+ * Seed satu program VERIFIED ke Supabase lokal untuk smoke test.
+ *
+ * Key di bawah adalah kunci demo Supabase LOKAL yang terdokumentasi publik
+ * (issuer `supabase-demo`) — bukan secret proyek, hanya berlaku di 127.0.0.1.
+ */
 const url = "http://127.0.0.1:54321";
 const key =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";

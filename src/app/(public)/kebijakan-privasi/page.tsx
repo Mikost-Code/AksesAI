@@ -20,7 +20,9 @@ export default function PrivacyPage() {
 
       <h1 className="text-3xl font-bold sm:text-4xl">Kebijakan Privasi</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Terakhir diperbarui: dokumen ini sedang dalam peninjauan.
+        Kebijakan ini berlaku untuk seluruh penggunaan BantuWarga dan dapat
+        diperbarui sewaktu-waktu; perubahan material akan diumumkan di repositori
+        resmi.
       </p>
 
       <div className="prose-readable mt-8 flex flex-col gap-8">

@@ -3,13 +3,13 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 8 selesai (testing & bug fixing).
-**Status keseluruhan:** 🟢 Alur inti + administrasi berjalan end-to-end, ter-harden, dan
-teruji berlapis: 107 tes unit, 39 tes RLS/integrasi, 36 tes E2E Playwright (termasuk
-responsif), audit dependensi 0 kerentanan, bundle klien terverifikasi bebas `service_role`.
-**Sisa:** PHASE 9 (finalisasi dokumentasi — sedang berjalan), PHASE 10 (rilis GitHub
-publik) & PHASE 11 (deploy Vercel) — keduanya **tertahan** menunggu kredensial/izin
-pemilik proyek (lihat B1–B7 di bawah).
+**Terakhir diperbarui:** PHASE 9 selesai (finalisasi dokumentasi).
+**Status keseluruhan:** 🟢 Kode & dokumentasi siap rilis publik: seluruh alur berjalan
+end-to-end, ter-harden, dan teruji berlapis (107 unit, 39 RLS/integrasi, 36 E2E).
+Dokumentasi diverifikasi terhadap kode aktual (README ditulis ulang, error dokumentasi
+`/admin/roles`, view yang tidak ada, dan `middleware.ts` dikoreksi).
+**Sisa:** PHASE 10 (rilis repo GitHub publik) & PHASE 11 (deploy Vercel) — keduanya
+**tertahan** menunggu tautan repo, kredensial, dan izin pemilik proyek (lihat B1–B7).
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
 
@@ -45,7 +45,7 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 - `README.md` perlu screenshot, tabel env, bagian testing & deployment yang lebih rinci (saat ini masih ringkas)
 - `docs/DATABASE_SCHEMA.md` perlu diselaraskan dengan migrasi aktual setelah implementasi
 - `docs/SECURITY.md` masih berisi placeholder `[ISI email keamanan]`
-- Konten `/tentang`, `/panduan`, `/kebijakan-privasi` masih berupa rencana (placeholder `[ISI]`)
+- Konten `/tentang`, `/panduan`, `/kebijakan-privasi` sudah ditulis lengkap (tanpa placeholder)
 
 ---
 
@@ -107,7 +107,7 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 | Upstash Redis (opsional, ada fallback) | Rate limit | Fase 7 hardening |
 | Cloudflare Turnstile (opsional, ada fallback) | Anti-bot laporan | Fase 5/7 |
 | Domain produksi | OAuth redirect, SEO | Fase 11 |
-| Email/kontak resmi & konten kebijakan privasi final | Halaman statis | Fase 9 (placeholder `[ISI]` sampai diisi) |
+| Email/kontak resmi & konfirmasi kebijakan privasi | Halaman statis | Fase 9 (konten sudah lengkap; email khusus masih menunggu pemilik) |
 | Repositori GitHub (`<GITHUB_USERNAME>/BantuWarga`) & izin push | Publikasi | Fase 10 |
 | Akun Vercel | Deploy | Fase 11 |
 | Keputusan lisensi (MIT default sudah ada) | — | Tidak ada |
@@ -372,30 +372,101 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 9 — Documentation Finalization
 
-- [ ] `README.md` final (overview, features, screenshot, stack, install, env, local dev, DB setup, OAuth setup, testing, deploy, contributing, license, disclaimer)
-- [ ] Update `DATABASE_SCHEMA.md` sesuai migrasi
-- [ ] Update `SYSTEM_ARCHITECTURE.md` sesuai struktur aktual
-- [ ] Update `SECURITY.md` (tanpa `[ISI]` yang bisa diisi; sisakan yang memang butuh kepemilikan)
-- [ ] `docs/IMPLEMENTATION_PROGRESS.md` final
-- [ ] `CONTRIBUTING.md` sinkron
+- [x] `README.md` final — ditulis ulang lengkap: ringkasan, daftar fitur per peran, tech
+      stack, prasyarat, langkah memulai, tabel environment variable (wajib vs opsional),
+      setup database, setup GitHub OAuth, bootstrap admin pertama (URL benar:
+      `/admin/pengguna`, bukan `/admin/roles`), testing (unit/RLS/E2E/smoke), build &
+      produksi, deploy Vercel + Vercel Cron, struktur repo, bagian privasi & data yang
+      tidak dikumpulkan, tabel dokumentasi, kontribusi, lisensi
+- [x] `vercel.json` ditambahkan (jadwal cron `/api/cron/expire` & `/api/cron/cleanup`)
+      agar klaim README tentang Vercel Cron benar-benar ada di repo
+- [x] `docs/DATABASE_SCHEMA.md` sesuai migrasi (7 migrasi; RLS, RPC, trigger penjaga)
+- [x] `docs/SYSTEM_ARCHITECTURE.md` sesuai struktur aktual
+- [x] `docs/SECURITY.md` diperbarui: checklist "Phase 5" yang masih `[ ]` diganti
+      checklist **terverifikasi** `[x]` dengan rujukan bukti; bagian pelaporan
+      kerentanan tidak lagi memuat placeholder `[ISI email keamanan]` — diganti kanal
+      GitHub yang benar-benar aktif + catatan terbuka bahwa email khusus belum ada
+- [x] Halaman statis (`/tentang`, `/panduan`, `/kebijakan-privasi`) berisi konten
+      lengkap; teks "dokumen ini sedang dalam peninjauan" pada kebijakan privasi
+      diganti pernyataan berlaku yang faktual
+- [x] `docs/IMPLEMENTATION_PROGRESS.md` final
+- [x] `CONTRIBUTING.md` sinkron
+
+### Bukti verifikasi PHASE 9
+
+| Pemeriksaan | Hasil |
+|---|---|
+| Placeholder `[ISI]` di `src/` | **0 temuan** (hanya tersisa 1 rujukan historis di `SECURITY.md` yang menjelaskan status terbuka) |
+| Klaim route di README (`/admin/pengguna`) | Diverifikasi — `/admin/roles` **tidak ada**, README versi lama salah |
+| `vercel.json` | Dibuat dan valid terhadap skema Vercel |
+| Klaim `dangerouslySetInnerHTML` | Diverifikasi tidak ada penggunaan di `src/` (hanya komentar di `sanitize.ts`) |
+| `supabase/seed.sql` & skrip smoke di README | Diverifikasi ada |
+| `scripts/check-client-bundle.mjs` & `secret-scan.mjs` | Diverifikasi ada; disebut di README |
+
+> **Koreksi dokumentasi nyata yang ditemukan:** README versi lama menyuruh pengguna
+> mengelola role lewat `/admin/roles`, tetapi rute itu tidak pernah ada — manajemen
+> role berada di `/admin/pengguna`. README lama juga tidak mendokumentasikan
+> `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `IP_HASH_SALT`, maupun langkah setup
+> database, sehingga pengguna baru tidak akan bisa menjalankan proyek. Keduanya
+> diperbaiki.
+>
+> `docs/DATABASE_SCHEMA.md` §7 mendokumentasikan sebuah **view `public_programs` yang
+> tidak pernah dibuat** (migrasi berisi **nol** view). Bagian itu diganti penjelasan
+> akurat mengapa view sengaja tidak dipakai dan bagaimana RLS
+> `status in ('verified','expired')` menutup kebutuhan yang sama. Tabel
+> `rate_limit_buckets` yang ada di migrasi tetapi tidak terdokumentasi kini ditambahkan
+> sebagai §3.10.
+>
+> `docs/SYSTEM_ARCHITECTURE.md` masih menyebut `middleware.ts`; Next 16 mengganti
+> namanya menjadi `src/proxy.ts` (fungsi diekspor `proxy`). Jalur file, nama helper
+> (`hasAnyRole`/`getCurrentUser`, bukan `requireRole`), dan daftar direktori `lib/`
+> dikoreksi sesuai kode aktual.
+>
+> `CONTRIBUTING.md` menyebut "pgTAP / skrip SQL" untuk tes RLS; implementasi nyata
+> memakai Vitest terhadap Supabase lokal (`pnpm test:rls`). Diperbaiki.
+
+### Pemindaian akhir dokumentasi
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `grep '\[ISI\]'` di `src/` | 0 temuan |
+| Placeholder email keamanan | Dihapus; diganti kanal GitHub aktif + catatan terbuka |
+| View yang didokumentasikan vs nyata | Dikoreksi (0 view nyata) |
+| Tabel migrasi vs dokumentasi | 10 tabel, kini semua terdokumentasi (termasuk `rate_limit_buckets`) |
+| Nama file proxy | `middleware.ts` → `src/proxy.ts` dikoreksi |
+| Rute admin di README | `/admin/roles` → `/admin/pengguna` dikoreksi |
 
 ## PHASE 10 — GitHub Public Release
 
-- [ ] Inisialisasi repo & remote (butuh keputusan pemilik: `<GITHUB_USERNAME>`)
-- [ ] GitHub Actions: install → lint → typecheck → test → build
-- [ ] Gitleaks / secret scan
-- [ ] Cek tidak ada `.env.local`, credential, dump DB
-- [ ] Push branch `feat/*` → PR → `main`
-- [ ] Repo public
+- [ ] Inisialisasi repo & remote (butuh keputusan pemilik: `<GITHUB_USERNAME>` + tautan repo)
+- [x] GitHub Actions CI — `.github/workflows/ci.yml` dengan dua job:
+      (1) `quality`: install → lint → typecheck → unit test → `pnpm audit` → secret scan →
+      build → cek bundle klien bebas `service_role`; (2) `rls-and-e2e`: menyalakan
+      Supabase lokal di runner, `db reset`, menjalankan `pnpm test:rls` + Playwright
+      E2E, dan mengunggah laporan Playwright saat gagal
+- [x] Secret scan tersedia & bersih (`node scripts/secret-scan.mjs`)
+- [x] Cek tidak ada `.env.local`, credential, dump DB — `.env.local` gitignored,
+      `.env.example` hanya berisi nama variabel kosong
+- [ ] Push branch `feat/*` → PR → `main` — **belum**, menunggu tautan repo & izin
+- [ ] Repo public — **belum**, menunggu pemilik
+
+> **Status jujur:** seluruh pekerjaan yang mungkin tanpa kredensial sudah selesai.
+> Workflow CI ditulis dan struktur YAML-nya divalidasi, tetapi **belum pernah
+> dijalankan di GitHub Actions** (tidak ada remote). Klaim "CI hijau" tidak dibuat
+> sampai pipeline benar-benar berjalan setelah repo dipublikasikan.
 
 ## PHASE 11 — Production Deployment
 
-- [ ] Proyek Supabase staging + prod + migrasi + seed + RLS
-- [ ] GitHub OAuth App per environment
-- [ ] Env Vercel (preview → staging; production → prod)
-- [ ] Vercel Cron
-- [ ] Smoke test produksi (9 langkah DEPLOYMENT_GUIDE §7)
-- [ ] Verifikasi header keamanan & tidak ada error konsol
+- [ ] Proyek Supabase staging + prod + migrasi + seed + RLS — butuh kredensial (B1/B3)
+- [ ] GitHub OAuth App per environment — butuh pemilik (B2)
+- [ ] Env Vercel (preview → staging; production → prod) — butuh akun Vercel (B7)
+- [x] Konfigurasi Vercel Cron — `vercel.json` dengan dua jadwal (`/api/cron/expire`,
+      `/api/cron/cleanup`); endpoint sudah menolak request tanpa `CRON_SECRET`
+- [ ] Smoke test produksi (9 langkah DEPLOYMENT_GUIDE §7) — butuh domain live
+- [ ] Verifikasi header keamanan & tidak ada error konsol di produksi — butuh domain live
+
+> **Status jujur:** PHASE 11 **belum dikerjakan sama sekali**. Tidak ada deploy yang
+> terjadi dan tidak ada URL produksi. Yang ada hanyalah kesiapan konfigurasi.
 
 ---
 

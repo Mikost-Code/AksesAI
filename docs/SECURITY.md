@@ -92,19 +92,34 @@ Sesuaikan CSP setelah implementasi dan uji tanpa pelanggaran. Server Actions Nex
 
 ## 12. Pelaporan Kerentanan
 
-Cantumkan di `SECURITY` kontak resmi (`[ISI email keamanan]`). Pelapor tidak membuka issue publik; tim merespons < 3 hari kerja dan memperbaiki sesuai tingkat keparahan. Jangan menguji pada data pengguna lain.
+Kanal pelaporan resmi saat ini adalah **halaman issue privat/repositori GitHub resmi proyek** (lihat `README.md`). Pelapor **tidak** membuka issue publik berisi detail teknis; gunakan fitur *private vulnerability reporting* GitHub bila tersedia.
 
-## 13. Checklist Security Review (Phase 5)
+Tim merespons < 3 hari kerja dan memperbaiki sesuai tingkat keparahan. Jangan menguji pada data pengguna lain, jangan mengakses data yang bukan milik Anda, dan jangan melakukan uji beban/DDoS.
 
-- [ ] RLS aktif di semua tabel; tes per role lulus
-- [ ] Tidak ada policy tulis untuk `user_roles`, `moderation_logs`, `contribution_history`
-- [ ] Tidak ada `service_role` di bundle klien (cek `.next` build)
-- [ ] Reviewer tidak bisa verifikasi milik sendiri; eskalasi role tidak mungkin
-- [ ] Rate limit & Turnstile bekerja
-- [ ] CSP & header lain terpasang, tanpa pelanggaran konsol
-- [ ] XSS: coba payload di semua field; tidak tereksekusi
-- [ ] Pemindai data sensitif menolak contoh NIK/rekening
-- [ ] Tidak ada secret di riwayat git (`gitleaks detect`)
-- [ ] `pnpm audit` tanpa temuan high/critical
-- [ ] Halaman error tidak membocorkan detail teknis
-- [ ] Cron endpoint menolak tanpa `CRON_SECRET`
+> **Belum final (menunggu pemilik proyek):** alamat email keamanan khusus. Setelah tersedia, ganti paragraf di atas dengan alamat tersebut dan perbarui `SECURITY.md` serta `/kebijakan-privasi`. Sampai itu diisi, jangan mengarang alamat email — kanal GitHub di atas adalah jalur yang benar-benar aktif.
+
+## 13. Checklist Security Review
+
+Status di bawah ini **diverifikasi nyata** (bukan rencana) — lihat
+`docs/IMPLEMENTATION_PROGRESS.md` PHASE 4, 5 & 7 untuk perintahnya.
+
+- [x] RLS aktif di semua tabel; tes per role lulus (`pnpm test:rls` — 39 tes)
+- [x] Tidak ada policy tulis untuk `user_roles`, `moderation_logs`, `contribution_history`
+      (ditambah trigger penjaga yang menolak perubahan kolom status/istimewa secara langsung)
+- [x] Tidak ada `service_role` di bundle klien (`scripts/check-client-bundle.mjs` — 28 chunk bersih)
+- [x] Reviewer tidak bisa verifikasi milik sendiri; eskalasi role tidak mungkin
+      (RLS + RPC + uji E2E self-review)
+- [x] Rate limit berlapis (Upstash → Postgres fallback); Turnstile opsional dengan
+      peringatan log bila tidak diset di production
+- [x] CSP & header lain terpasang; tidak ada `X-Powered-By` (diverifikasi lewat response
+      header dan uji E2E)
+- [x] XSS: tidak ada `dangerouslySetInnerHTML` di `src/`; React meng-escape semua teks
+- [x] Pemindai data sensitif menolak contoh NIK/KK/rekening (`tests/unit/sensitive-scan.test.ts`)
+- [x] Tidak ada secret di riwayat git (`scripts/secret-scan.mjs` — 0 temuan)
+- [x] `pnpm audit` tanpa temuan (0 kerentanan, termasuk dev)
+- [x] Halaman error tidak membocorkan detail teknis (`error.tsx`, `global-error.tsx`)
+- [x] Cron endpoint menolak tanpa `CRON_SECRET` (perbandingan konstanta-waktu)
+
+> Sisa yang **tidak dapat** diverifikasi di lingkungan lokal: uji beban/DDoS,
+> pemindaian header pada domain produksi, dan uji OAuth GitHub sungguhan. Semua
+> membutuhkan deploy nyata (lihat `docs/DEPLOYMENT_GUIDE.md`).

@@ -9,6 +9,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  *  - user JWT: meniru pengguna login dengan role tertentu
  *
  * Jika Supabase lokal tidak berjalan, tes akan di-skip dengan peringatan jelas.
+ *
+ * CATATAN KEAMANAN: JWT di bawah adalah **kunci demo Supabase lokal yang
+ * terdokumentasi publik** (issuer `supabase-demo`, hanya berlaku untuk instance
+ * lokal `127.0.0.1:54321`). Ini BUKAN secret proyek dan tidak dapat dipakai
+ * terhadap instance Supabase mana pun yang sebenarnya.
  */
 
 const LOCAL_URL = process.env.SUPABASE_TEST_URL ?? "http://127.0.0.1:54321";

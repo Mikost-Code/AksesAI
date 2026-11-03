@@ -3,12 +3,13 @@
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
 
-**Terakhir diperbarui:** PHASE 7 selesai (security hardening).
-**Status keseluruhan:** 🟡 Alur inti + administrasi berjalan end-to-end dan telah di-harden:
-validasi Zod menyeluruh, audit dependensi 0 kerentanan, bundle klien terverifikasi bebas
-`service_role`, header keamanan terpasang, error tanpa stack trace.
-Sisa: E2E Playwright (PHASE 8), finalisasi dokumentasi (PHASE 9), rilis GitHub (PHASE 10),
-deploy produksi (PHASE 11) — PHASE 10–11 butuh kredensial/izin pemilik proyek.
+**Terakhir diperbarui:** PHASE 8 selesai (testing & bug fixing).
+**Status keseluruhan:** 🟢 Alur inti + administrasi berjalan end-to-end, ter-harden, dan
+teruji berlapis: 107 tes unit, 39 tes RLS/integrasi, 36 tes E2E Playwright (termasuk
+responsif), audit dependensi 0 kerentanan, bundle klien terverifikasi bebas `service_role`.
+**Sisa:** PHASE 9 (finalisasi dokumentasi — sedang berjalan), PHASE 10 (rilis GitHub
+publik) & PHASE 11 (deploy Vercel) — keduanya **tertahan** menunggu kredensial/izin
+pemilik proyek (lihat B1–B7 di bawah).
 
 ### Bukti verifikasi PHASE 1–3 (dijalankan nyata, bukan klaim)
 
@@ -315,12 +316,59 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## PHASE 8 — Testing & Bug Fixing
 
-- [ ] Unit: validasi Zod, util slug/normalizeUrl, sensitive-scan, transisi status
-- [ ] Integration: server action kontribusi & review (Supabase lokal)
-- [ ] Authorization: member ≠ admin, role tidak bisa diubah sendiri
-- [ ] RLS: 12 skenario wajib dari brief
-- [ ] E2E Playwright: alur publik, login, kontribusi, review, laporan, admin
-- [ ] Build test & responsive test
+- [x] Unit: validasi Zod (kontribusi, laporan, pencarian, staf/admin), util slug/normalizeUrl,
+      sensitive-scan, SSRF guard, sanitasi — **107 tes**
+- [x] Integration: server action kontribusi & review + RPC admin (Supabase lokal) —
+      **39 tes** di `tests/rls` + `tests/integration`
+- [x] Authorization: member ≠ admin, role tidak bisa diubah sendiri
+      (RLS `access-control.test.ts` + RPC `admin-rpc.test.ts` + E2E redirect per role)
+- [x] RLS: seluruh skenario wajib dari brief — tercakup di `tests/rls` (lihat PHASE 4)
+- [x] E2E Playwright: alur publik, kontribusi, review, moderasi, admin, responsif —
+      **36 tes lulus** dalam satu kali jalan penuh
+- [x] Build test (`next build` sukses, 27 rute) & responsive test (320/375/768px tanpa
+      scroll horizontal)
+
+### Bukti verifikasi PHASE 8 (dijalankan nyata)
+
+| Perintah / uji | Hasil |
+|---|---|
+| `pnpm typecheck` / `pnpm lint` | 0 error, 0 warning |
+| `pnpm test` | **107 tes lulus** (8 file) — +10 tes `slugify`, +2 tes regresi null |
+| `pnpm test:rls` | **39 tes lulus** (6 file) |
+| `pnpm exec playwright test` | **36 tes lulus** (publik 10, kontributor 4, reviewer 5, admin 3, responsif 14) |
+| `next build` | Sukses — 27 rute |
+| `node scripts/check-client-bundle.mjs` | Bersih (28 chunk, tak ada `service_role`) |
+
+**Cakupan E2E (semua terhadap server & database sungguhan):**
+- `e2e/public.spec.ts` — beranda, direktori, pencarian, halaman statis, login, 404,
+  header keamanan, skip-link, redirect rute terproteksi tanpa sesi.
+- `e2e/contributor.spec.ts` — dasbor, daftar kontribusi, **menyimpan draf lewat form nyata**
+  lalu memverifikasi draf muncul di daftar, halaman laporan.
+- `e2e/reviewer.spec.ts` — antrean review, **klaim item nyata**, self-review diblokir,
+  member tidak bisa membuka `/review`, reviewer tidak bisa membuka `/moderation`.
+- `e2e/admin.spec.ts` — ringkasan/pengguna/kategori, **pemberian role lewat UI**,
+  member tidak bisa membuka `/admin`.
+- `e2e/responsive.spec.ts` — 4 halaman × 3 viewport tanpa overflow horizontal.
+
+> **Bug nyata yang ditemukan & diperbaiki lewat E2E:** `contributionFormSchema`
+> menolak `null`. Klien mengirim `province: null`, `city: null`, dan tanggal `null`
+> untuk cakupan nasional / field kosong, sehingga **menyimpan draf apa pun gagal**
+> dengan pesan "Invalid input: expected string, received null". `.optional()` diganti
+> `.nullish()` pada `optionalMultiLine`, `isoDate`, `province`, dan `city`. Dua tes
+> regresi unit ditambahkan. Bug ini tidak terdeteksi oleh tes unit sebelumnya karena
+> tes lama memakai string kosong `""`, bukan `null` seperti yang dikirim browser.
+
+> **Catatan metodologi E2E:** login memakai GitHub OAuth yang tidak dapat diotomasi
+> secara lokal. Uji membuat pengguna sungguhan lewat service_role (server-side saja)
+> lalu menanamkan cookie sesi `@supabase/ssr` (`sb-<ref>-auth-token`, prefix `base64-`,
+> dipecah per 3180 karakter) ke konteks browser Playwright. `authenticate()`
+> memverifikasi `/dashboard` tidak ter-redirect, sehingga kegagalan sesi tidak
+> menghasilkan uji yang menyesatkan.
+
+> **Batasan yang diakui:** uji E2E tidak mencakup login GitHub sungguhan maupun
+> callback OAuth (perlu aplikasi GitHub nyata — lihat B2). Antrean review lokal berisi
+> puluhan item sisa uji sebelumnya; uji reviewer membuka panel lewat URL itemnya
+> sendiri agar tidak bergantung pada urutan halaman.
 
 ## PHASE 9 — Documentation Finalization
 
@@ -367,5 +415,13 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 
 ## Catatan Kejujuran
 
-- Sampai dokumen ini dibuat, **tidak ada satu pun fitur yang diimplementasikan**. Semua status `[ ]`.
-- PHASE 7–11 tidak dapat diselesaikan tanpa credential `B1–B7`. Kode dan dokumentasi dapat disiapkan, tetapi klaim "production ready" tidak akan diberikan sampai smoke test dijalankan.
+- PHASE 0–8 sudah diimplementasikan dan diuji terhadap Supabase lokal. Setiap centang
+  `[x]` disertai bukti perintah/uji nyata di bagian "Bukti verifikasi" fase terkait.
+- PHASE 10–11 (rilis GitHub publik & deploy Vercel) **tidak dapat diselesaikan** tanpa
+  credential `B1–B7` dan tautan repo dari pemilik. Kode dan dokumentasi disiapkan penuh,
+  tetapi klaim "production ready" tidak akan diberikan sampai deploy nyata dijalankan
+  dan diverifikasi.
+- Yang **belum** diverifikasi karena keterbatasan lingkungan: login GitHub OAuth
+  sungguhan (B2), deploy ke Vercel (B5/B6), dan Supabase production (B1/B3). Uji E2E
+  memakai sesi yang dibuat manual untuk menutupi keterbatasan ini, dan hal itu
+  dinyatakan terbuka di bagian PHASE 8.

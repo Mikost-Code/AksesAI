@@ -47,15 +47,15 @@ const multiLine = (min: number, max: number, label: string) =>
 const optionalMultiLine = (max: number, label: string) =>
   z
     .string()
-    .optional()
+    .nullish()
     .transform((v) => (v ? sanitizeText(v) : ""))
     .transform((v) => (v.length === 0 ? null : v))
     .pipe(z.string().max(max, `${label} maksimal ${max} karakter.`).nullable());
 
-/** Tanggal ISO `YYYY-MM-DD` yang valid secara kalender; string kosong → null. */
+/** Tanggal ISO `YYYY-MM-DD` yang valid secara kalender; string kosong / null → null. */
 const isoDate = z
   .string()
-  .optional()
+  .nullish()
   .transform((v) => (v && v.trim() !== "" ? v.trim() : null))
   .pipe(
     z
@@ -122,14 +122,14 @@ export const contributionFormSchema = z
     regionScope: z.enum(REGION_SCOPES),
     province: z
       .string()
-      .optional()
+      .nullish()
       .transform((v) => (v ? sanitizeSingleLine(v) : ""))
       .transform((v) => (v.length === 0 ? null : v))
       .pipe(z.enum(PROVINCES).nullable())
       .catch(null),
     city: z
       .string()
-      .optional()
+      .nullish()
       .transform((v) => (v ? sanitizeSingleLine(v) : ""))
       .transform((v) => (v.length === 0 ? null : v))
       .pipe(z.string().max(80, "Nama kota maksimal 80 karakter.").nullable()),

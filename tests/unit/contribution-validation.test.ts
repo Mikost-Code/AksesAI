@@ -37,6 +37,42 @@ describe("contributionFormSchema — validasi dasar", () => {
     expect(result.success).toBe(true);
   });
 
+  // Regresi: klien mengirim `null` (bukan "") untuk field opsional yang
+  // disembunyikan / date kosong. Sebelumnya skema menolak null sehingga
+  // menyimpan draf cakupan nasional gagal. Ditemukan lewat E2E PHASE 8.
+  it("menerima null untuk province, city, dan tanggal (regresi E2E)", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({
+        province: null,
+        city: null,
+        publishedAt: null,
+        startDate: null,
+        endDate: null,
+        requirements: null,
+        contributorNote: null,
+      }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.province).toBeNull();
+      expect(result.data.city).toBeNull();
+      expect(result.data.publishedAt).toBeNull();
+    }
+  });
+
+  it("menerima undefined untuk field opsional (klien lama)", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({
+        province: undefined,
+        city: undefined,
+        publishedAt: undefined,
+        startDate: undefined,
+        endDate: undefined,
+      }),
+    );
+    expect(result.success).toBe(true);
+  });
+
   it("menolak judul terlalu pendek", () => {
     const result = contributionFormSchema.safeParse(validInput({ title: "Bansos" }));
     expect(result.success).toBe(false);

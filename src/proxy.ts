@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { safeInternalPath } from "@/lib/security/safe-redirect";
+
 /**
  * Proxy (sebelumnya `middleware.ts` pada Next.js < 16).
  *
@@ -42,6 +44,12 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -75,12 +83,14 @@ export async function proxy(request: NextRequest) {
 
   // Pengguna yang sudah login tidak perlu melihat /login.
   if (pathname === "/login" && user) {
-    const next = request.nextUrl.searchParams.get("next");
-    const safeNext =
-      next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+    const safeNext = safeInternalPath(request.nextUrl.searchParams.get("next"));
+    // Ditargetkan terhadap origin yang sudah divalidasi agar query & hash
+    // ikut terbawa tanpa parsing manual (yang rawan `undefined`).
+    const target = new URL(safeNext, request.nextUrl.origin);
     const url = request.nextUrl.clone();
-    url.pathname = safeNext;
-    url.search = "";
+    url.pathname = target.pathname;
+    url.search = target.search;
+    url.hash = target.hash;
     return NextResponse.redirect(url);
   }
 

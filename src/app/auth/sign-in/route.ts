@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { rateLimitUpstash, RATE_LIMITS } from "@/lib/security/rate-limit";
 import { getClientIp } from "@/lib/security/ip-hash";
+import { safeInternalPath } from "@/lib/security/safe-redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { clientEnv, isSupabaseConfigured } from "@/lib/env";
 
@@ -9,7 +10,11 @@ import { clientEnv, isSupabaseConfigured } from "@/lib/env";
  * Mulai login OAuth GitHub.
  * POST (bukan GET) agar tidak dapat dipicu via gambar/prefetch.
  * Rate limit per IP untuk mencegah penyalahgunaan callback.
+ *
+ * `next` divalidasi lewat `safeInternalPath` — lihat catatan di modul tersebut
+ * mengapa daftar bypass yang ditolak begitu spesifik.
  */
+
 export async function POST(request: NextRequest) {
   const siteUrl = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 
@@ -30,11 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
-  const nextRaw = formData.get("next");
-  const next =
-    typeof nextRaw === "string" && nextRaw.startsWith("/") && !nextRaw.startsWith("//")
-      ? nextRaw
-      : "/dashboard";
+  const next = safeInternalPath(formData.get("next"));
 
   const supabase = await createSupabaseServerClient();
   const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;

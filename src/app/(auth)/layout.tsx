@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LogoLockup } from "@/components/brand/logo";
+
 export default function AuthLayout({
   children,
 }: {
@@ -21,15 +23,10 @@ export default function AuthLayout({
         <div className="mx-auto flex h-16 max-w-[1200px] items-center px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="flex items-center gap-2 font-heading text-lg font-bold transition-opacity hover:opacity-80"
+            aria-label="AksesAI — beranda"
+            className="inline-flex rounded-lg outline-none transition-opacity hover:opacity-80"
           >
-            <span
-              aria-hidden="true"
-              className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-[var(--shadow-card)]"
-            >
-              AI
-            </span>
-            AksesAI
+            <LogoLockup />
           </Link>
         </div>
       </header>

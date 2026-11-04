@@ -2,7 +2,7 @@
   "name": "aksesai",
   "version": "0.1.0",
   "private": true,
-  "description": "Platform informasi bantuan sosial berbasis kontribusi komunitas dengan verifikasi manual.",
+  "description": "Direktori info gratis & murah seputar AI berbasis kontribusi komunitas dengan verifikasi manual.",
   "license": "MIT",
   "packageManager": "pnpm@10.28.2",
   "engines": {

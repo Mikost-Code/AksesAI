@@ -1,10 +1,11 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 
+import { LogoLockup } from "@/components/brand/logo";
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { GithubRepoButton } from "@/components/layout/github-repo-button";
+import { NavLinks } from "@/components/layout/nav-links";
 import { buttonVariants } from "@/components/ui/button";
-import { APP_NAME } from "@/lib/constants/labels";
 
 export const NAV_LINKS = [
   { href: "/info", label: "Direktori" },
@@ -19,52 +20,35 @@ export const NAV_LINKS = [
  * dirender statis/ISR (PRD §7 Performa). Tombol akun di sisi kanan adalah
  * Server Component terpisah (`<AccountNav />`) — atau, jika disusun dalam
  * layout dinamis, dapat memakai pola suspense di masa depan.
+ *
+ * Efek "kaca" saat menggulir ditangani `NavLinks`/CSS: header memakai
+ * `surface-glass` sehingga konten di belakangnya tetap terbaca tanpa
+ * memicu re-render React (murni CSS `position: sticky`).
  */
 export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="surface-glass sticky top-0 z-40 border-b border-border/80 transition-shadow duration-300">
       <div className="mx-auto grid h-16 max-w-[1200px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="flex items-center gap-2 font-heading text-lg font-bold text-foreground"
+          aria-label="AksesAI — beranda"
+          className="group -ml-1 rounded-lg px-1 py-1 outline-none transition-transform duration-200 hover:scale-[1.01]"
         >
-          <span
-            aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
-          >
-            AI
-          </span>
-          {APP_NAME}
+          <LogoLockup className="transition-opacity group-hover:opacity-90" />
         </Link>
 
-        <nav
-          aria-label="Navigasi utama"
-          className="hidden items-center justify-self-center gap-1 md:flex"
-        >
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-surface hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <NavLinks links={NAV_LINKS} className="hidden md:flex" />
 
         <div className="flex items-center gap-2 justify-self-end">
           <GithubRepoButton className="hidden sm:inline-flex" />
           {accountSlot ?? (
-            <Link
-              href="/login"
-              className={buttonVariants({ variant: "default", size: "sm" })}
-            >
+            <Link href="/login" className={buttonVariants({ size: "sm" })}>
               Masuk
             </Link>
           )}
-          <details className="md:hidden">
+          <details className="group/menu md:hidden">
             <summary
-              className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md transition-colors hover:bg-surface"
+              className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md transition-colors hover:bg-surface [&::-webkit-details-marker]:hidden"
               aria-label="Buka menu navigasi"
             >
               <Menu className="size-5" aria-hidden="true" />

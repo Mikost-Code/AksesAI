@@ -58,7 +58,7 @@ export default async function DirectoryPage({
           {directory.configured
             ? directory.total > 0
               ? `${directory.total} info ditemukan`
-              : "Belum ada info yang cocok"
+              : "Tidak ada hasil"
             : "Direktori belum terhubung ke sumber data"}
         </p>
         <p className="text-xs text-muted-foreground">{PLATFORM_DISCLAIMER_SHORT}</p>

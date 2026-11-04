@@ -42,7 +42,7 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
   const pricing = priceLabel(program.priceInput, program.priceOutput);
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] focus-within:border-primary/30 focus-within:shadow-[var(--shadow-elevated)]">
+    <Card className="card-accent group relative flex h-full flex-col overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] focus-within:border-primary/30 focus-within:shadow-[var(--shadow-elevated)]">
       <div className="flex items-start justify-between gap-3 p-5 pb-3">
         <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
           {program.categoryName}
@@ -83,7 +83,7 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
           {program.summary}
         </p>
 
-        <dl className="mt-auto flex flex-col gap-1.5 rounded-lg bg-surface p-3 text-sm text-muted-foreground">
+        <dl className="mt-auto flex flex-col gap-1.5 rounded-lg bg-surface p-3 text-sm text-muted-foreground transition-colors duration-200 group-hover:bg-primary-soft/40">
           <div className="flex items-center gap-1.5">
             <Sparkles className="size-4 shrink-0 text-primary/70" aria-hidden="true" />
             <dt className="sr-only">Provider</dt>
@@ -120,7 +120,7 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
             alt=""
             width={20}
             height={20}
-            className="size-5 rounded-full"
+            className="size-5 rounded-full ring-1 ring-border"
           />
         ) : (
           <span
@@ -131,6 +131,12 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
           </span>
         )}
         <span>Dibagikan oleh {program.contributorUsername}</span>
+        <span
+          aria-hidden="true"
+          className="ml-auto text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+        >
+          →
+        </span>
       </div>
     </Card>
   );

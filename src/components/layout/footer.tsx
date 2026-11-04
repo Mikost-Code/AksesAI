@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LogoLockup } from "@/components/brand/logo";
 import { APP_NAME, PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
 
 const FOOTER_LINKS = [
@@ -24,8 +25,14 @@ export function Footer() {
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
         <div className="md:col-span-1">
-          <p className="font-heading text-base font-semibold">{APP_NAME}</p>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          <Link
+            href="/"
+            aria-label={`${APP_NAME} — beranda`}
+            className="inline-flex rounded-lg outline-none"
+          >
+            <LogoLockup />
+          </Link>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
             Direktori info gratis &amp; murah seputar AI berbasis kontribusi
             komunitas, dengan sumber yang dapat diperiksa dan verifikasi manual.
           </p>

@@ -24,21 +24,48 @@ Jangan pernah berbagi database antara preview dan production.
 
 ## 3. Setup Vercel
 
-1. Import repo GitHub → framework Next.js.
+1. Import repo GitHub → framework Next.js (terdeteksi otomatis; `pnpm-lock.yaml` terdeteksi sebagai pnpm).
 2. Environment Variables (Production, Preview, Development sesuai kebutuhan) — lihat `.env.example`. Tandai rahasia sebagai *Sensitive*.
+
+   > ⚠️ **Blocker untuk repo privat:** Vercel berbayar memakai *integration* GitHub App; akun **Hobby (gratis) hanya bisa meng-import repo publik**. Untuk repo privat tanpa upgrade, deploy lewat Vercel CLI (`vercel --prod`) dari mesin lokal — build berjalan lokal/build-server, bukan dari GitHub.
+
+   | Variabel | Sumber | Sensitive |
+   |---|---|---|
+   | `NEXT_PUBLIC_SITE_URL` | domain produksi, mis. `https://aksesai.vercel.app` | tidak |
+   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API | tidak |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | idem | tidak |
+   | `SUPABASE_SERVICE_ROLE_KEY` | idem (Reveal) | **ya** |
+   | `CRON_SECRET` | generate acak ≥ 32 karakter (**beda** dari nilai lokal) | **ya** |
+   | `IP_HASH_SALT` | generate acak ≥ 16 karakter (**beda** dari nilai lokal) | **ya** |
+   | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | opsional; tanpa ini rate limit jatuh ke Postgres | **ya** |
+   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | opsional; tanpa ini laporan anonim hanya dibatasi rate limit IP | sebagian |
+
+   Generate nilai acak:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(36).toString('base64url'))"
+   ```
+
+   **Penting — tambahkan domain produksi ke Supabase:** Authentication → URL Configuration →
+   *Site URL* = domain produksi, *Redirect URLs* = `https://<domain>/auth/callback`.
+   Tanpa ini login GitHub di produksi akan gagal. Untuk OAuth callback GitHub sendiri
+   tetap `https://<project-ref>.supabase.co/auth/v1/callback` (tidak berubah per domain).
+
 3. Domain: tambahkan domain, aktifkan HTTPS (otomatis).
 4. **Vercel Cron** (`vercel.json`):
 
 ```json
 {
   "crons": [
-    { "path": "/api/cron/expire", "schedule": "0 17 * * *" }
+    { "path": "/api/cron/expire", "schedule": "0 1 * * *" },
+    { "path": "/api/cron/cleanup", "schedule": "30 2 * * *" }
   ]
 }
 ```
-`0 17 * * *` UTC = 00:00 WIB. Endpoint memeriksa `Authorization: Bearer $CRON_SECRET`. Tambahkan cron kedua (mingguan) untuk membersihkan `reporter_ip_hash` > 90 hari dan claim kedaluwarsa.
+Jadwal di `vercel.json` memakai **UTC**: `0 1 * * *` = 08:00 WIB, `30 2 * * *` = 09:30 WIB. Endpoint memeriksa `Authorization: Bearer $CRON_SECRET` (dibandingkan konstanta-waktu) dan mengembalikan 503 bila `CRON_SECRET`/service role tidak diisi. Pada plan Hobby, cron hanya boleh berjalan sekali sehari per job — sesuaikan jadwal bila perlu.
 
 5. Branch produksi: `main`. Proteksi: wajib PR + CI hijau + review.
+6. **Jangan sertakan direktif `form-action` di CSP.** Chromium menerapkannya pada header `Location` dari respons POST; alur login memakai `POST /auth/sign-in` yang merespons 303 ke Supabase, sehingga direktif itu memblokir redirect OAuth dan tombol login tampak mati. Lihat komentar di `next.config.ts`.
+
 
 ## 4. Upstash & Turnstile
 

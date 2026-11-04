@@ -127,8 +127,10 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 - [x] `lib/env.ts` (validasi env dengan Zod, server & client terpisah)
 - [x] Buat `.env.example` final (selaras `lib/env.ts`)
 
-> Catatan: primitif UI ditulis manual (tanpa dependensi Radix) agar jejak dependensi
-> kecil. `components.json` tetap ada untuk kompatibilitas shadcn CLI.
+> Catatan: primitif UI ditulis manual agar jejak dependensi kecil. Pengecualian:
+> `@radix-ui/react-select` dipakai untuk dropdown karena positioning portal,
+> collision handling, dan navigasi keyboard sulit dibuat benar secara manual.
+> `components.json` tetap ada untuk kompatibilitas shadcn CLI.
 
 ## PHASE 2 — UI Foundation & Halaman Publik
 

@@ -8,9 +8,21 @@ import { Search } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, type SelectOption } from "@/components/ui/select";
 import { ACCESS_FILTER_OPTIONS, FREE_TIER_FILTER_OPTIONS } from "@/lib/constants/labels";
 
 export type CategoryOption = { slug: string; name: string };
+
+const STATUS_OPTIONS: readonly SelectOption[] = [
+  { value: "verified", label: "Terverifikasi" },
+  { value: "expired", label: "Kedaluwarsa" },
+  { value: "semua", label: "Semua status" },
+];
+
+const SORT_OPTIONS: readonly SelectOption[] = [
+  { value: "terbaru", label: "Terbaru" },
+  { value: "relevansi", label: "Relevansi" },
+];
 
 /**
  * Filter direktori AksesAI. State disimpan di query string agar dapat dibagikan
@@ -73,90 +85,65 @@ export function DirectoryFilters({
           <label htmlFor="filter-kategori" className="text-xs font-medium text-muted-foreground">
             Kategori
           </label>
-          <select
+          <Select
             id="filter-kategori"
+            label="Kategori"
             value={kategori}
-            onChange={(event) => update({ kategori: event.target.value || null })}
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="">Semua kategori</option>
-            {categories.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            options={[{ value: "", label: "Semua kategori" }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+            onValueChange={(v) => update({ kategori: v || null })}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-akses" className="text-xs font-medium text-muted-foreground">
             Jenis akses
           </label>
-          <select
+          <Select
             id="filter-akses"
+            label="Jenis akses"
             value={akses}
-            onChange={(event) =>
-              update({ akses: event.target.value === "semua" ? null : event.target.value })
-            }
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            {ACCESS_FILTER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={ACCESS_FILTER_OPTIONS}
+            onValueChange={(v) => update({ akses: v === "semua" ? null : v })}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-gratis" className="text-xs font-medium text-muted-foreground">
             Ketersediaan
           </label>
-          <select
+          <Select
             id="filter-gratis"
+            label="Ketersediaan"
             value={gratis}
-            onChange={(event) =>
-              update({ gratis: event.target.value === "semua" ? null : event.target.value })
-            }
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            {FREE_TIER_FILTER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={FREE_TIER_FILTER_OPTIONS}
+            onValueChange={(v) => update({ gratis: v === "semua" ? null : v })}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-status" className="text-xs font-medium text-muted-foreground">
             Status
           </label>
-          <select
+          <Select
             id="filter-status"
+            label="Status"
             value={status}
-            onChange={(event) => update({ status: event.target.value })}
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="verified">Terverifikasi</option>
-            <option value="expired">Kedaluwarsa</option>
-            <option value="semua">Semua</option>
-          </select>
+            options={STATUS_OPTIONS}
+            onValueChange={(v) => update({ status: v })}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-urut" className="text-xs font-medium text-muted-foreground">
             Urutkan
           </label>
-          <select
+          <Select
             id="filter-urut"
+            label="Urutkan"
             value={urut}
-            onChange={(event) => update({ urut: event.target.value })}
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="terbaru">Terbaru</option>
-            <option value="relevansi">Relevansi</option>
-          </select>
+            options={SORT_OPTIONS}
+            onValueChange={(v) => update({ urut: v })}
+          />
         </div>
       </div>
 

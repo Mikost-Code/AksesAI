@@ -49,7 +49,7 @@ redirect awal; **pemeriksaan otorisasi sesungguhnya** dilakukan di layout & serv
 Dirinci dengan bukti uji di [`IMPLEMENTATION_PROGRESS.md`](IMPLEMENTATION_PROGRESS.md).
 
 ### Phase 1 — Foundation ✅
-- [x] Repo, Next.js + TypeScript strict, Tailwind, komponen UI (tanpa Radix)
+- [x] Repo, Next.js + TypeScript strict, Tailwind, komponen UI (Radix hanya untuk Select)
 - [x] Supabase lokal (Docker) + 7 migrasi (skema, RLS, RPC, trigger)
 - [x] GitHub OAuth + trigger pembuatan profil (role hanya `member`)
 - [x] Skema + RLS + seed kategori

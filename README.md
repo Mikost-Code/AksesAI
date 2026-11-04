@@ -71,7 +71,7 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 |---|---|
 | Framework | Next.js 16 (App Router) |
 | Bahasa | TypeScript (strict) |
-| UI | Tailwind CSS v4, komponen shadcn/ui (ditulis tangan, tanpa dependensi Radix) |
+| UI | Tailwind CSS v4, komponen shadcn/ui (ditulis tangan; Radix Select untuk dropdown) |
 | Database & Auth | Supabase (PostgreSQL, GitHub OAuth, RLS) |
 | Validasi | Zod |
 | Rate limiting | Upstash Redis (opsional) → fallback PostgreSQL |

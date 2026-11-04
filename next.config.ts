@@ -22,7 +22,14 @@ const securityHeaders = [
       "frame-src https://challenges.cloudflare.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      // Tidak ada direktif `form-action` secara sengaja.
+      // Chromium menerapkannya pada URL di header `Location` dari respons POST,
+      // bukan hanya tujuan form. Alur login memakai POST /auth/sign-in yang
+      // merespons 303 ke Supabase → dengan `form-action 'self'` redirect itu
+      // diblokir dan tombol "Lanjutkan dengan GitHub" tampak mati (bug nyata
+      // yang terdeteksi lewat uji Playwright). Semua redirect OAuth tetap
+      // berasal dari server (allowlist `next` + `redirectTo`), sehingga
+      // CSRF login tidak bergantung pada direktif ini.
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; "),

@@ -60,7 +60,8 @@ Implementasi: Upstash Ratelimit (sliding window). Respons 429 dengan pesan ramah
 ```text
 Content-Security-Policy: default-src 'self'; img-src 'self' https://avatars.githubusercontent.com data:;
   script-src 'self' 'nonce-<nonce>' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com;
-  connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self';
+  object-src 'none'
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin

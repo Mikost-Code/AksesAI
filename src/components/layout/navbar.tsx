@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 
+import { GithubRepoButton } from "@/components/layout/github-repo-button";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/constants/labels";
 
@@ -21,7 +22,7 @@ export const NAV_LINKS = [
 export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto grid h-16 max-w-[1200px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex items-center gap-2 font-heading text-lg font-bold text-foreground"
@@ -30,12 +31,15 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
             aria-hidden="true"
             className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
           >
-            BW
+            AI
           </span>
           {APP_NAME}
         </Link>
 
-        <nav aria-label="Navigasi utama" className="hidden items-center gap-1 md:flex">
+        <nav
+          aria-label="Navigasi utama"
+          className="hidden items-center justify-self-center gap-1 md:flex"
+        >
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -47,7 +51,8 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-self-end">
+          <GithubRepoButton />
           {accountSlot ?? (
             <Link
               href="/login"

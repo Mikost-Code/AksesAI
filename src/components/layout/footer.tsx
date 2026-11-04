@@ -55,7 +55,15 @@ export function Footer() {
           <p>{PLATFORM_DISCLAIMER_SHORT}</p>
           <p className="mt-2">
             © {new Date().getFullYear()} {APP_NAME}. Proyek sumber terbuka
-            berlisensi MIT.
+            berlisensi MIT —{" "}
+            <a
+              href="https://github.com/zann06/AksesAI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              zann06/AksesAI
+            </a>
           </p>
         </div>
       </div>

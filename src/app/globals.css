@@ -35,6 +35,7 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-pill: 9999px;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -44,9 +45,20 @@
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06);
   --shadow-card-hover: 0 4px 12px rgba(16, 24, 40, 0.08);
   --shadow-popover: 0 8px 24px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --shadow-elevated: 0 12px 32px -8px rgba(16, 24, 40, 0.14), 0 4px 10px -4px rgba(16, 24, 40, 0.06);
 
-  /* Animasi popover/dropdown (dipakai komponen Select) */
+  /* Gradien dekoratif (hero, header section) */
+  --gradient-hero: radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(15, 118, 110, 0.1),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 50% 50% at 90% 10%, rgba(5, 150, 105, 0.08), transparent 70%);
+
+  /* Animasi */
   --animate-popover-in: popover-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-up: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 400ms ease-out both;
 }
 
 @keyframes popover-in {
@@ -57,6 +69,26 @@
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -102,6 +134,33 @@
   .prose-readable {
     max-width: 70ch;
   }
+
+  /* Motif grid halus untuk area hero/dekoratif */
+  .bg-grid-soft {
+    background-image: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-border) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-border) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 0%, black 40%, transparent 100%);
+  }
+
+  /* Stagger animasi bertahap untuk daftar kartu */
+  .animate-stagger > * {
+    animation: var(--animate-fade-up);
+  }
+  .animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .animate-stagger > *:nth-child(2) { animation-delay: 60ms; }
+  .animate-stagger > *:nth-child(3) { animation-delay: 120ms; }
+  .animate-stagger > *:nth-child(4) { animation-delay: 180ms; }
+  .animate-stagger > *:nth-child(5) { animation-delay: 240ms; }
+  .animate-stagger > *:nth-child(6) { animation-delay: 300ms; }
 }
 
 @media (prefers-reduced-motion: reduce) {

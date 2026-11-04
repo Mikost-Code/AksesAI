@@ -42,7 +42,7 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
   const pricing = priceLabel(program.priceInput, program.priceOutput);
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden transition-shadow duration-150 hover:shadow-[var(--shadow-card-hover)] focus-within:shadow-[var(--shadow-card-hover)]">
+    <Card className="group relative flex h-full flex-col overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] focus-within:border-primary/30 focus-within:shadow-[var(--shadow-elevated)]">
       <div className="flex items-start justify-between gap-3 p-5 pb-3">
         <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
           {program.categoryName}
@@ -56,7 +56,7 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
             {program.accessTypeLabel}
           </span>
           {program.freeTierAvailable ? (
-            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">
               Ada free tier
             </span>
           ) : (
@@ -74,24 +74,24 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
         <h3 className="font-heading text-lg font-semibold leading-snug">
           <Link
             href={`/info/${program.slug}`}
-            className="line-clamp-2 outline-none after:absolute after:inset-0 after:content-['']"
+            className="line-clamp-2 outline-none transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-primary"
           >
             {program.title}
           </Link>
         </h3>
-        <p className="line-clamp-3 text-sm text-muted-foreground">
+        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
           {program.summary}
         </p>
 
-        <dl className="mt-auto flex flex-col gap-1.5 text-sm text-muted-foreground">
+        <dl className="mt-auto flex flex-col gap-1.5 rounded-lg bg-surface p-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+            <Sparkles className="size-4 shrink-0 text-primary/70" aria-hidden="true" />
             <dt className="sr-only">Provider</dt>
             <dd className="line-clamp-1">{program.provider}</dd>
           </div>
           {program.freeTierAvailable && program.freeTier ? (
             <div className="flex items-center gap-1.5">
-              <Gift className="size-4 shrink-0" aria-hidden="true" />
+              <Gift className="size-4 shrink-0 text-accent" aria-hidden="true" />
               <dt className="sr-only">Kuota gratis</dt>
               <dd className="line-clamp-1">{program.freeTier}</dd>
             </div>

@@ -2,6 +2,7 @@
 import Link from "next/link";
 
 import { GitHubIcon } from "@/components/icons/github-icon";
+import { cn } from "@/lib/utils";
 
 /**
  * Badge statistik repo GitHub (star, fork, watch) untuk navbar.
@@ -63,7 +64,10 @@ export async function GithubRepoButton({ className = "" }: { className?: string 
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Repo GitHub ${REPO_OWNER}/${REPO_NAME} (buka di tab baru)`}
-      className={`inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground ${className}`}
+      className={cn(
+        "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground",
+        className,
+      )}
     >
       <GitHubIcon className="size-4 shrink-0" />
       <span className="hidden lg:inline">GitHub</span>

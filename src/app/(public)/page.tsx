@@ -5,6 +5,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -44,16 +45,30 @@ const STEPS = [
 export default function HomePage() {
   return (
     <div className="flex flex-col">
-      <section className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-medium text-primary">
-              Direktori info gratis &amp; murah seputar AI berbasis komunitas
-            </p>
-            <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
-              Temukan info AI gratis &amp; murah yang bersumber jelas.
+      <section className="relative overflow-hidden border-b border-border bg-surface">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-grid-soft"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: "var(--gradient-hero)" }}
+        />
+        <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center animate-[var(--animate-fade-up)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-center text-xs font-medium text-primary sm:text-sm">
+              <Sparkles className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>Direktori info gratis &amp; murah seputar AI</span>
+            </span>
+            <h1 className="mt-5 text-3xl font-bold leading-[1.15] tracking-tight sm:text-4xl md:text-5xl lg:text-[3.4rem]">
+              Temukan info AI gratis &amp; murah{" "}
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                yang bersumber jelas
+              </span>
+              .
             </h1>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               {APP_NAME} mengumpulkan info API/token gratis, free tier, harga
               per token, model open-weight, tool, dan hosting gratis dari
               kontribusi komunitas. Setiap entri menyertakan sumber yang dapat
@@ -64,11 +79,11 @@ export default function HomePage() {
               action="/info"
               method="get"
               role="search"
-              className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-2 sm:flex-row"
+              className="mx-auto mt-9 flex w-full max-w-xl flex-col gap-2 sm:flex-row"
             >
               <div className="relative flex-1">
                 <Search
-                  className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
                 <Input
@@ -76,12 +91,13 @@ export default function HomePage() {
                   type="search"
                   placeholder="Cari nama provider, model, atau tool…"
                   aria-label="Kata kunci pencarian info AI"
-                  className="pl-9"
+                  className="h-11 pl-10 shadow-[var(--shadow-card)]"
                   maxLength={100}
                 />
               </div>
               <button type="submit" className={buttonVariants({ size: "lg" })}>
                 Cari
+                <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             </form>
 
@@ -95,7 +111,7 @@ export default function HomePage() {
                 <Link
                   key={slug}
                   href={`/info?kategori=${encodeURIComponent(slug)}`}
-                  className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:border-primary hover:text-primary"
+                  className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-primary"
                 >
                   {label}
                 </Link>
@@ -105,8 +121,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-info/20 bg-info-soft p-5 text-sm">
+      <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-info/20 bg-info-soft p-5 text-sm shadow-[var(--shadow-card)]">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-info" aria-hidden="true" />
             <p className="text-foreground/90">
@@ -131,16 +147,23 @@ export default function HomePage() {
               return (
                 <li
                   key={step.title}
-                  className="rounded-lg border border-border bg-background p-5"
+                  className="group relative rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]"
                 >
-                  <span className="flex size-10 items-center justify-center rounded-md bg-primary-soft text-primary">
-                    <Icon className="size-5" aria-hidden="true" />
-                  </span>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Langkah {index + 1}
+                  <div className="flex items-center justify-between">
+                    <span className="flex size-10 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="font-heading text-2xl font-bold text-border"
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold">{step.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {step.text}
                   </p>
-                  <h3 className="mt-1 text-base font-semibold">{step.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{step.text}</p>
                 </li>
               );
             })}

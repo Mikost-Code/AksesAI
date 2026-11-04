@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 
+import { GitHubIcon } from "@/components/icons/github-icon";
 import { GithubRepoButton } from "@/components/layout/github-repo-button";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/constants/labels";
@@ -52,7 +53,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
         </nav>
 
         <div className="flex items-center gap-2 justify-self-end">
-          <GithubRepoButton />
+          <GithubRepoButton className="hidden sm:inline-flex" />
           {accountSlot ?? (
             <Link
               href="/login"
@@ -63,22 +64,31 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
           )}
           <details className="md:hidden">
             <summary
-              className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md hover:bg-surface"
+              className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md transition-colors hover:bg-surface"
               aria-label="Buka menu navigasi"
             >
               <Menu className="size-5" aria-hidden="true" />
             </summary>
-            <div className="absolute inset-x-0 top-16 border-b border-border bg-background p-4 shadow-sm">
+            <div className="absolute inset-x-0 top-16 border-b border-border bg-background p-4 shadow-[var(--shadow-elevated)] animate-[var(--animate-fade-in)]">
               <nav aria-label="Navigasi seluler" className="flex flex-col gap-1">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-surface hover:text-foreground"
+                    className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
                   >
                     {link.label}
                   </Link>
                 ))}
+                <a
+                  href="https://github.com/zann06/AksesAI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 flex items-center gap-2 border-t border-border px-3 pt-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+                >
+                  <GitHubIcon className="size-4" aria-hidden="true" />
+                  Lihat source di GitHub
+                </a>
               </nav>
             </div>
           </details>

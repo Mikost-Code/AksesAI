@@ -35,8 +35,10 @@ export default async function DirectoryPage({
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold sm:text-3xl">Direktori info AI gratis & murah</h1>
-        <p className="max-w-2xl text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          Direktori info AI gratis &amp; murah
+        </h1>
+        <p className="max-w-2xl leading-relaxed text-muted-foreground">
           Kumpulan info API/token gratis, free tier, harga per token, model
           open-weight, tool gratis, dan hosting gratis — dikontribusikan komunitas
           dan diperiksa reviewer berdasarkan sumber resmi provider.
@@ -44,41 +46,41 @@ export default async function DirectoryPage({
       </div>
 
       <div className="mt-6">
-        <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+        <Suspense fallback={<Skeleton className="h-48 w-full rounded-xl" />}>
           <DirectoryFilters
             categories={categories.map((c) => ({ slug: c.slug, name: c.name }))}
           />
         </Suspense>
       </div>
 
-      <div className="mt-6 flex flex-col gap-1 text-sm text-muted-foreground">
-        <p aria-live="polite">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+        <p aria-live="polite" className="text-sm font-medium text-foreground">
           {directory.configured
             ? directory.total > 0
               ? `${directory.total} info ditemukan`
               : "Belum ada info yang cocok"
             : "Direktori belum terhubung ke sumber data"}
         </p>
-        <p className="text-xs">{PLATFORM_DISCLAIMER_SHORT}</p>
+        <p className="text-xs text-muted-foreground">{PLATFORM_DISCLAIMER_SHORT}</p>
       </div>
 
       {directory.items.length > 0 ? (
         <>
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="animate-stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {directory.items.map((program) => (
               <li key={program.id}>
                 <ProgramCard program={program} />
               </li>
             ))}
           </ul>
-          <div className="mt-8">
+          <div className="mt-10">
             <Suspense fallback={null}>
               <Pagination page={directory.page} pageCount={directory.pageCount} />
             </Suspense>
           </div>
         </>
       ) : (
-        <div className="mt-4">
+        <div className="mt-6">
           <EmptyState
             title={
               directory.configured

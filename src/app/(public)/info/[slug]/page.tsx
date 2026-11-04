@@ -90,25 +90,33 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Beranda
-        </Link>
-        <span aria-hidden="true"> / </span>
-        <Link href="/info" className="hover:text-foreground">
-          Direktori
-        </Link>
-        <span aria-hidden="true"> / </span>
-        <Link
-          href={`/kategori/${program.categorySlug}`}
-          className="hover:text-foreground"
-        >
-          {program.categoryName}
-        </Link>
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="transition-colors hover:text-foreground">
+              Beranda
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li>
+            <Link href="/info" className="transition-colors hover:text-foreground">
+              Direktori
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li>
+            <Link
+              href={`/kategori/${program.categorySlug}`}
+              className="transition-colors hover:text-foreground"
+            >
+              {program.categoryName}
+            </Link>
+          </li>
+        </ol>
       </nav>
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={program.status} />
             <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
               {program.categoryName}
@@ -118,67 +126,62 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             </span>
           </div>
 
-          <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
+          <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight sm:text-[2rem]">
             {program.title}
           </h1>
 
-          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="flex items-start gap-2">
-              <Sparkles className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Provider</dt>
-                <dd className="text-sm font-medium">{program.provider}</dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Gift className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Kuota gratis</dt>
-                <dd className="text-sm font-medium">
-                  {program.freeTierAvailable
-                    ? (program.freeTier?.trim() ?? "Ada free tier (besaran tidak tercantum)")
-                    : "Tidak ada free tier"}
-                </dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <CreditCard className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Kartu kredit</dt>
-                <dd className="text-sm font-medium">
-                  {program.requiresCard ? "Diperlukan untuk mendaftar" : "Tidak diperlukan"}
-                </dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Layers className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Ukuran konteks</dt>
-                <dd className="text-sm font-medium">
-                  {formatNumber(program.contextWindow, " token")}
-                </dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Gauge className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Rate limit</dt>
-                <dd className="text-sm font-medium">
-                  {formatNumber(program.rateLimitRpm, " request/menit")}
-                </dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Masa berlaku promo</dt>
-                <dd className="text-sm font-medium">
-                  {program.promoStart || program.promoEnd
+          <dl className="mt-6 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+            {[
+              { icon: Sparkles, label: "Provider", value: program.provider, tone: "primary" },
+              {
+                icon: Gift,
+                label: "Kuota gratis",
+                value: program.freeTierAvailable
+                  ? (program.freeTier?.trim() ?? "Ada free tier (besaran tidak tercantum)")
+                  : "Tidak ada free tier",
+                tone: "accent",
+              },
+              {
+                icon: CreditCard,
+                label: "Kartu kredit",
+                value: program.requiresCard ? "Diperlukan untuk mendaftar" : "Tidak diperlukan",
+                tone: "muted",
+              },
+              {
+                icon: Layers,
+                label: "Ukuran konteks",
+                value: formatNumber(program.contextWindow, " token"),
+                tone: "muted",
+              },
+              {
+                icon: Gauge,
+                label: "Rate limit",
+                value: formatNumber(program.rateLimitRpm, " request/menit"),
+                tone: "muted",
+              },
+              {
+                icon: CalendarDays,
+                label: "Masa berlaku promo",
+                value:
+                  program.promoStart || program.promoEnd
                     ? `${formatDateID(program.promoStart) ?? "—"} s.d. ${formatDateID(program.promoEnd) ?? "—"}`
-                    : "Tidak tercantum pada sumber"}
-                </dd>
-              </div>
-            </div>
+                    : "Tidak tercantum pada sumber",
+                tone: "muted",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="flex items-start gap-2.5 bg-background p-4">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-muted-foreground">
+                    <Icon className="size-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                    <dd className="text-sm font-medium leading-snug">{item.value}</dd>
+                  </div>
+                </div>
+              );
+            })}
           </dl>
 
           <Alert variant="info" className="mt-6">
@@ -188,32 +191,38 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           </Alert>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Harga per token</h2>
-            <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-xs text-muted-foreground">Input</dt>
-                <dd className="font-medium">{formatPrice(program.priceInputPerMtok)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Output</dt>
-                <dd className="font-medium">{formatPrice(program.priceOutputPerMtok)}</dd>
-              </div>
-            </dl>
+            <h2 className="text-xl font-semibold tracking-tight">Harga per token</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {[
+                { label: "Input", value: formatPrice(program.priceInputPerMtok) },
+                { label: "Output", value: formatPrice(program.priceOutputPerMtok) },
+              ].map((price) => (
+                <div
+                  key={price.label}
+                  className="rounded-lg border border-border bg-surface p-4"
+                >
+                  <p className="text-xs text-muted-foreground">{price.label}</p>
+                  <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums">
+                    {price.value}
+                  </p>
+                </div>
+              ))}
+            </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Harga dapat berubah kapan saja. Selalu periksa halaman harga resmi provider.
             </p>
           </section>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Deskripsi</h2>
-            <p className="mt-2 whitespace-pre-line text-foreground/90">
+            <h2 className="text-xl font-semibold tracking-tight">Deskripsi</h2>
+            <p className="mt-2 whitespace-pre-line leading-relaxed text-foreground/90">
               {program.description}
             </p>
           </section>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Syarat mengakses</h2>
-            <p className="mt-2 whitespace-pre-line text-foreground/90">
+            <h2 className="text-xl font-semibold tracking-tight">Syarat mengakses</h2>
+            <p className="mt-2 whitespace-pre-line leading-relaxed text-foreground/90">
               {program.requirements?.trim()
                 ? program.requirements
                 : "Tidak tercantum pada sumber."}
@@ -221,7 +230,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           </section>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Sumber informasi</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Sumber informasi</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Periksa langsung pada sumber resmi untuk memastikan info masih berlaku.
             </p>
@@ -231,14 +240,14 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           </section>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Riwayat pembaruan</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Riwayat pembaruan</h2>
             {program.history.length > 0 ? (
-              <ol className="mt-3 flex flex-col gap-2 border-l border-border pl-4">
+              <ol className="mt-3 flex flex-col gap-4 border-l-2 border-border pl-5">
                 {program.history.map((entry, index) => (
                   <li key={`${entry.action}-${entry.createdAt}-${index}`} className="relative text-sm">
                     <span
                       aria-hidden="true"
-                      className="absolute -left-[21px] top-2 size-2 rounded-full bg-primary"
+                      className="absolute -left-[26px] top-1.5 size-2.5 rounded-full border-2 border-background bg-primary"
                     />
                     <p className="font-medium">
                       {HISTORY_LABEL[entry.action] ?? entry.action}
@@ -270,7 +279,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
         </article>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-          <Card>
+          <Card className="rounded-xl shadow-[var(--shadow-card)]">
             <CardHeader>
               <CardTitle className="text-base">Dibagikan oleh</CardTitle>
             </CardHeader>
@@ -281,22 +290,22 @@ export default async function ProgramDetailPage({ params }: PageProps) {
                   alt={`Avatar ${program.contributor.username}`}
                   width={40}
                   height={40}
-                  className="size-10 rounded-full"
+                  className="size-10 rounded-full ring-2 ring-border"
                 />
               ) : (
-                <span className="flex size-10 items-center justify-center rounded-full bg-muted font-semibold">
+                <span className="flex size-10 items-center justify-center rounded-full bg-primary-soft font-semibold text-primary">
                   {program.contributor.username.slice(0, 1).toUpperCase()}
                 </span>
               )}
               <div className="min-w-0">
                 <Link
                   href={`/kontributor/${program.contributor.username}`}
-                  className="font-medium hover:underline"
+                  className="font-medium transition-colors hover:text-primary hover:underline"
                 >
                   {program.contributor.username}
                 </Link>
                 {program.contributor.bio ? (
-                  <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">
+                  <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                     {program.contributor.bio}
                   </p>
                 ) : null}
@@ -316,17 +325,17 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-xl shadow-[var(--shadow-card)]">
             <CardContent className="pt-5">
               <ReportButton programId={program.id} programTitle={program.title} />
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Laporkan jika kuota berubah, sudah tidak gratis, harga salah, atau
                 tautan mati. Jangan sertakan data pribadi.
               </p>
             </CardContent>
           </Card>
 
-          <p className="rounded-lg border border-border bg-surface p-3 text-xs text-muted-foreground">
+          <p className="rounded-lg border border-border bg-surface p-3 text-xs leading-relaxed text-muted-foreground">
             {PLATFORM_DISCLAIMER_SHORT}
           </p>
         </aside>

@@ -59,7 +59,7 @@ export function DirectoryFilters({
         event.preventDefault();
         update({ q: q.trim() || null });
       }}
-      className="flex flex-col gap-4 rounded-lg border border-border bg-background p-4 shadow-[var(--shadow-card)]"
+      className="flex flex-col gap-4 rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-card)] transition-shadow focus-within:shadow-[var(--shadow-card-hover)] sm:p-5"
       role="search"
       aria-label="Filter direktori info AI"
     >

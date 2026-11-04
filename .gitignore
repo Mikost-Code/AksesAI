@@ -54,3 +54,6 @@ opencode.json
 
 # file bantuan agen yang dibuat otomatis oleh `next dev`
 AGENTS.md
+
+# hasil screenshot review UI lokal
+ui-shots/

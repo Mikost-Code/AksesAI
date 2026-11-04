@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               aria-hidden="true"
               className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
             >
-              BW
+              AI
             </span>
             {APP_NAME}
           </Link>

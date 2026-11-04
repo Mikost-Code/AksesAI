@@ -31,7 +31,7 @@ Jangan pernah berbagi database antara preview dan production.
 
    | Variabel | Sumber | Sensitive |
    |---|---|---|
-   | `NEXT_PUBLIC_SITE_URL` | domain produksi, mis. `https://aksesai.vercel.app` | tidak |
+   | `NEXT_PUBLIC_SITE_URL` | domain produksi final, mis. `https://aksesai-id.vercel.app` | tidak |
    | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API | tidak |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | idem | tidak |
    | `SUPABASE_SERVICE_ROLE_KEY` | idem (Reveal) | **ya** |

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Suspense } from "react";
 
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants/labels";
 import { clientEnv } from "@/lib/env";
 
@@ -56,6 +58,9 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
       <body className="min-h-dvh bg-background text-foreground antialiased">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>

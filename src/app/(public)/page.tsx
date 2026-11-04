@@ -5,7 +5,6 @@ import {
   Search,
   Send,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -55,13 +54,9 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-0"
           style={{ backgroundImage: "var(--gradient-hero)" }}
         />
-        <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-20 lg:px-8">
           <div className="mx-auto max-w-3xl text-center animate-[var(--animate-fade-up)]">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-center text-xs font-medium text-primary sm:text-sm">
-              <Sparkles className="size-3.5 shrink-0" aria-hidden="true" />
-              <span>Direktori info gratis &amp; murah seputar AI</span>
-            </span>
-            <h1 className="mt-5 text-3xl font-bold leading-[1.15] tracking-tight sm:text-4xl md:text-5xl lg:text-[3.4rem]">
+            <h1 className="text-3xl font-bold leading-[1.15] tracking-tight sm:text-4xl md:text-5xl lg:text-[3.4rem]">
               Temukan info AI gratis &amp; murah{" "}
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 yang bersumber jelas

@@ -7,18 +7,12 @@ import { ReviewActionPanel } from "@/components/review/review-action-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getReviewDetail } from "@/lib/programs/review";
-import { SOURCE_TYPE_LABEL, type SourceType } from "@/lib/constants/labels";
+import { ACCESS_TYPE_LABEL, SOURCE_TYPE_LABEL, type SourceType } from "@/lib/constants/labels";
 import { formatDateTimeID } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Panel review", robots: { index: false } };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function regionText(scope: string, province: string | null, city: string | null): string {
-  if (scope === "nasional") return "Nasional";
-  if (scope === "provinsi") return province ?? "Provinsi";
-  return [city, province].filter(Boolean).join(", ") || "Kabupaten/Kota";
-}
 
 export default async function ReviewDetailPage({
   params,
@@ -60,8 +54,7 @@ export default async function ReviewDetailPage({
         <div className="min-w-0">
           <h1 className="text-2xl font-bold">{detail.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {detail.categoryName} · {regionText(detail.regionScope, detail.province, detail.city)} ·{" "}
-            {detail.organizer}
+            {detail.categoryName} · {ACCESS_TYPE_LABEL[detail.accessType]} · {detail.provider}
           </p>
         </div>
         <StatusBadge status={detail.status} />
@@ -76,10 +69,35 @@ export default async function ReviewDetailPage({
 
           {detail.requirements ? (
             <section className="rounded-lg border border-border bg-background p-5">
-              <h2 className="text-base font-semibold">Persyaratan</h2>
+              <h2 className="text-base font-semibold">Syarat mengakses</h2>
               <p className="mt-2 whitespace-pre-line text-sm">{detail.requirements}</p>
             </section>
           ) : null}
+
+          <section className="rounded-lg border border-border bg-background p-5">
+            <h2 className="text-base font-semibold">Info penawaran</h2>
+            <dl className="mt-2 grid gap-4 sm:grid-cols-2">
+              {field("Provider", detail.provider)}
+              {field("Jenis akses", ACCESS_TYPE_LABEL[detail.accessType])}
+              {field(
+                "Kuota gratis",
+                detail.freeTierAvailable
+                  ? (detail.freeTier ?? "Ada free tier (besaran tidak diisi)")
+                  : "Tidak ada free tier",
+              )}
+              {field("Perlu kartu kredit", detail.requiresCard ? "Ya" : "Tidak")}
+              {field(
+                "Harga input / 1jt token",
+                detail.priceInputPerMtok === null ? null : `$${detail.priceInputPerMtok}`,
+              )}
+              {field(
+                "Harga output / 1jt token",
+                detail.priceOutputPerMtok === null ? null : `$${detail.priceOutputPerMtok}`,
+              )}
+              {field("Rate limit (RPM)", detail.rateLimitRpm?.toString() ?? null)}
+              {field("Konteks (token)", detail.contextWindow?.toString() ?? null)}
+            </dl>
+          </section>
 
           <section className="rounded-lg border border-border bg-background p-5">
             <h2 className="text-base font-semibold">Sumber</h2>
@@ -117,9 +135,8 @@ export default async function ReviewDetailPage({
             <dl className="mt-2 grid gap-4 sm:grid-cols-2">
               {field("Kontributor", detail.contributorName)}
               {field("Dikirim", formatDateTimeID(detail.createdAt))}
-              {field("Publikasi sumber", detail.publishedAt)}
-              {field("Mulai", detail.startDate)}
-              {field("Berakhir", detail.endDate)}
+              {field("Mulai promo", detail.promoStart)}
+              {field("Berakhir promo", detail.promoEnd)}
               {field("Status", detail.status)}
             </dl>
             {detail.contributorNote ? (
@@ -160,11 +177,12 @@ export default async function ReviewDetailPage({
           <div className="rounded-lg border border-border bg-background p-4 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">Checklist</p>
             <ul className="mt-2 list-disc space-y-1 pl-4">
-              <li>Sumber dapat dibuka &amp; resmi</li>
-              <li>Judul sesuai isi, tanpa clickbait</li>
-              <li>Tidak memuat data pribadi penerima</li>
-              <li>Tanggal masih relevan</li>
-              <li>Tidak duplikat dengan informasi lain</li>
+              <li>Sumber resmi provider &amp; dapat dibuka</li>
+              <li>Kuota gratis sesuai halaman resmi</li>
+              <li>Harga/rate limit tidak salah kutip</li>
+              <li>Masa promo masih berlaku</li>
+              <li>Tidak memuat API key atau data pribadi</li>
+              <li>Tidak duplikat dengan entri lain</li>
             </ul>
           </div>
         </aside>

@@ -40,13 +40,13 @@ test.describe("Alur kontributor", () => {
     await page.goto("/dashboard/kontribusi/baru");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
-    const title = `Bantuan E2E ${Date.now().toString(36)}`;
+    const title = `Info AI E2E ${Date.now().toString(36)}`;
 
     await page.locator("#title").fill(title);
     await page
       .locator("#description")
       .fill(
-        "Deskripsi program bantuan untuk pengujian end-to-end yang cukup panjang melebihi lima puluh karakter.",
+        "Deskripsi info AI gratis untuk pengujian end-to-end yang cukup panjang melebihi lima puluh karakter.",
       );
 
     // Pilih kategori pertama yang tersedia (bukan placeholder kosong).
@@ -55,10 +55,10 @@ test.describe("Alur kontributor", () => {
     expect(firstCategory).toBeTruthy();
     await categorySelect.selectOption(firstCategory!);
 
-    await page.locator("#organizer").fill("Organisasi E2E");
+    await page.locator("#provider").fill("Provider E2E");
 
     // Sumber pertama (wajib minimal satu).
-    await page.locator("#source-url-0").fill("https://www.kemensos.go.id/");
+    await page.locator("#source-url-0").fill("https://console.groq.com/docs/rate-limits");
 
     // Simpan draf dan tunggu konfirmasi sukses sebelum berpindah halaman.
     await page.getByRole("button", { name: "Simpan draf" }).click();

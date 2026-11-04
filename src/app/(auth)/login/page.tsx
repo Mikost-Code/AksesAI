@@ -34,7 +34,7 @@ export default async function LoginPage({
   return (
     <div className="mx-auto flex w-full max-w-md flex-col justify-center px-4 py-16 sm:px-6">
       <div className="rounded-lg border border-border bg-background p-8 shadow-[var(--shadow-card)]">
-        <h1 className="text-2xl font-bold">Masuk ke BantuWarga</h1>
+        <h1 className="text-2xl font-bold">Masuk ke AksesAI</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Gunakan akun GitHub Anda untuk membagikan informasi. Kami hanya
           membaca data profil publik (username, avatar, bio). Email tidak
@@ -68,13 +68,13 @@ export default async function LoginPage({
           <Link href="/kebijakan-privasi" className="text-primary underline">
             kebijakan privasi
           </Link>
-          . BantuWarga tidak mengumpulkan NIK, nomor KK, nomor rekening, atau
-          identitas penerima bantuan.
+          . AksesAI tidak mengumpulkan API key, token akses, NIK, nomor
+          rekening, atau kredensial akun apa pun.
         </p>
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        <Link href="/bansos" className="text-primary underline">
+        <Link href="/info" className="text-primary underline">
           Jelajahi direktori tanpa masuk
         </Link>
       </p>

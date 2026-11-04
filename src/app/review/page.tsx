@@ -98,7 +98,7 @@ export default async function ReviewQueuePage({
                       {item.title}
                     </Link>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {item.categoryName} · {item.regionLabel} · {item.organizer}
+                      {item.categoryName} · {item.accessTypeLabel} · {item.provider}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Dari {item.contributorName} · {item.sourceCount} sumber · masuk{" "}

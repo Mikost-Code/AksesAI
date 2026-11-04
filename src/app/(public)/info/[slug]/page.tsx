@@ -2,7 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, ShieldAlert, UserRound } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CreditCard,
+  Gauge,
+  Gift,
+  Layers,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
 
 import { ReportButton } from "@/components/report/report-button";
 import { SourceList } from "@/components/source-list";
@@ -11,14 +20,18 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getProgramDetail } from "@/lib/programs/detail";
-import { DEFAULT_DISCLAIMER_TEXT, PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
+import {
+  ACCESS_TYPE_LABEL,
+  DEFAULT_DISCLAIMER_TEXT,
+  PLATFORM_DISCLAIMER_SHORT,
+} from "@/lib/constants/labels";
 import { formatDateID, formatDateTimeID } from "@/lib/utils";
 import { clientEnv } from "@/lib/env";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const HISTORY_LABEL: Record<string, string> = {
-  create: "Informasi dibuat",
+  create: "Info dibuat",
   edit: "Diperbarui oleh kontributor",
   submit: "Diajukan untuk ditinjau",
   withdraw: "Ditarik kembali ke draf",
@@ -31,26 +44,38 @@ const HISTORY_LABEL: Record<string, string> = {
   reopen: "Dibuka kembali untuk ditinjau",
 };
 
+/** Format harga USD per 1 juta token; null bila tidak diketahui. */
+function formatPrice(value: number | null): string {
+  if (value === null) return "Tidak tercantum";
+  if (value === 0) return "Gratis";
+  return `$${value.toFixed(2)} / 1jt token`;
+}
+
+function formatNumber(value: number | null, suffix = ""): string {
+  if (value === null) return "Tidak tercantum";
+  return `${value.toLocaleString("id-ID")}${suffix}`;
+}
+
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  if (!SLUG_PATTERN.test(slug)) return { title: "Informasi tidak ditemukan" };
+  if (!SLUG_PATTERN.test(slug)) return { title: "Info tidak ditemukan" };
 
   const program = await getProgramDetail(slug);
-  if (!program) return { title: "Informasi tidak ditemukan", robots: { index: false } };
+  if (!program) return { title: "Info tidak ditemukan", robots: { index: false } };
 
   const site = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   const description = program.description.replace(/\s+/g, " ").slice(0, 160);
   return {
     title: program.title,
     description,
-    alternates: { canonical: `${site}/bansos/${program.slug}` },
+    alternates: { canonical: `${site}/info/${program.slug}` },
     openGraph: {
       type: "article",
       title: program.title,
       description,
-      url: `${site}/bansos/${program.slug}`,
+      url: `${site}/info/${program.slug}`,
     },
   };
 }
@@ -62,11 +87,6 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   const program = await getProgramDetail(slug);
   if (!program) notFound();
 
-  const coverage =
-    program.regionScope === "nasional"
-      ? "Nasional"
-      : [program.city, program.province].filter(Boolean).join(", ");
-
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
@@ -74,7 +94,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           Beranda
         </Link>
         <span aria-hidden="true"> / </span>
-        <Link href="/bansos" className="hover:text-foreground">
+        <Link href="/info" className="hover:text-foreground">
           Direktori
         </Link>
         <span aria-hidden="true"> / </span>
@@ -93,6 +113,9 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
               {program.categoryName}
             </span>
+            <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium">
+              {ACCESS_TYPE_LABEL[program.accessType]}
+            </span>
           </div>
 
           <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
@@ -101,35 +124,57 @@ export default async function ProgramDetailPage({ params }: PageProps) {
 
           <dl className="mt-5 grid gap-3 sm:grid-cols-2">
             <div className="flex items-start gap-2">
-              <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div>
-                <dt className="text-xs text-muted-foreground">Penyelenggara</dt>
-                <dd className="text-sm font-medium">{program.organizer}</dd>
+                <dt className="text-xs text-muted-foreground">Provider</dt>
+                <dd className="text-sm font-medium">{program.provider}</dd>
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Gift className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div>
-                <dt className="text-xs text-muted-foreground">Wilayah</dt>
-                <dd className="text-sm font-medium">{coverage || program.regionLabel}</dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div>
-                <dt className="text-xs text-muted-foreground">Tanggal publikasi</dt>
+                <dt className="text-xs text-muted-foreground">Kuota gratis</dt>
                 <dd className="text-sm font-medium">
-                  {formatDateID(program.publishedAt) ?? "Tidak tercantum pada sumber"}
+                  {program.freeTierAvailable
+                    ? (program.freeTier?.trim() ?? "Ada free tier (besaran tidak tercantum)")
+                    : "Tidak ada free tier"}
+                </dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <CreditCard className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <dt className="text-xs text-muted-foreground">Kartu kredit</dt>
+                <dd className="text-sm font-medium">
+                  {program.requiresCard ? "Diperlukan untuk mendaftar" : "Tidak diperlukan"}
+                </dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <Layers className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <dt className="text-xs text-muted-foreground">Ukuran konteks</dt>
+                <dd className="text-sm font-medium">
+                  {formatNumber(program.contextWindow, " token")}
+                </dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <Gauge className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <dt className="text-xs text-muted-foreground">Rate limit</dt>
+                <dd className="text-sm font-medium">
+                  {formatNumber(program.rateLimitRpm, " request/menit")}
                 </dd>
               </div>
             </div>
             <div className="flex items-start gap-2">
               <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div>
-                <dt className="text-xs text-muted-foreground">Jadwal</dt>
+                <dt className="text-xs text-muted-foreground">Masa berlaku promo</dt>
                 <dd className="text-sm font-medium">
-                  {program.startDate || program.endDate
-                    ? `${formatDateID(program.startDate) ?? "—"} s.d. ${formatDateID(program.endDate) ?? "—"}`
+                  {program.promoStart || program.promoEnd
+                    ? `${formatDateID(program.promoStart) ?? "—"} s.d. ${formatDateID(program.promoEnd) ?? "—"}`
                     : "Tidak tercantum pada sumber"}
                 </dd>
               </div>
@@ -143,6 +188,23 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           </Alert>
 
           <section className="mt-8">
+            <h2 className="text-xl font-semibold">Harga per token</h2>
+            <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-muted-foreground">Input</dt>
+                <dd className="font-medium">{formatPrice(program.priceInputPerMtok)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Output</dt>
+                <dd className="font-medium">{formatPrice(program.priceOutputPerMtok)}</dd>
+              </div>
+            </dl>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Harga dapat berubah kapan saja. Selalu periksa halaman harga resmi provider.
+            </p>
+          </section>
+
+          <section className="mt-8">
             <h2 className="text-xl font-semibold">Deskripsi</h2>
             <p className="mt-2 whitespace-pre-line text-foreground/90">
               {program.description}
@@ -150,7 +212,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           </section>
 
           <section className="mt-8">
-            <h2 className="text-xl font-semibold">Persyaratan</h2>
+            <h2 className="text-xl font-semibold">Syarat mengakses</h2>
             <p className="mt-2 whitespace-pre-line text-foreground/90">
               {program.requirements?.trim()
                 ? program.requirements
@@ -161,8 +223,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           <section className="mt-8">
             <h2 className="text-xl font-semibold">Sumber informasi</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Periksa langsung pada sumber resmi untuk memastikan informasi masih
-              berlaku.
+              Periksa langsung pada sumber resmi untuk memastikan info masih berlaku.
             </p>
             <div className="mt-3">
               <SourceList sources={program.sources} />
@@ -197,11 +258,12 @@ export default async function ProgramDetailPage({ params }: PageProps) {
 
           {program.status === "expired" ? (
             <Alert variant="warning" className="mt-8">
-              <ShieldAlert aria-hidden="true" />
-              <AlertTitle>Informasi ini sudah kedaluwarsa</AlertTitle>
+              <AlertTriangle aria-hidden="true" />
+              <AlertTitle>Info ini kemungkinan sudah tidak berlaku</AlertTitle>
               <AlertDescription>
-                Tanggal berakhir program ini telah lewat. Informasi dipertahankan
-                untuk referensi, tetapi bantuan mungkin sudah tidak tersedia.
+                Masa promo atau kuota gratis untuk entri ini telah lewat. Info
+                dipertahankan untuk referensi, tetapi akses gratis mungkin sudah
+                tidak tersedia.
               </AlertDescription>
             </Alert>
           ) : null}
@@ -258,8 +320,8 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             <CardContent className="pt-5">
               <ReportButton programId={program.id} programTitle={program.title} />
               <p className="mt-2 text-xs text-muted-foreground">
-                Laporkan jika informasi tidak akurat, kedaluwarsa, atau
-                mencurigakan. Jangan sertakan data pribadi.
+                Laporkan jika kuota berubah, sudah tidak gratis, harga salah, atau
+                tautan mati. Jangan sertakan data pribadi.
               </p>
             </CardContent>
           </Card>

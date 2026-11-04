@@ -100,7 +100,7 @@ export default async function MyContributionsPage({
                       {program.title}
                     </Link>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {program.categoryName} · {program.regionLabel} · {program.sourceCount}{" "}
+                      {program.categoryName} · {program.accessTypeLabel} · {program.sourceCount}{" "}
                       sumber · diperbarui {formatDateID(program.updatedAt)}
                     </p>
                   </div>

@@ -12,7 +12,7 @@ export default function NotFound() {
         pernah ada. Coba kembali ke direktori untuk menemukan informasi lain.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/bansos" className={buttonVariants()}>
+        <Link href="/info" className={buttonVariants()}>
           Buka direktori
         </Link>
         <Link href="/" className={buttonVariants({ variant: "secondary" })}>

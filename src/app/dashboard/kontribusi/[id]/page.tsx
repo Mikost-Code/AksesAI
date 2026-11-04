@@ -92,14 +92,18 @@ export default async function EditContributionPage({
             title: program.title,
             description: program.description,
             categoryId: program.categoryId,
-            regionScope: program.regionScope,
-            province: program.province ?? "",
-            city: program.city ?? "",
-            organizer: program.organizer,
+            accessType: program.accessType,
+            provider: program.provider,
+            freeTier: program.freeTier ?? "",
+            freeTierAvailable: program.freeTierAvailable,
+            requiresCard: program.requiresCard,
+            priceInputPerMtok: program.priceInputPerMtok?.toString() ?? "",
+            priceOutputPerMtok: program.priceOutputPerMtok?.toString() ?? "",
+            rateLimitRpm: program.rateLimitRpm?.toString() ?? "",
+            contextWindow: program.contextWindow?.toString() ?? "",
             requirements: program.requirements ?? "",
-            publishedAt: program.publishedAt ?? "",
-            startDate: program.startDate ?? "",
-            endDate: program.endDate ?? "",
+            promoStart: program.promoStart ?? "",
+            promoEnd: program.promoEnd ?? "",
             contributorNote: program.contributorNote ?? "",
             sources:
               program.sources.length > 0
@@ -109,7 +113,7 @@ export default async function EditContributionPage({
                     type: s.type,
                     isPrimary: s.isPrimary,
                   }))
-                : [{ url: "", title: "", type: "situs_resmi", isPrimary: true }],
+                : [{ url: "", title: "", type: "dokumentasi_resmi", isPrimary: true }],
           }}
         />
       )}

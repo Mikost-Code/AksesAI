@@ -45,7 +45,7 @@ export function scanSensitiveText(
         findings.push({
           kind: "nik",
           message:
-            "Teks mengandung angka 16 digit yang menyerupai NIK/KK. Hapus nomor tersebut — BantuWarga tidak boleh menyimpan data pribadi.",
+            "Teks mengandung angka 16 digit yang menyerupai NIK/KK. Hapus nomor tersebut — AksesAI tidak boleh menyimpan data pribadi.",
           field,
         });
         flaggedNik = true;
@@ -102,5 +102,5 @@ export function sensitiveScanUserMessage(findings: SensitiveFinding[]): string {
   if (kinds.has("telepon_pribadi")) parts.push("nomor telepon pribadi");
   return `Mohon periksa kembali isian Anda: terdeteksi ${parts.join(
     " dan ",
-  )}. BantuWarga tidak boleh menyimpan data pribadi. Hapus angka tersebut dan jelaskan informasi secara umum saja.`;
+  )}. AksesAI tidak boleh menyimpan data pribadi. Hapus angka tersebut dan jelaskan informasi secara umum saja.`;
 }

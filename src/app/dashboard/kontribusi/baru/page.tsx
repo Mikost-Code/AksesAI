@@ -23,11 +23,11 @@ export default async function NewContributionPage() {
       </nav>
 
       <div>
-        <h1 className="text-2xl font-bold">Bagikan informasi bantuan sosial</h1>
+        <h1 className="text-2xl font-bold">Bagikan info AI gratis &amp; murah</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Tulis informasi yang Anda temukan dari sumber resmi. Reviewer akan
-          memeriksa manual sebelum diterbitkan. Anda dapat menyimpan sebagai draf
-          lebih dulu.
+          Tulis info yang Anda temukan dari dokumentasi atau halaman resmi
+          provider. Reviewer akan memeriksa manual sebelum diterbitkan. Anda
+          dapat menyimpan sebagai draf lebih dulu.
         </p>
       </div>
 

@@ -108,7 +108,7 @@ describe("Integrasi — alur kontribusi → review → publik", () => {
       program_id: program!.id,
       source_url: "https://contoh.go.id/integrasi",
       source_url_normalized: `https://contoh.go.id/integrasi-${program!.id}`,
-      source_type: "situs_resmi",
+      source_type: "dokumentasi_resmi",
       is_primary: true,
     });
     expect(srcError).toBeNull();

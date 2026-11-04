@@ -1,4 +1,4 @@
-# Moderation Guide — BantuWarga
+# Moderation Guide — AksesAI
 
 Panduan untuk Reviewer, Moderator, dan Admin. Tujuan: informasi akurat, bersumber, dan tidak merugikan masyarakat.
 
@@ -25,7 +25,7 @@ Panduan untuk Reviewer, Moderator, dan Admin. Tujuan: informasi akurat, bersumbe
 
 **Sumber**
 - [ ] Minimal satu sumber dapat dibuka dan relevan dengan klaim.
-- [ ] Sumber utama berasal dari penyelenggara/otoritas atau media tepercaya.
+- [ ] Sumber utama berasal dari dokumentasi/halaman resmi provider atau media tepercaya.
 - [ ] Domain tidak mencurigakan (typosquatting, domain gratisan acak, pemendek URL tanpa tujuan jelas).
 - [ ] Tidak meminta pembayaran/biaya pendaftaran, data pribadi sensitif lewat tautan tak jelas, atau OTP.
 - [ ] Informasi tidak berasal semata-mata dari pesan berantai/tangkapan layar tanpa sumber primer.
@@ -33,13 +33,13 @@ Panduan untuk Reviewer, Moderator, dan Admin. Tujuan: informasi akurat, bersumbe
 **Isi**
 - [ ] Judul mewakili isi; tidak sensasional/clickbait.
 - [ ] Deskripsi sesuai sumber; tidak ada klaim yang tidak tercantum.
-- [ ] Kategori & wilayah sesuai.
-- [ ] Penyelenggara sesuai sumber.
-- [ ] Persyaratan/jadwal sesuai sumber atau dikosongkan.
-- [ ] Tanggal masuk akal; bila sudah lewat → arahkan ke Expired, bukan Verified.
+- [ ] Kategori & jenis akses sesuai.
+- [ ] Provider sesuai sumber.
+- [ ] Free tier, harga per token, dan syarat akses sesuai sumber atau dikosongkan.
+- [ ] Masa promo masuk akal; bila sudah lewat → arahkan ke Expired, bukan Verified.
 
 **Kepatuhan**
-- [ ] Tidak ada NIK, KK, rekening, foto KTP, atau data pribadi penerima.
+- [ ] Tidak ada API key, token akses, kredensial akun, NIK, KK, rekening, atau foto KTP.
 - [ ] Bukan duplikat (periksa peringatan duplikasi & cari manual).
 - [ ] Bukan promosi/iklan/spam.
 
@@ -50,8 +50,8 @@ Meminta uang muka/"biaya admin"; menjanjikan pasti lolos; mengatasnamakan instan
 
 | Situasi | Contoh |
 |---|---|
-| Sumber lemah | "Sumber saat ini berupa unggahan media sosial tanpa tautan ke pengumuman resmi. Mohon tambahkan tautan situs/akun resmi penyelenggara." |
-| Tidak sesuai sumber | "Persyaratan 'penghasilan di bawah Rp X' tidak tercantum pada sumber. Hapus atau tambahkan sumber yang memuatnya." |
+| Sumber lemah | "Sumber saat ini berupa unggahan media sosial tanpa tautan ke pengumuman resmi. Mohon tambahkan tautan dokumentasi/halaman resmi provider." |
+| Tidak sesuai sumber | "Klaim 'kuota 1 juta token per hari' tidak tercantum pada sumber. Hapus atau tambahkan sumber yang memuatnya." |
 | Link mati | "Tautan sumber tidak dapat dibuka (404). Mohon perbarui tautan atau sertakan arsip/sumber lain." |
 | Data sensitif | "Terdapat data pribadi pada deskripsi. Hapus dan ajukan kembali." |
 | Duplikat | "Informasi ini sudah ada: [tautan]. Jika ada pembaruan, ajukan lewat laporan pada entri tersebut." |

@@ -75,12 +75,14 @@ async function main() {
   const { data: program, error: insertError } = await auth
     .from("assistance_programs")
     .insert({
-      title: "Bantuan Uji Mutasi Dasbor Kontribusi",
+      title: "Info AI Uji Mutasi Dasbor Kontribusi",
       slug,
       description:
-        "Deskripsi uji mutasi yang cukup panjang untuk memenuhi batas minimal lima puluh karakter.",
+        "Deskripsi info AI uji mutasi yang cukup panjang untuk memenuhi batas minimal lima puluh karakter.",
       category_id: category.id,
-      organizer: "Org Uji Smoke",
+      access_type: "api",
+      provider: "Provider Uji Smoke",
+      organizer: "Provider Uji Smoke",
       contributor_id: created.user.id,
       status: "draft",
     })
@@ -90,9 +92,9 @@ async function main() {
 
   await auth.from("sources").insert({
     program_id: program.id,
-    source_url: `https://contoh.go.id/smoke-${unique}`,
-    source_url_normalized: `https://contoh.go.id/smoke-${unique}`,
-    source_type: "situs_resmi",
+    source_url: `https://contoh.example/smoke-${unique}`,
+    source_url_normalized: `https://contoh.example/smoke-${unique}`,
+    source_type: "dokumentasi_resmi",
     is_primary: true,
   });
 
@@ -101,7 +103,7 @@ async function main() {
   const listHtml = await listRes.text();
   log(listRes.status === 200, "Daftar kontribusi → 200", `status ${listRes.status}`);
   log(
-    listHtml.includes("Bantuan Uji Mutasi Dasbor Kontribusi"),
+    listHtml.includes("Info AI Uji Mutasi Dasbor Kontribusi"),
     "Draf tampil di daftar kontribusi pengguna",
   );
 
@@ -112,8 +114,8 @@ async function main() {
   const editHtml = await editRes.text();
   log(editRes.status === 200, "Halaman edit draf → 200", `status ${editRes.status}`);
   log(
-    editHtml.includes("Org Uji Smoke"),
-    "Halaman edit memuat data tersimpan (penyelenggara)",
+    editHtml.includes("Provider Uji Smoke"),
+    "Halaman edit memuat data tersimpan (provider)",
   );
 
   // ---- 5. Pengguna lain tidak dapat membuka draf ini (404) ----

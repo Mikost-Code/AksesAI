@@ -5,7 +5,7 @@ import { unstable_cache } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
 import { displayHost } from "@/lib/security/ssrf-guard";
-import type { ProgramStatus, RegionScope, SourceType } from "@/lib/constants/labels";
+import type { AccessType, ProgramStatus, SourceType } from "@/lib/constants/labels";
 
 export type ProgramSource = {
   id: string;
@@ -28,15 +28,18 @@ export type ProgramDetail = {
   description: string;
   categoryName: string;
   categorySlug: string;
-  regionScope: RegionScope;
-  province: string | null;
-  city: string | null;
-  regionLabel: string;
-  organizer: string;
+  accessType: AccessType;
+  provider: string;
+  freeTier: string | null;
+  freeTierAvailable: boolean;
+  requiresCard: boolean;
+  priceInputPerMtok: number | null;
+  priceOutputPerMtok: number | null;
+  rateLimitRpm: number | null;
+  contextWindow: number | null;
   requirements: string | null;
-  publishedAt: string | null;
-  startDate: string | null;
-  endDate: string | null;
+  promoStart: string | null;
+  promoEnd: string | null;
   status: ProgramStatus;
   verifiedAt: string | null;
   contributor: { username: string; avatar: string | null; url: string | null; bio: string | null };
@@ -50,15 +53,18 @@ type RawDetail = {
   slug: string;
   title: string;
   description: string;
-  region_scope: RegionScope;
-  region: string | null;
-  province: string | null;
-  city: string | null;
-  organizer: string;
+  access_type: AccessType;
+  provider: string | null;
+  free_tier: string | null;
+  free_tier_available: boolean;
+  requires_card: boolean;
+  price_input_per_mtok: number | null;
+  price_output_per_mtok: number | null;
+  rate_limit_rpm: number | null;
+  context_window: number | null;
   requirements: string | null;
-  published_at: string | null;
-  start_date: string | null;
-  end_date: string | null;
+  promo_start: string | null;
+  promo_end: string | null;
   status: ProgramStatus;
   verified_at: string | null;
   categories: { name: string; slug: string } | { name: string; slug: string }[] | null;
@@ -95,8 +101,10 @@ async function fetchProgramDetail(slug: string): Promise<ProgramDetail | null> {
   const { data, error } = await supabase
     .from("assistance_programs")
     .select(
-      `id, slug, title, description, region_scope, region, province, city, organizer,
-       requirements, published_at, start_date, end_date, status, verified_at,
+      `id, slug, title, description, access_type, provider, free_tier,
+       free_tier_available, requires_card, price_input_per_mtok, price_output_per_mtok,
+       rate_limit_rpm, context_window, requirements, promo_start, promo_end,
+       status, verified_at,
        categories(name, slug),
        contributor:profiles!assistance_programs_contributor_id_fkey(github_username, github_avatar, github_url, bio),
        reviewer:profiles!assistance_programs_reviewer_id_fkey(github_username),
@@ -124,15 +132,18 @@ async function fetchProgramDetail(slug: string): Promise<ProgramDetail | null> {
     description: data.description,
     categoryName: category?.name ?? "Lainnya",
     categorySlug: category?.slug ?? "lainnya",
-    regionScope: data.region_scope,
-    province: data.province,
-    city: data.city,
-    regionLabel: data.region?.trim() ? data.region : "Nasional",
-    organizer: data.organizer,
+    accessType: data.access_type,
+    provider: data.provider?.trim() ? data.provider : "Tidak diketahui",
+    freeTier: data.free_tier,
+    freeTierAvailable: data.free_tier_available,
+    requiresCard: data.requires_card,
+    priceInputPerMtok: data.price_input_per_mtok,
+    priceOutputPerMtok: data.price_output_per_mtok,
+    rateLimitRpm: data.rate_limit_rpm,
+    contextWindow: data.context_window,
     requirements: data.requirements,
-    publishedAt: data.published_at,
-    startDate: data.start_date,
-    endDate: data.end_date,
+    promoStart: data.promo_start,
+    promoEnd: data.promo_end,
     status: data.status,
     verifiedAt: data.verified_at,
     contributor: {

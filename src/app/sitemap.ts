@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const routes: Array<{ path: string; priority: number }> = [
     { path: "", priority: 1 },
-    { path: "/bansos", priority: 0.9 },
+    { path: "/info", priority: 0.9 },
     { path: "/panduan", priority: 0.6 },
     { path: "/tentang", priority: 0.5 },
     { path: "/kebijakan-privasi", priority: 0.3 },

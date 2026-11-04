@@ -1,7 +1,13 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ProgramStatus, ReportReason, ReportStatus } from "@/lib/constants/labels";
+import {
+  ACCESS_TYPE_LABEL,
+  type AccessType,
+  type ProgramStatus,
+  type ReportReason,
+  type ReportStatus,
+} from "@/lib/constants/labels";
 
 /**
  * Data layer untuk reviewer & moderator.
@@ -17,8 +23,8 @@ export type ReviewQueueItem = {
   id: string;
   slug: string;
   title: string;
-  organizer: string;
-  regionLabel: string;
+  provider: string;
+  accessTypeLabel: string;
   categoryName: string;
   contributorId: string;
   contributorName: string;
@@ -34,8 +40,8 @@ type RawQueueRow = {
   id: string;
   slug: string;
   title: string;
-  organizer: string;
-  region: string | null;
+  provider: string | null;
+  access_type: AccessType;
   created_at: string;
   contributor_id: string;
   claimed_by: string | null;
@@ -66,7 +72,7 @@ export async function listReviewQueue(options: {
   let query = supabase
     .from("assistance_programs")
     .select(
-      `id, slug, title, organizer, region, created_at, contributor_id, claimed_by, claimed_at,
+      `id, slug, title, provider, access_type, created_at, contributor_id, claimed_by, claimed_at,
        categories(name), sources(id), profiles!contributor_id(github_username)`,
       { count: "exact" },
     )
@@ -114,8 +120,8 @@ export async function listReviewQueue(options: {
       id: row.id,
       slug: row.slug,
       title: row.title,
-      organizer: row.organizer,
-      regionLabel: row.region?.trim() ? row.region : "Nasional",
+      provider: row.provider?.trim() ? row.provider : "—",
+      accessTypeLabel: ACCESS_TYPE_LABEL[row.access_type] ?? "Lainnya",
       categoryName: pickOne(row.categories)?.name ?? "Lainnya",
       contributorId: row.contributor_id,
       contributorName: pickOne(row.profiles)?.github_username ?? "(tidak diketahui)",
@@ -142,14 +148,18 @@ export type ReviewDetail = {
   slug: string;
   title: string;
   description: string;
-  organizer: string;
+  provider: string;
+  accessType: AccessType;
+  freeTier: string | null;
+  freeTierAvailable: boolean;
+  requiresCard: boolean;
+  priceInputPerMtok: number | null;
+  priceOutputPerMtok: number | null;
+  rateLimitRpm: number | null;
+  contextWindow: number | null;
   requirements: string | null;
-  regionScope: string;
-  province: string | null;
-  city: string | null;
-  publishedAt: string | null;
-  startDate: string | null;
-  endDate: string | null;
+  promoStart: string | null;
+  promoEnd: string | null;
   contributorNote: string | null;
   status: ProgramStatus;
   reviewNote: string | null;
@@ -177,14 +187,18 @@ type RawDetail = {
   slug: string;
   title: string;
   description: string;
-  organizer: string;
+  provider: string | null;
+  access_type: AccessType;
+  free_tier: string | null;
+  free_tier_available: boolean;
+  requires_card: boolean;
+  price_input_per_mtok: number | null;
+  price_output_per_mtok: number | null;
+  rate_limit_rpm: number | null;
+  context_window: number | null;
   requirements: string | null;
-  region_scope: string;
-  province: string | null;
-  city: string | null;
-  published_at: string | null;
-  start_date: string | null;
-  end_date: string | null;
+  promo_start: string | null;
+  promo_end: string | null;
   contributor_note: string | null;
   status: ProgramStatus;
   review_note: string | null;
@@ -208,9 +222,10 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
   const { data, error } = await supabase
     .from("assistance_programs")
     .select(
-      `id, slug, title, description, organizer, requirements, region_scope, province, city,
-       published_at, start_date, end_date, contributor_note, status, review_note,
-       contributor_id, created_at, claimed_by, claimed_at,
+      `id, slug, title, description, provider, access_type, free_tier, free_tier_available,
+       requires_card, price_input_per_mtok, price_output_per_mtok, rate_limit_rpm,
+       context_window, requirements, promo_start, promo_end, contributor_note, status,
+       review_note, contributor_id, created_at, claimed_by, claimed_at,
        categories(name), profiles!contributor_id(github_username),
        sources(source_url, source_title, source_type, is_primary)`,
     )
@@ -239,14 +254,18 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
     slug: data.slug,
     title: data.title,
     description: data.description,
-    organizer: data.organizer,
+    provider: data.provider?.trim() ? data.provider : "—",
+    accessType: data.access_type,
+    freeTier: data.free_tier,
+    freeTierAvailable: data.free_tier_available,
+    requiresCard: data.requires_card,
+    priceInputPerMtok: data.price_input_per_mtok,
+    priceOutputPerMtok: data.price_output_per_mtok,
+    rateLimitRpm: data.rate_limit_rpm,
+    contextWindow: data.context_window,
     requirements: data.requirements,
-    regionScope: data.region_scope,
-    province: data.province,
-    city: data.city,
-    publishedAt: data.published_at,
-    startDate: data.start_date,
-    endDate: data.end_date,
+    promoStart: data.promo_start,
+    promoEnd: data.promo_end,
     contributorNote: data.contributor_note,
     status: data.status,
     reviewNote: data.review_note,

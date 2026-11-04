@@ -100,7 +100,7 @@ export default async function DashboardHome() {
                       {program.title}
                     </Link>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {program.categoryName} · {program.regionLabel} · diperbarui{" "}
+                      {program.categoryName} · {program.accessTypeLabel} · diperbarui{" "}
                       {formatDateID(program.updatedAt)}
                     </p>
                   </div>

@@ -1,10 +1,10 @@
-import { CalendarClock, MapPin, UserRound } from "lucide-react";
+import { CalendarClock, CreditCard, Gift, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui/card";
-import type { ProgramStatus } from "@/lib/constants/labels";
+import type { AccessType, ProgramStatus } from "@/lib/constants/labels";
 import { formatDateID } from "@/lib/utils";
 
 export type ProgramCardData = {
@@ -13,20 +13,33 @@ export type ProgramCardData = {
   title: string;
   summary: string;
   categoryName: string;
-  regionLabel: string;
-  organizer: string;
+  accessType: AccessType;
+  accessTypeLabel: string;
+  provider: string;
+  freeTier: string | null;
+  freeTierAvailable: boolean;
+  requiresCard: boolean;
+  priceInput: number | null;
+  priceOutput: number | null;
   status: ProgramStatus;
-  endDate: string | null;
+  promoEnd: string | null;
   contributorUsername: string;
   contributorAvatar: string | null;
 };
 
+function priceLabel(input: number | null, output: number | null): string | null {
+  if (input === null && output === null) return null;
+  const fmt = (v: number | null) => (v === null ? "—" : v === 0 ? "gratis" : `$${v.toFixed(2)}`);
+  return `In ${fmt(input)} · Out ${fmt(output)} / 1jt token`;
+}
+
 /**
- * Kartu program (UI_UX §6.1). Seluruh kartu dapat diklik melalui pseudo-element
- * pada link judul — satu target fokus per kartu.
+ * Kartu entri info AI (UI_UX §6.1). Seluruh kartu dapat diklik melalui
+ * pseudo-element pada link judul — satu target fokus per kartu.
  */
 export function ProgramCard({ program }: { program: ProgramCardData }) {
-  const endDate = formatDateID(program.endDate);
+  const promoEnd = formatDateID(program.promoEnd);
+  const pricing = priceLabel(program.priceInput, program.priceOutput);
 
   return (
     <Card className="group relative flex h-full flex-col overflow-hidden transition-shadow duration-150 hover:shadow-[var(--shadow-card-hover)] focus-within:shadow-[var(--shadow-card-hover)]">
@@ -38,9 +51,29 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-3 px-5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+            {program.accessTypeLabel}
+          </span>
+          {program.freeTierAvailable ? (
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+              Ada free tier
+            </span>
+          ) : (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+              Berbayar
+            </span>
+          )}
+          {program.requiresCard ? (
+            <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] text-warning">
+              Perlu kartu
+            </span>
+          ) : null}
+        </div>
+
         <h3 className="font-heading text-lg font-semibold leading-snug">
           <Link
-            href={`/bansos/${program.slug}`}
+            href={`/info/${program.slug}`}
             className="line-clamp-2 outline-none after:absolute after:inset-0 after:content-['']"
           >
             {program.title}
@@ -52,20 +85,29 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
 
         <dl className="mt-auto flex flex-col gap-1.5 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <UserRound className="size-4 shrink-0" aria-hidden="true" />
-            <dt className="sr-only">Penyelenggara</dt>
-            <dd className="line-clamp-1">{program.organizer}</dd>
+            <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+            <dt className="sr-only">Provider</dt>
+            <dd className="line-clamp-1">{program.provider}</dd>
           </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="size-4 shrink-0" aria-hidden="true" />
-            <dt className="sr-only">Wilayah</dt>
-            <dd className="line-clamp-1">{program.regionLabel}</dd>
-          </div>
-          {endDate ? (
+          {program.freeTierAvailable && program.freeTier ? (
+            <div className="flex items-center gap-1.5">
+              <Gift className="size-4 shrink-0" aria-hidden="true" />
+              <dt className="sr-only">Kuota gratis</dt>
+              <dd className="line-clamp-1">{program.freeTier}</dd>
+            </div>
+          ) : null}
+          {pricing ? (
+            <div className="flex items-center gap-1.5">
+              <CreditCard className="size-4 shrink-0" aria-hidden="true" />
+              <dt className="sr-only">Harga per token</dt>
+              <dd className="line-clamp-1">{pricing}</dd>
+            </div>
+          ) : null}
+          {promoEnd ? (
             <div className="flex items-center gap-1.5">
               <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
-              <dt className="sr-only">Tanggal berakhir</dt>
-              <dd>Tutup: {endDate}</dd>
+              <dt className="sr-only">Promo berakhir</dt>
+              <dd>Promo s.d. {promoEnd}</dd>
             </div>
           ) : null}
         </dl>

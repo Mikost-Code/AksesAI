@@ -1,22 +1,23 @@
 import { z } from "zod";
 
 import {
+  ACCESS_TYPES,
   CONTRIBUTION_LIMITS,
-  PROVINCES,
-  REGION_SCOPES,
   SOURCE_TYPES,
 } from "@/lib/constants/labels";
 import { checkSourceUrl } from "@/lib/security/ssrf-guard";
 import { sanitizeSingleLine, sanitizeText } from "@/lib/security/sanitize";
 
 /**
- * Skema kontribusi (PRD FR-CON-1..7).
+ * Skema kontribusi entri AI (PRD FR-CON-1..7) — AksesAI.
  *
  * Aturan:
  * - Semua teks disanitasi (karakter kontrol dibuang, spasi dinormalkan).
  * - URL sumber divalidasi anti-SSRF (hanya http/https ke host publik).
- * - Persyaratan wilayah dijaga: provinsi wajib untuk scope provinsi, dan
- *   provinsi+kota wajib untuk kabupaten/kota.
+ * - Provider wajib (siapa yang memberi akses gratis/murah).
+ * - Harga & rate limit wajib angka non-negatif; kosong = tidak diketahui.
+ * - Promo: tanggal selesai tidak boleh sebelum mulai, dan tidak boleh di masa
+ *   lalu (info yang sudah lewat tidak relevan untuk direktori aktif).
  * - Slug TIDAK diterima dari klien (dibuat server).
  */
 
@@ -70,6 +71,37 @@ const isoDate = z
       .nullable(),
   );
 
+/** Angka opsional dari input form: string kosong / null → null. */
+const optionalNumber = (
+  max: number,
+  label: string,
+  { integer = false }: { integer?: boolean } = {},
+) =>
+  z.preprocess(
+    (v) => {
+      if (v === null || v === undefined) return null;
+      const raw = typeof v === "number" ? String(v) : String(v).trim();
+      if (raw === "") return null;
+      // Terima koma desimal (kebiasaan lokal Indonesia).
+      return raw.replace(",", ".");
+    },
+    z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, `${label} harus berupa angka (contoh: 0.15).`)
+      .transform((v) => Number(v))
+      .refine((n) => Number.isFinite(n), `${label} tidak valid.`)
+      .refine((n) => n >= 0, `${label} tidak boleh negatif.`)
+      .refine((n) => n <= max, `${label} maksimal ${max}.`)
+      .refine((n) => !integer || Number.isInteger(n), `${label} harus bilangan bulat.`)
+      .nullable(),
+  );
+
+/** Checkbox HTML mengirim "on"/"true"/"1"; string lain → false. */
+const checkbox = z
+  .union([z.boolean(), z.string(), z.null(), z.undefined()])
+  .transform((v) => v === true || v === "true" || v === "on" || v === "1")
+  .pipe(z.boolean());
+
 const sourceSchema = z
   .object({
     url: z
@@ -115,29 +147,22 @@ export const contributionFormSchema = z
       L.titleMin,
       L.titleMax,
       "Judul",
-      "Judul minimal 10 karakter — jelaskan programnya, hindari clickbait.",
+      "Judul minimal 10 karakter — sebutkan provider dan kuota/benefit yang ditawarkan.",
     ),
     description: multiLine(L.descriptionMin, L.descriptionMax, "Deskripsi"),
     categoryId: z.uuid("Pilih kategori yang valid."),
-    regionScope: z.enum(REGION_SCOPES),
-    province: z
-      .string()
-      .nullish()
-      .transform((v) => (v ? sanitizeSingleLine(v) : ""))
-      .transform((v) => (v.length === 0 ? null : v))
-      .pipe(z.enum(PROVINCES).nullable())
-      .catch(null),
-    city: z
-      .string()
-      .nullish()
-      .transform((v) => (v ? sanitizeSingleLine(v) : ""))
-      .transform((v) => (v.length === 0 ? null : v))
-      .pipe(z.string().max(80, "Nama kota maksimal 80 karakter.").nullable()),
-    organizer: singleLine(3, L.organizerMax, "Penyelenggara"),
+    accessType: z.enum(ACCESS_TYPES, "Pilih jenis akses yang valid."),
+    provider: singleLine(2, L.providerMax, "Provider", "Nama provider minimal 2 karakter."),
+    freeTier: optionalMultiLine(L.freeTierMax, "Kuota gratis"),
+    freeTierAvailable: checkbox,
+    requiresCard: checkbox,
+    priceInputPerMtok: optionalNumber(1_000_000, "Harga input per 1 juta token"),
+    priceOutputPerMtok: optionalNumber(1_000_000, "Harga output per 1 juta token"),
+    rateLimitRpm: optionalNumber(1_000_000, "Rate limit (RPM)", { integer: true }),
+    contextWindow: optionalNumber(100_000_000, "Ukuran konteks", { integer: true }),
     requirements: optionalMultiLine(L.requirementsMax, "Persyaratan"),
-    publishedAt: isoDate,
-    startDate: isoDate,
-    endDate: isoDate,
+    promoStart: isoDate,
+    promoEnd: isoDate,
     contributorNote: optionalMultiLine(L.noteMax, "Catatan untuk reviewer"),
     sources: z
       .array(sourceSchema)
@@ -145,51 +170,53 @@ export const contributionFormSchema = z
       .max(L.sourcesMax, `Maksimal ${L.sourcesMax} sumber.`),
   })
   .superRefine((value, ctx) => {
-    // Wilayah
-    if (value.regionScope === "provinsi" && !value.province) {
+    // Jika tidak ada free tier, kuota gratis sebaiknya kosong agar tidak
+    // menyesatkan. Kita hanya memberi peringatan bila diisi.
+    if (!value.freeTierAvailable && value.freeTier) {
       ctx.addIssue({
         code: "custom",
-        path: ["province"],
-        message: "Pilih provinsi untuk cakupan provinsi.",
-      });
-    }
-    if (value.regionScope === "kabupaten_kota") {
-      if (!value.province) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["province"],
-          message: "Pilih provinsi.",
-        });
-      }
-      if (!value.city) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["city"],
-          message: "Isi nama kabupaten/kota.",
-        });
-      }
-    }
-
-    // Urutan tanggal
-    if (value.startDate && value.endDate && value.endDate < value.startDate) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["endDate"],
-        message: "Tanggal berakhir tidak boleh sebelum tanggal mulai.",
+        path: ["freeTier"],
+        message:
+          "Kosongkan kuota gratis jika entri ini tidak punya free tier, atau centang \u201cAda free tier\u201d.",
       });
     }
 
-    // Tanggal berakhir tidak boleh di masa lalu (informasi harus relevan).
-    if (value.endDate) {
+    // Urutan tanggal promo
+    if (value.promoStart && value.promoEnd && value.promoEnd < value.promoStart) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["promoEnd"],
+        message: "Tanggal berakhir tidak boleh sebelum tanggal mulai promo.",
+      });
+    }
+
+    // Promo yang sudah lewat tidak relevan untuk direktori aktif.
+    if (value.promoEnd) {
       const today = new Date().toISOString().slice(0, 10);
-      if (value.endDate < today) {
+      if (value.promoEnd < today) {
         ctx.addIssue({
           code: "custom",
-          path: ["endDate"],
+          path: ["promoEnd"],
           message:
-            "Tanggal berakhir sudah lewat. Jika program sudah tutup, jangan kirim sebagai informasi aktif.",
+            "Tanggal promo sudah lewat. Jika promo sudah berakhir, jangan kirim sebagai info aktif.",
         });
       }
+    }
+
+    // Rate limit / konteks harus bilangan bulat positif bila diisi (0 ditolak).
+    if (value.rateLimitRpm !== null && value.rateLimitRpm <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["rateLimitRpm"],
+        message: "Rate limit harus lebih dari 0 bila diisi.",
+      });
+    }
+    if (value.contextWindow !== null && value.contextWindow <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["contextWindow"],
+        message: "Ukuran konteks harus lebih dari 0 bila diisi.",
+      });
     }
 
     // Duplikasi sumber dalam satu kiriman
@@ -221,8 +248,8 @@ export const contributionFormSchema = z
         ...s,
         isPrimary: hasPrimary ? s.isPrimary : index === 0,
       })),
-      province: value.regionScope === "nasional" ? null : value.province,
-      city: value.regionScope === "kabupaten_kota" ? value.city : null,
+      // Tanpa free tier → kuota gratis tidak masuk akal untuk disimpan.
+      freeTier: value.freeTierAvailable ? value.freeTier : null,
     };
   });
 
@@ -238,9 +265,9 @@ export function contributionScanFields(
   return [
     { name: "title", value: value.title },
     { name: "description", value: value.description },
-    { name: "organizer", value: value.organizer },
+    { name: "provider", value: value.provider },
+    { name: "freeTier", value: value.freeTier },
     { name: "requirements", value: value.requirements },
-    { name: "city", value: value.city },
     { name: "contributorNote", value: value.contributorNote },
     ...value.sources.map((s, i) => ({
       name: `sources[${i}].title`,

@@ -1,6 +1,6 @@
 # AI Development Setup — OpenCode + 9Router
 
-> **Khusus developer.** AI **bukan** bagian dari runtime BantuWarga. Website tidak memanggil AI provider mana pun.
+> **Khusus developer.** AI **bukan** bagian dari runtime AksesAI. Website tidak memanggil AI provider mana pun.
 
 ## Tujuan
 
@@ -89,7 +89,7 @@ Referensi:
 1. Setiap anggota memakai API key **miliknya sendiri**.
 2. Jangan taruh API key di source code.
 3. Jangan unggah ke GitHub.
-4. Gunakan `.env.local` hanya jika aplikasi memang membutuhkannya (aplikasi BantuWarga tidak membutuhkan key AI).
+4. Gunakan `.env.local` hanya jika aplikasi memang membutuhkannya (aplikasi AksesAI tidak membutuhkan key AI).
 5. Pastikan `.env*` berisi rahasia ada di `.gitignore`.
 6. Jangan jadikan key developer sebagai key publik website.
 7. Jika key terlanjur terpublikasi: **revoke segera**, buat ulang, periksa riwayat penggunaan.

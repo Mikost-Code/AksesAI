@@ -1,4 +1,4 @@
-# Project Handover — BantuWarga
+# Project Handover — AksesAI
 
 Dokumen serah terima ringkas untuk tim pengembang. Detail kebutuhan ada di [PRD.md](../PRD.md); dokumen ini adalah peta jalan dan checklist.
 
@@ -6,8 +6,8 @@ Dokumen serah terima ringkas untuk tim pengembang. Detail kebutuhan ada di [PRD.
 
 | | |
 |---|---|
-| Nama | BantuWarga |
-| Kategori | Platform informasi bansos berbasis kontribusi komunitas |
+| Nama | AksesAI |
+| Kategori | Direktori info gratis & murah seputar AI berbasis kontribusi komunitas |
 | Bahasa | Bahasa Indonesia |
 | Stack | Next.js, TypeScript, Tailwind, shadcn/ui, Supabase (Postgres + Auth GitHub), Vercel |
 | Pengguna | Masyarakat umum, kontributor, reviewer, moderator, admin |
@@ -15,19 +15,19 @@ Dokumen serah terima ringkas untuk tim pengembang. Detail kebutuhan ada di [PRD.
 ## 2. Prinsip Produk (tidak dapat ditawar)
 
 1. Tidak ada AI Assistant/chatbot di website.
-2. Tidak ada AI untuk verifikasi otomatis atau penentuan kelayakan.
-3. Semua informasi berasal dari kontribusi dan sumber yang dapat diperiksa.
+2. Tidak ada AI untuk verifikasi otomatis.
+3. Semua informasi berasal dari kontribusi dan sumber resmi provider yang dapat diperiksa.
 4. Verifikasi dilakukan manusia (reviewer).
 5. Identitas kontributor transparan lewat profil publik.
-6. Pengguna dapat melaporkan informasi salah/kedaluwarsa.
-7. Tidak mengumpulkan data sensitif penerima bantuan.
-8. BantuWarga bukan pemerintah/penyalur/penentu kelayakan.
+6. Pengguna dapat melaporkan info salah/kedaluwarsa/kuota berubah.
+7. Tidak mengumpulkan data sensitif (API key, token, kredensial, NIK, rekening).
+8. AksesAI bukan afiliasi provider, bukan penjual/reseller token, dan tidak menerima bayaran dari provider.
 
 ## 3. Rute Aplikasi
 
 | Area | Rute |
 |---|---|
-| Publik | `/`, `/bansos`, `/bansos/[slug]`, `/kategori/[slug]`, `/kontributor/[username]`, `/tentang`, `/panduan`, `/kebijakan-privasi` |
+| Publik | `/`, `/info`, `/info/[slug]`, `/kategori/[slug]`, `/kontributor/[username]`, `/tentang`, `/panduan`, `/kebijakan-privasi` |
 | Auth | `/login`, `/auth/sign-in` (POST), `/auth/callback` |
 | Member | `/dashboard`, `/dashboard/kontribusi`, `/dashboard/kontribusi/baru`, `/dashboard/kontribusi/[id]`, `/dashboard/laporan` |
 | Reviewer | `/review`, `/review/[id]` |

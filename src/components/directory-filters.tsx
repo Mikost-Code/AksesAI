@@ -8,12 +8,12 @@ import { Search } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PROVINCES } from "@/lib/constants/labels";
+import { ACCESS_FILTER_OPTIONS, FREE_TIER_FILTER_OPTIONS } from "@/lib/constants/labels";
 
 export type CategoryOption = { slug: string; name: string };
 
 /**
- * Filter direktori. State disimpan di query string agar dapat dibagikan
+ * Filter direktori AksesAI. State disimpan di query string agar dapat dibagikan
  * (PRD FR-DIR-5) — semua perubahan memicu navigasi.
  */
 export function DirectoryFilters({
@@ -32,12 +32,12 @@ export function DirectoryFilters({
       else merged.set(key, value);
     }
     merged.delete("halaman");
-    router.push(`/bansos${merged.toString() ? `?${merged.toString()}` : ""}`);
+    router.push(`/info${merged.toString() ? `?${merged.toString()}` : ""}`);
   }
 
   const kategori = params.get("kategori") ?? "";
-  const provinsi = params.get("provinsi") ?? "";
-  const kota = params.get("kota") ?? "";
+  const akses = params.get("akses") ?? "semua";
+  const gratis = params.get("gratis") ?? "semua";
   const status = params.get("status") ?? "verified";
   const urut = params.get("urut") ?? "terbaru";
 
@@ -49,7 +49,7 @@ export function DirectoryFilters({
       }}
       className="flex flex-col gap-4 rounded-lg border border-border bg-background p-4 shadow-[var(--shadow-card)]"
       role="search"
-      aria-label="Filter direktori bansos"
+      aria-label="Filter direktori info AI"
     >
       <div className="relative">
         <Search
@@ -61,14 +61,14 @@ export function DirectoryFilters({
           onChange={(event) => setQ(event.target.value)}
           name="q"
           type="search"
-          placeholder="Cari judul, deskripsi, atau penyelenggara…"
+          placeholder="Cari provider, model, atau kuota gratis…"
           aria-label="Kata kunci"
           maxLength={100}
           className="pl-9"
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-kategori" className="text-xs font-medium text-muted-foreground">
             Kategori
@@ -89,19 +89,40 @@ export function DirectoryFilters({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="filter-provinsi" className="text-xs font-medium text-muted-foreground">
-            Provinsi
+          <label htmlFor="filter-akses" className="text-xs font-medium text-muted-foreground">
+            Jenis akses
           </label>
           <select
-            id="filter-provinsi"
-            value={provinsi}
-            onChange={(event) => update({ provinsi: event.target.value || null })}
+            id="filter-akses"
+            value={akses}
+            onChange={(event) =>
+              update({ akses: event.target.value === "semua" ? null : event.target.value })
+            }
             className="h-10 rounded-md border border-input bg-background px-2 text-sm"
           >
-            <option value="">Semua provinsi</option>
-            {PROVINCES.map((p) => (
-              <option key={p} value={p}>
-                {p}
+            {ACCESS_FILTER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="filter-gratis" className="text-xs font-medium text-muted-foreground">
+            Ketersediaan
+          </label>
+          <select
+            id="filter-gratis"
+            value={gratis}
+            onChange={(event) =>
+              update({ gratis: event.target.value === "semua" ? null : event.target.value })
+            }
+            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
+          >
+            {FREE_TIER_FILTER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -139,30 +160,13 @@ export function DirectoryFilters({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="filter-kota" className="text-xs font-medium text-muted-foreground">
-            Kabupaten/Kota (opsional)
-          </label>
-          <Input
-            id="filter-kota"
-            value={kota}
-            onChange={(event) => update({ kota: event.target.value || null })}
-            placeholder="Mis. Kota Bandung"
-            maxLength={80}
-          />
-        </div>
-        <div className="flex items-end gap-2">
-          <button type="submit" className={buttonVariants({ size: "sm" })}>
-            Terapkan
-          </button>
-          <Link
-            href="/bansos"
-            className={buttonVariants({ variant: "ghost", size: "sm" })}
-          >
-            Reset
-          </Link>
-        </div>
+      <div className="flex items-center justify-end gap-2">
+        <button type="submit" className={buttonVariants({ size: "sm" })}>
+          Terapkan
+        </button>
+        <Link href="/info" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          Reset
+        </Link>
       </div>
     </form>
   );

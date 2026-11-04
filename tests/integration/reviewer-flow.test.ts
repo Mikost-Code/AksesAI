@@ -60,7 +60,7 @@ describe("Integrasi — reviewer workflow", () => {
       program_id: data!.id,
       source_url: `https://contoh.go.id/${label}-${unique}`,
       source_url_normalized: `https://contoh.go.id/${label}-${unique}`,
-      source_type: "situs_resmi",
+      source_type: "dokumentasi_resmi",
       is_primary: true,
     });
     const { error } = await contributorUser.client.rpc("submit_program", {

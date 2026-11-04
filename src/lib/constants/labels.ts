@@ -1,12 +1,13 @@
 /**
- * Konstanta domain & label UI Bahasa Indonesia.
- * Semua teks status/reason dipusatkan di sini (PRD §7 NFR — i18n-ready).
+ * Konstanta domain & label UI Bahasa Indonesia — AksesAI.
+ * Direktori info "gratisan & murah" seputar AI.
+ * Semua teks status/reason dipusatkan di sini (NFR i18n-ready).
  */
 
-export const APP_NAME = "BantuWarga";
+export const APP_NAME = "AksesAI";
 
 export const APP_DESCRIPTION =
-  "Direktori informasi bantuan sosial berbasis kontribusi komunitas dengan sumber yang dapat diperiksa dan verifikasi manual oleh reviewer.";
+  "Direktori info gratis dan murah seputar AI: token/API gratis dari provider, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis — dikontribusikan komunitas dan diverifikasi manual.";
 
 export const PROGRAM_STATUSES = [
   "draft",
@@ -20,7 +21,7 @@ export const PROGRAM_STATUSES = [
 
 export type ProgramStatus = (typeof PROGRAM_STATUSES)[number];
 
-/** Status program yang terlihat publik di direktori & detail. */
+/** Status entri yang terlihat publik di direktori & detail. */
 export const PUBLIC_PROGRAM_STATUSES = ["verified", "expired"] as const satisfies ReadonlyArray<ProgramStatus>;
 
 export type PublicProgramStatus = (typeof PUBLIC_PROGRAM_STATUSES)[number];
@@ -43,41 +44,57 @@ export const PROGRAM_STATUS_DESCRIPTION: Record<ProgramStatus, string> = {
   pending: "Menunggu pemeriksaan reviewer.",
   needs_changes: "Reviewer meminta perbaikan sebelum dapat diterbitkan.",
   rejected: "Tidak dapat diterbitkan; lihat alasan reviewer.",
-  verified: "Sudah diperiksa reviewer berdasarkan sumber yang tersedia.",
-  expired: "Tanggal berakhir sudah lewat; informasi mungkin tidak berlaku lagi.",
+  verified: "Sudah diperiksa reviewer terhadap sumber resmi provider.",
+  expired: "Masa promo/kuota kemungkinan sudah lewat; cek halaman resmi provider.",
   archived: "Disembunyikan dari direktori.",
 };
 
-export const REGION_SCOPES = ["nasional", "provinsi", "kabupaten_kota"] as const;
-export type RegionScope = (typeof REGION_SCOPES)[number];
+/** Jenis akses AI. Menggantikan konsep wilayah pada domain lama. */
+export const ACCESS_TYPES = ["api", "chat", "tool", "hosting", "model"] as const;
+export type AccessType = (typeof ACCESS_TYPES)[number];
 
-export const REGION_SCOPE_LABEL: Record<RegionScope, string> = {
-  nasional: "Nasional",
-  provinsi: "Provinsi",
-  kabupaten_kota: "Kabupaten/Kota",
+export const ACCESS_TYPE_LABEL: Record<AccessType, string> = {
+  api: "API / Endpoint",
+  chat: "Chat / Playground",
+  tool: "Tool AI",
+  hosting: "Hosting",
+  model: "Model (open-weight)",
+};
+
+export const ACCESS_TYPE_DESCRIPTION: Record<AccessType, string> = {
+  api: "Dipakai lewat API — cocok untuk developer yang memanggil model dari kode.",
+  chat: "Antarmuka chat atau playground yang bisa langsung dipakai di browser.",
+  tool: "Aplikasi jadi (coding assistant, generator gambar, dsb.).",
+  hosting: "Tempat menjalankan/menghosting model atau aplikasi AI secara gratis.",
+  model: "Bobot model terbuka yang bisa diunduh dan dijalankan sendiri.",
 };
 
 export const SOURCE_TYPES = [
-  "situs_resmi",
-  "media_massa",
-  "media_sosial_resmi",
-  "dokumen",
+  "dokumentasi_resmi",
+  "halaman_harga",
+  "blog_provider",
+  "repo_resmi",
+  "media_tepercaya",
   "lainnya",
 ] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number];
 
 export const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
-  situs_resmi: "Situs resmi",
-  media_massa: "Media massa",
-  media_sosial_resmi: "Media sosial resmi",
-  dokumen: "Dokumen",
+  dokumentasi_resmi: "Dokumentasi resmi",
+  halaman_harga: "Halaman harga",
+  blog_provider: "Blog/pengumuman provider",
+  repo_resmi: "Repositori resmi",
+  media_tepercaya: "Media tepercaya",
   lainnya: "Lainnya",
 };
 
 export const REPORT_REASONS = [
-  "tidak_akurat",
+  "kuota_berubah",
+  "tidak_lagi_gratis",
+  "harga_salah",
   "kedaluwarsa",
   "link_mati",
+  "tidak_akurat",
   "duplikat",
   "dugaan_penipuan",
   "spam",
@@ -85,22 +102,28 @@ export const REPORT_REASONS = [
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
 export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
-  tidak_akurat: "Informasi tidak akurat",
-  kedaluwarsa: "Sudah kedaluwarsa",
+  kuota_berubah: "Kuota gratis berubah",
+  tidak_lagi_gratis: "Sudah tidak gratis",
+  harga_salah: "Harga per token tidak sesuai",
+  kedaluwarsa: "Promo sudah berakhir",
   link_mati: "Tautan sumber tidak tersedia",
-  duplikat: "Duplikat informasi lain",
+  tidak_akurat: "Informasi tidak akurat",
+  duplikat: "Duplikat entri lain",
   dugaan_penipuan: "Dugaan penipuan",
   spam: "Spam/penyalahgunaan",
 };
 
-/** Urutan prioritas moderasi (PRD FR-MOD-1). */
+/** Urutan prioritas moderasi: info menyesatkan soal gratis lebih dulu. */
 export const REPORT_REASON_PRIORITY: Record<ReportReason, number> = {
   dugaan_penipuan: 0,
-  tidak_akurat: 1,
-  link_mati: 2,
-  kedaluwarsa: 3,
-  duplikat: 4,
-  spam: 5,
+  tidak_lagi_gratis: 1,
+  harga_salah: 2,
+  kuota_berubah: 3,
+  tidak_akurat: 4,
+  link_mati: 5,
+  kedaluwarsa: 6,
+  duplikat: 7,
+  spam: 8,
 };
 
 export const REPORT_STATUSES = [
@@ -148,18 +171,19 @@ export type ModerationAction = (typeof MODERATION_ACTIONS)[number];
 export const MODERATION_ACTION_LABEL: Record<ModerationAction, string> = {
   dismiss: "Abaikan laporan",
   reopen_for_review: "Kembalikan ke antrean reviewer",
-  archive_program: "Sembunyikan informasi",
+  archive_program: "Sembunyikan entri",
   ban_contributor: "Blokir kontributor",
   resolve: "Selesaikan dengan catatan",
 };
 
-/** Batas validasi kontribusi (PRD FR-CON-2). */
+/** Batas validasi kontribusi. */
 export const CONTRIBUTION_LIMITS = {
   titleMin: 10,
   titleMax: 150,
   descriptionMin: 50,
   descriptionMax: 3000,
-  organizerMax: 150,
+  providerMax: 150,
+  freeTierMax: 500,
   requirementsMax: 1500,
   noteMax: 1000,
   categoryNoteMax: 500,
@@ -179,57 +203,37 @@ export const CATEGORY_NAME_MAX = 60;
 export const CATEGORY_DESCRIPTION_MAX = 300;
 export const ADMIN_REASON_MIN = 10;
 
-/** Disclaimer wajib tampil di halaman detail (UI_UX §6.3). */
+/** Disclaimer wajib tampil di halaman detail. */
 export const DEFAULT_DISCLAIMER_TEXT =
-  "Terverifikasi berarti informasi telah diperiksa oleh reviewer berdasarkan sumber yang tersedia. Ini bukan jaminan pemerintah dan bukan jaminan bantuan masih tersedia. Selalu periksa sumber resmi.";
+  "Terverifikasi berarti entri telah diperiksa reviewer terhadap dokumentasi atau halaman resmi provider pada saat peninjauan. Kuota gratis, harga, dan promo dapat berubah sewaktu-waktu tanpa pemberitahuan. Selalu periksa halaman resmi provider sebelum mendaftar.";
 
 export const PLATFORM_DISCLAIMER_SHORT =
-  "BantuWarga bukan lembaga pemerintah, bukan penyalur bansos, dan bukan penentu kelayakan penerima bantuan.";
+  "AksesAI bukan afiliasi provider AI mana pun. Kami tidak menjual token, tidak menjamin kuota gratis masih tersedia, dan tidak menerima pembayaran dari provider.";
 
 export const SENSITIVE_DATA_WARNING =
-  "Jangan menulis data pribadi seperti NIK, nomor KK, nomor rekening, foto KTP, atau identitas penerima bantuan.";
+  "Jangan menulis data pribadi seperti API key, token akses, NIK, nomor rekening, atau kredensial akun apa pun. Cukup tulis info yang memang dipublikasikan provider.";
 
-/** Daftar 38 provinsi Indonesia (label tampilan, bukan penyimpanan kode). */
-export const PROVINCES = [
-  "Aceh",
-  "Sumatera Utara",
-  "Sumatera Barat",
-  "Riau",
-  "Kepulauan Riau",
-  "Jambi",
-  "Bengkulu",
-  "Sumatera Selatan",
-  "Kepulauan Bangka Belitung",
-  "Lampung",
-  "Banten",
-  "DKI Jakarta",
-  "Jawa Barat",
-  "Jawa Tengah",
-  "DI Yogyakarta",
-  "Jawa Timur",
-  "Bali",
-  "Nusa Tenggara Barat",
-  "Nusa Tenggara Timur",
-  "Kalimantan Barat",
-  "Kalimantan Tengah",
-  "Kalimantan Selatan",
-  "Kalimantan Timur",
-  "Kalimantan Utara",
-  "Sulawesi Utara",
-  "Gorontalo",
-  "Sulawesi Tengah",
-  "Sulawesi Barat",
-  "Sulawesi Selatan",
-  "Sulawesi Tenggara",
-  "Maluku",
-  "Maluku Utara",
-  "Papua",
-  "Papua Barat",
-  "Papua Barat Daya",
-  "Papua Tengah",
-  "Papua Pegunungan",
-  "Papua Selatan",
-] as const;
+/** Urutan tampilan pilihan jenis akses di form & filter. */
+export const ACCESS_TYPE_OPTIONS = ACCESS_TYPES.map((value) => ({
+  value,
+  label: ACCESS_TYPE_LABEL[value],
+}));
 
 export const PAGE_SIZE = 12;
-export const EXPIRING_SOON_DAYS_DEFAULT = 14;
+export const EXPIRING_SOON_DAYS_DEFAULT = 7;
+
+/** Pilihan filter "jenis akses" di direktori (semua + tiap jenis). */
+export const ACCESS_FILTER_OPTIONS = [
+  { value: "semua", label: "Semua jenis" },
+  ...ACCESS_TYPE_OPTIONS,
+] as const;
+
+/** Pilihan filter ketersediaan gratis. */
+export const FREE_TIER_FILTER_OPTIONS = [
+  { value: "semua", label: "Semua" },
+  { value: "gratis", label: "Ada free tier" },
+  { value: "tanpa_kartu", label: "Gratis tanpa kartu" },
+  { value: "berbayar", label: "Berbayar murah" },
+] as const;
+
+export type FreeTierFilter = (typeof FREE_TIER_FILTER_OPTIONS)[number]["value"];

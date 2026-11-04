@@ -3,18 +3,36 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
   
-  "public": {
+  "graphql_public": {
+          Tables: {
+            [_ in never]: never
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "assistance_programs": {
                   Row: {
-                    "category_id": string,"city": string | null,"claimed_at": string | null,"claimed_by": string | null,"contributor_id": string,"contributor_note": string | null,"created_at": string,"description": string,"end_date": string | null,"id": string,"organizer": string,"province": string | null,"published_at": string | null,"region": string | null,"region_scope": Database["public"]['Enums']["region_scope"],"requirements": string | null,"review_note": string | null,"reviewer_id": string | null,"search_tsv": unknown,"slug": string,"start_date": string | null,"status": Database["public"]['Enums']["program_status"],"title": string,"updated_at": string,"verified_at": string | null
+                    "access_type": Database["public"]['Enums']["access_type"],"category_id": string,"city": string | null,"claimed_at": string | null,"claimed_by": string | null,"context_window": number | null,"contributor_id": string,"contributor_note": string | null,"created_at": string,"description": string,"end_date": string | null,"free_tier": string | null,"free_tier_available": boolean,"id": string,"organizer": string,"price_input_per_mtok": number | null,"price_output_per_mtok": number | null,"promo_end": string | null,"promo_start": string | null,"provider": string | null,"province": string | null,"published_at": string | null,"rate_limit_rpm": number | null,"region": string | null,"region_scope": Database["public"]['Enums']["region_scope"],"requirements": string | null,"requires_card": boolean,"review_note": string | null,"reviewer_id": string | null,"search_tsv": unknown,"slug": string,"start_date": string | null,"status": Database["public"]['Enums']["program_status"],"title": string,"updated_at": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "category_id": string,"city"?: string | null,"claimed_at"?: string | null,"claimed_by"?: string | null,"contributor_id": string,"contributor_note"?: string | null,"created_at"?: string,"description": string,"end_date"?: string | null,"id"?: string,"organizer": string,"province"?: string | null,"published_at"?: string | null,"region"?: never,"region_scope"?: Database["public"]['Enums']["region_scope"],"requirements"?: string | null,"review_note"?: string | null,"reviewer_id"?: string | null,"search_tsv"?: never,"slug": string,"start_date"?: string | null,"status"?: Database["public"]['Enums']["program_status"],"title": string,"updated_at"?: string,"verified_at"?: string | null
+                    "access_type"?: Database["public"]['Enums']["access_type"],"category_id": string,"city"?: string | null,"claimed_at"?: string | null,"claimed_by"?: string | null,"context_window"?: number | null,"contributor_id": string,"contributor_note"?: string | null,"created_at"?: string,"description": string,"end_date"?: string | null,"free_tier"?: string | null,"free_tier_available"?: boolean,"id"?: string,"organizer": string,"price_input_per_mtok"?: number | null,"price_output_per_mtok"?: number | null,"promo_end"?: string | null,"promo_start"?: string | null,"provider"?: string | null,"province"?: string | null,"published_at"?: string | null,"rate_limit_rpm"?: number | null,"region"?: never,"region_scope"?: Database["public"]['Enums']["region_scope"],"requirements"?: string | null,"requires_card"?: boolean,"review_note"?: string | null,"reviewer_id"?: string | null,"search_tsv"?: never,"slug": string,"start_date"?: string | null,"status"?: Database["public"]['Enums']["program_status"],"title": string,"updated_at"?: string,"verified_at"?: string | null
                   }
                   Update: {
-                    "category_id"?: string,"city"?: string | null,"claimed_at"?: string | null,"claimed_by"?: string | null,"contributor_id"?: string,"contributor_note"?: string | null,"created_at"?: string,"description"?: string,"end_date"?: string | null,"id"?: string,"organizer"?: string,"province"?: string | null,"published_at"?: string | null,"region"?: never,"region_scope"?: Database["public"]['Enums']["region_scope"],"requirements"?: string | null,"review_note"?: string | null,"reviewer_id"?: string | null,"search_tsv"?: never,"slug"?: string,"start_date"?: string | null,"status"?: Database["public"]['Enums']["program_status"],"title"?: string,"updated_at"?: string,"verified_at"?: string | null
+                    "access_type"?: Database["public"]['Enums']["access_type"],"category_id"?: string,"city"?: string | null,"claimed_at"?: string | null,"claimed_by"?: string | null,"context_window"?: number | null,"contributor_id"?: string,"contributor_note"?: string | null,"created_at"?: string,"description"?: string,"end_date"?: string | null,"free_tier"?: string | null,"free_tier_available"?: boolean,"id"?: string,"organizer"?: string,"price_input_per_mtok"?: number | null,"price_output_per_mtok"?: number | null,"promo_end"?: string | null,"promo_start"?: string | null,"provider"?: string | null,"province"?: string | null,"published_at"?: string | null,"rate_limit_rpm"?: number | null,"region"?: never,"region_scope"?: Database["public"]['Enums']["region_scope"],"requirements"?: string | null,"requires_card"?: boolean,"review_note"?: string | null,"reviewer_id"?: string | null,"search_tsv"?: never,"slug"?: string,"start_date"?: string | null,"status"?: Database["public"]['Enums']["program_status"],"title"?: string,"updated_at"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -185,14 +203,14 @@ isOneToOne: false
                   ]
                 },"sources": {
                   Row: {
-                    "created_at": string,"id": string,"is_primary": boolean,"last_checked_at": string | null,"link_status": string | null,"program_id": string,"source_title": string | null,"source_type": Database["public"]['Enums']["source_type"],"source_url": string,"source_url_normalized": string
+                    "created_at": string,"id": string,"is_primary": boolean,"last_checked_at": string | null,"link_status": string | null,"program_id": string,"source_title": string | null,"source_type": Database["public"]['Enums']["source_type_v2"],"source_url": string,"source_url_normalized": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_primary"?: boolean,"last_checked_at"?: string | null,"link_status"?: string | null,"program_id": string,"source_title"?: string | null,"source_type"?: Database["public"]['Enums']["source_type"],"source_url": string,"source_url_normalized": string
+                    "created_at"?: string,"id"?: string,"is_primary"?: boolean,"last_checked_at"?: string | null,"link_status"?: string | null,"program_id": string,"source_title"?: string | null,"source_type"?: Database["public"]['Enums']["source_type_v2"],"source_url": string,"source_url_normalized": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_primary"?: boolean,"last_checked_at"?: string | null,"link_status"?: string | null,"program_id"?: string,"source_title"?: string | null,"source_type"?: Database["public"]['Enums']["source_type"],"source_url"?: string,"source_url_normalized"?: string
+                    "created_at"?: string,"id"?: string,"is_primary"?: boolean,"last_checked_at"?: string | null,"link_status"?: string | null,"program_id"?: string,"source_title"?: string | null,"source_type"?: Database["public"]['Enums']["source_type_v2"],"source_url"?: string,"source_url_normalized"?: string
                   }
                   Relationships: [
                     {
@@ -333,7 +351,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "app_role": "member"|"reviewer"|"moderator"|"admin","program_status": "draft"|"pending"|"needs_changes"|"verified"|"rejected"|"expired"|"archived","region_scope": "nasional"|"provinsi"|"kabupaten_kota","report_reason": "tidak_akurat"|"kedaluwarsa"|"link_mati"|"duplikat"|"dugaan_penipuan"|"spam","report_status": "open"|"in_review"|"resolved"|"dismissed","source_type": "situs_resmi"|"media_massa"|"media_sosial_resmi"|"dokumen"|"lainnya"
+            "access_type": "api"|"chat"|"tool"|"hosting"|"model","app_role": "member"|"reviewer"|"moderator"|"admin","program_status": "draft"|"pending"|"needs_changes"|"verified"|"rejected"|"expired"|"archived","region_scope": "nasional"|"provinsi"|"kabupaten_kota","report_reason": "tidak_akurat"|"kedaluwarsa"|"link_mati"|"duplikat"|"dugaan_penipuan"|"spam"|"kuota_berubah"|"tidak_lagi_gratis"|"harga_salah","report_status": "open"|"in_review"|"resolved"|"dismissed","source_type": "situs_resmi"|"media_massa"|"media_sosial_resmi"|"dokumen"|"lainnya","source_type_v2": "dokumentasi_resmi"|"halaman_harga"|"blog_provider"|"repo_resmi"|"media_tepercaya"|"lainnya"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -447,9 +465,13 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "graphql_public": {
           Enums: {
-            "app_role": ["member", "reviewer", "moderator", "admin"],"program_status": ["draft", "pending", "needs_changes", "verified", "rejected", "expired", "archived"],"region_scope": ["nasional", "provinsi", "kabupaten_kota"],"report_reason": ["tidak_akurat", "kedaluwarsa", "link_mati", "duplikat", "dugaan_penipuan", "spam"],"report_status": ["open", "in_review", "resolved", "dismissed"],"source_type": ["situs_resmi", "media_massa", "media_sosial_resmi", "dokumen", "lainnya"]
+            
+          }
+        },"public": {
+          Enums: {
+            "access_type": ["api", "chat", "tool", "hosting", "model"],"app_role": ["member", "reviewer", "moderator", "admin"],"program_status": ["draft", "pending", "needs_changes", "verified", "rejected", "expired", "archived"],"region_scope": ["nasional", "provinsi", "kabupaten_kota"],"report_reason": ["tidak_akurat", "kedaluwarsa", "link_mati", "duplikat", "dugaan_penipuan", "spam", "kuota_berubah", "tidak_lagi_gratis", "harga_salah"],"report_status": ["open", "in_review", "resolved", "dismissed"],"source_type": ["situs_resmi", "media_massa", "media_sosial_resmi", "dokumen", "lainnya"],"source_type_v2": ["dokumentasi_resmi", "halaman_harga", "blog_provider", "repo_resmi", "media_tepercaya", "lainnya"]
           }
         }
 } as const

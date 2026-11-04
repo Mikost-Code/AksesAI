@@ -74,7 +74,7 @@ export function ContributionRowActions({
 
       {publicSlug ? (
         <Link
-          href={`/bansos/${publicSlug}`}
+          href={`/info/${publicSlug}`}
           className={buttonVariants({ variant: "ghost", size: "sm" })}
         >
           <Eye className="size-4" aria-hidden={true} />

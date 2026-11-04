@@ -1,14 +1,15 @@
-import { ExternalLink, FileText, Newspaper, Share2 } from "lucide-react";
+import { BookOpen, Code2, ExternalLink, Newspaper, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { SOURCE_TYPE_LABEL } from "@/lib/constants/labels";
 import type { ProgramSource } from "@/lib/programs/detail";
 
 const TYPE_ICON = {
-  situs_resmi: FileText,
-  media_massa: Newspaper,
-  media_sosial_resmi: Share2,
-  dokumen: FileText,
+  dokumentasi_resmi: BookOpen,
+  halaman_harga: Receipt,
+  blog_provider: Newspaper,
+  repo_resmi: Code2,
+  media_tepercaya: Newspaper,
   lainnya: ExternalLink,
 } as const;
 

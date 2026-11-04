@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   return {
     title: `Kontributor ${profile.username}`,
-    description: `Profil publik ${profile.username}: ${profile.totalVerified} informasi bansos terverifikasi di BantuWarga.`,
+    description: `Profil publik ${profile.username}: ${profile.totalVerified} info AI gratis & murah terverifikasi di AksesAI.`,
   };
 }
 

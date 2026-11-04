@@ -12,7 +12,7 @@ const VIEWPORTS = [
   { name: "tablet-768", width: 768, height: 1024 },
 ] as const;
 
-const PAGES = ["/", "/bansos", "/login", "/tentang"] as const;
+const PAGES = ["/", "/info", "/login", "/tentang"] as const;
 
 test.describe("Responsif halaman publik", () => {
   for (const vp of VIEWPORTS) {
@@ -41,14 +41,14 @@ test.describe("Responsif halaman publik", () => {
     await page.goto("/");
     const banner = page.getByRole("banner");
     await expect(banner).toBeVisible();
-    // Tautan utama (BantuWarga / direktori) tetap dapat difokuskan.
+    // Tautan utama (AksesAI / direktori) tetap dapat difokuskan.
     const linkCount = await banner.getByRole("link").count();
     expect(linkCount).toBeGreaterThan(0);
   });
 
   test("form pencarian direktori tetap dapat dipakai di ponsel", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto("/bansos");
+    await page.goto("/info");
     const searchInput = page.getByRole("searchbox").or(page.locator('input[type="search"]'));
     if ((await searchInput.count()) > 0) {
       await expect(searchInput.first()).toBeVisible();

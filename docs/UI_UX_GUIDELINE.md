@@ -1,4 +1,4 @@
-# UI/UX Guideline — BantuWarga
+# UI/UX Guideline — AksesAI
 
 **Identitas visual:** Clean · Modern · Professional · Community-driven.
 Referensi visual yang pernah diberikan hanyalah inspirasi struktur direktori komunitas; **jangan menyalin desain**.
@@ -55,7 +55,7 @@ Motion: hanya transisi halus 150–200ms (hover, fokus, buka dialog); hormati `p
 ## 6. Komponen Kunci
 
 ### 6.1 ProgramCard
-Kategori (pill) · Judul (maks. 2 baris) · Ringkasan 2–3 baris · Penyelenggara · Wilayah · Tanggal tutup (jika ada) · **StatusBadge** · avatar+username kontributor. Seluruh kartu dapat diklik (satu target fokus).
+Kategori (pill) · Judul (maks. 2 baris) · Ringkasan 2–3 baris · Provider · Jenis akses · Masa promo berakhir (jika ada) · **StatusBadge** · avatar+username kontributor. Seluruh kartu dapat diklik (satu target fokus).
 
 ### 6.2 StatusBadge
 | Status | Label UI | Gaya |
@@ -69,13 +69,13 @@ Kategori (pill) · Judul (maks. 2 baris) · Ringkasan 2–3 baris · Penyelengga
 | archived | Diarsipkan | gray outline |
 
 ### 6.3 Disclaimer Verified
-Teks tetap (dapat diubah admin): "Terverifikasi berarti informasi telah diperiksa oleh reviewer berdasarkan sumber yang tersedia. Ini bukan jaminan pemerintah dan bukan jaminan bantuan masih tersedia. Selalu periksa sumber resmi."
+Teks tetap (dapat diubah admin): "Terverifikasi berarti entri telah diperiksa reviewer terhadap dokumentasi atau halaman resmi provider pada saat peninjauan. Kuota gratis, harga, dan promo dapat berubah sewaktu-waktu tanpa pemberitahuan. Selalu periksa halaman resmi provider sebelum mendaftar."
 
 ### 6.4 SourceList
 Setiap sumber: ikon tipe, judul, **domain**, tombol "Buka sumber" (tab baru). Sumber utama diberi label "Sumber utama".
 
 ### 6.5 Form Kontribusi
-Satu kolom, label di atas input, teks bantu di bawah, penghitung karakter, error inline spesifik, simpan draf otomatis (debounce) + tombol eksplisit. Peringatan data sensitif di bagian atas. Stepper opsional: Info → Wilayah & Jadwal → Sumber → Tinjau.
+Satu kolom, label di atas input, teks bantu di bawah, penghitung karakter, error inline spesifik, simpan draf otomatis (debounce) + tombol eksplisit. Peringatan data sensitif di bagian atas. Stepper opsional: Info → Jenis Akses & Promo → Sumber → Tinjau.
 
 ### 6.6 Filter Direktori
 Desktop: bar filter horizontal/sidebar. Mobile: tombol "Filter" membuka sheet; chip filter aktif dapat dihapus satu per satu; tombol "Reset".
@@ -97,7 +97,7 @@ Tampilan fungsional (tabel padat, panel samping checklist) — hanya untuk area 
 9. Footer: tentang, panduan, privasi, tautan GitHub proyek, disclaimer singkat
 
 ### Detail
-Breadcrumb → Judul + StatusBadge → meta (penyelenggara, wilayah, kategori, jadwal) → disclaimer → deskripsi → persyaratan ("Tidak tercantum pada sumber" bila kosong) → sumber → kontributor/reviewer → riwayat pembaruan → tombol **Laporkan** (sticky di mobile bagian bawah bersifat opsional).
+Breadcrumb → Judul + StatusBadge → meta (provider, jenis akses, kategori, masa promo) → disclaimer → deskripsi → free tier & harga per token ("Tidak tercantum pada sumber" bila kosong) → syarat akses → sumber → kontributor/reviewer → riwayat pembaruan → tombol **Laporkan** (sticky di mobile bagian bawah bersifat opsional).
 
 ## 8. Microcopy (Bahasa Indonesia)
 

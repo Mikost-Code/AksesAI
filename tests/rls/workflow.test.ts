@@ -41,7 +41,7 @@ describe("RLS — alur kontribusi & review", () => {
       source_url: "https://contoh.go.id/pengumuman",
       source_url_normalized: `https://contoh.go.id/pengumuman-${data.id}`,
       source_title: "Pengumuman resmi",
-      source_type: "situs_resmi",
+      source_type: "dokumentasi_resmi",
       is_primary: true,
     });
     return data.id;

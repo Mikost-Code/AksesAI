@@ -9,10 +9,10 @@ import { FieldError, FieldHint, Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ACCESS_TYPES,
+  ACCESS_TYPE_DESCRIPTION,
+  ACCESS_TYPE_LABEL,
   CONTRIBUTION_LIMITS,
-  PROVINCES,
-  REGION_SCOPES,
-  REGION_SCOPE_LABEL,
   SENSITIVE_DATA_WARNING,
   SOURCE_TYPES,
   SOURCE_TYPE_LABEL,
@@ -23,14 +23,18 @@ export type ContributionFormValues = {
   title: string;
   description: string;
   categoryId: string;
-  regionScope: (typeof REGION_SCOPES)[number];
-  province: string;
-  city: string;
-  organizer: string;
+  accessType: (typeof ACCESS_TYPES)[number];
+  provider: string;
+  freeTier: string;
+  freeTierAvailable: boolean;
+  requiresCard: boolean;
+  priceInputPerMtok: string;
+  priceOutputPerMtok: string;
+  rateLimitRpm: string;
+  contextWindow: string;
   requirements: string;
-  publishedAt: string;
-  startDate: string;
-  endDate: string;
+  promoStart: string;
+  promoEnd: string;
   contributorNote: string;
   sources: Array<{
     url: string;
@@ -46,27 +50,39 @@ export const EMPTY_CONTRIBUTION: ContributionFormValues = {
   title: "",
   description: "",
   categoryId: "",
-  regionScope: "nasional",
-  province: "",
-  city: "",
-  organizer: "",
+  accessType: "api",
+  provider: "",
+  freeTier: "",
+  freeTierAvailable: true,
+  requiresCard: false,
+  priceInputPerMtok: "",
+  priceOutputPerMtok: "",
+  rateLimitRpm: "",
+  contextWindow: "",
   requirements: "",
-  publishedAt: "",
-  startDate: "",
-  endDate: "",
+  promoStart: "",
+  promoEnd: "",
   contributorNote: "",
-  sources: [{ url: "", title: "", type: "situs_resmi", isPrimary: true }],
+  sources: [{ url: "", title: "", type: "dokumentasi_resmi", isPrimary: true }],
 };
 
 function toRaw(values: ContributionFormValues) {
   return {
-    ...values,
-    publishedAt: values.publishedAt || null,
-    startDate: values.startDate || null,
-    endDate: values.endDate || null,
-    province: values.province || null,
-    city: values.city || null,
+    title: values.title,
+    description: values.description,
+    categoryId: values.categoryId,
+    accessType: values.accessType,
+    provider: values.provider,
+    freeTier: values.freeTier || null,
+    freeTierAvailable: values.freeTierAvailable,
+    requiresCard: values.requiresCard,
+    priceInputPerMtok: values.priceInputPerMtok || null,
+    priceOutputPerMtok: values.priceOutputPerMtok || null,
+    rateLimitRpm: values.rateLimitRpm || null,
+    contextWindow: values.contextWindow || null,
     requirements: values.requirements || undefined,
+    promoStart: values.promoStart || null,
+    promoEnd: values.promoEnd || null,
     contributorNote: values.contributorNote || undefined,
     sources: values.sources.map((s) => ({
       url: s.url,
@@ -122,7 +138,7 @@ export function ContributionForm({
       ...prev,
       sources: [
         ...prev.sources,
-        { url: "", title: "", type: "situs_resmi", isPrimary: false },
+        { url: "", title: "", type: "dokumentasi_resmi", isPrimary: false },
       ],
     }));
   }
@@ -192,8 +208,8 @@ export function ContributionForm({
   }
 
   const busy = pending || pendingAction !== null;
-  const isRegional = values.regionScope !== "nasional";
   const isEditing = mode === "edit";
+  const showPrice = values.accessType === "api" || values.accessType === "model";
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
@@ -228,7 +244,7 @@ export function ContributionForm({
                 {duplicates.map((d) => (
                   <li key={d.slug}>
                     <a
-                      href={`/bansos/${d.slug}`}
+                      href={`/info/${d.slug}`}
                       className="underline"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -252,7 +268,7 @@ export function ContributionForm({
 
       {/* --- Informasi utama --- */}
       <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-base font-semibold">Informasi program</h2>
+        <h2 className="text-base font-semibold">Informasi entri</h2>
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="title" required>
@@ -265,11 +281,11 @@ export function ContributionForm({
             maxLength={L.titleMax}
             aria-invalid={Boolean(fieldErrors.title)}
             aria-describedby="title-hint title-error"
-            placeholder="Contoh: Beasiswa Pendidikan untuk Siswa SMA Tahun 2026"
+            placeholder="Contoh: Groq API — free tier 30 request/menit untuk model Llama 3.3"
             required
           />
           <FieldHint id="title-hint">
-            {values.title.length}/{L.titleMax} karakter. Gunakan judul faktual, bukan clickbait.
+            {values.title.length}/{L.titleMax} karakter. Sebutkan provider dan benefitnya.
           </FieldHint>
           <FieldError id="title-error" message={fieldErrors.title} />
         </div>
@@ -286,7 +302,7 @@ export function ContributionForm({
             rows={7}
             aria-invalid={Boolean(fieldErrors.description)}
             aria-describedby="description-hint description-error"
-            placeholder="Jelaskan isi program sesuai sumber: manfaat, sasaran, cara mendaftar, dan jangka waktu."
+            placeholder="Jelaskan apa yang ditawarkan provider, cara mendaftar, dan hal penting lain sesuai sumber."
             required
           />
           <FieldHint id="description-hint">
@@ -321,25 +337,25 @@ export function ContributionForm({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="organizer" required>
-              Penyelenggara
+            <Label htmlFor="provider" required>
+              Provider
             </Label>
             <Input
-              id="organizer"
-              value={values.organizer}
-              onChange={(e) => set("organizer", e.target.value)}
-              maxLength={L.organizerMax}
-              aria-invalid={Boolean(fieldErrors.organizer)}
-              aria-describedby="organizer-error"
-              placeholder="Nama instansi/lembaga resmi penyelenggara"
+              id="provider"
+              value={values.provider}
+              onChange={(e) => set("provider", e.target.value)}
+              maxLength={L.providerMax}
+              aria-invalid={Boolean(fieldErrors.provider)}
+              aria-describedby="provider-error"
+              placeholder="Mis. Groq, OpenRouter, Google AI Studio, Hugging Face"
               required
             />
-            <FieldError id="organizer-error" message={fieldErrors.organizer} />
+            <FieldError id="provider-error" message={fieldErrors.provider} />
           </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="requirements">Persyaratan</Label>
+          <Label htmlFor="requirements">Syarat mengakses</Label>
           <Textarea
             id="requirements"
             value={values.requirements}
@@ -348,7 +364,7 @@ export function ContributionForm({
             rows={4}
             aria-invalid={Boolean(fieldErrors.requirements)}
             aria-describedby="requirements-hint requirements-error"
-            placeholder="Tulis persyaratan yang tercantum pada sumber. Jangan menambahkan yang tidak ada."
+            placeholder="Mis. perlu verifikasi nomor HP, verifikasi email kampus, atau kartu kredit untuk aktivasi."
           />
           <FieldHint id="requirements-hint">
             Opsional. Maksimal {L.requirementsMax} karakter.
@@ -357,90 +373,174 @@ export function ContributionForm({
         </div>
       </section>
 
-      {/* --- Wilayah --- */}
+      {/* --- Jenis akses --- */}
       <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-base font-semibold">Cakupan wilayah</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="flex flex-col gap-1.5">
-            <Label>Cakupan</Label>
-            <div className="flex flex-wrap gap-2">
-              {REGION_SCOPES.map((scope) => (
-                <label
-                  key={scope}
-                  className={[
-                    "cursor-pointer rounded-md border px-3 py-1.5 text-sm",
-                    values.regionScope === scope
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border bg-background",
-                  ].join(" ")}
-                >
-                  <input
-                    type="radio"
-                    name="regionScope"
-                    value={scope}
-                    checked={values.regionScope === scope}
-                    onChange={() => set("regionScope", scope)}
-                    className="sr-only"
-                  />
-                  {REGION_SCOPE_LABEL[scope]}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {isRegional ? (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="province" required>
-                Provinsi
-              </Label>
-              <select
-                id="province"
-                value={values.province}
-                onChange={(e) => set("province", e.target.value)}
-                aria-invalid={Boolean(fieldErrors.province)}
-                aria-describedby="province-error"
-                className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-              >
-                <option value="">Pilih provinsi…</option>
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-              <FieldError id="province-error" message={fieldErrors.province} />
-            </div>
-          ) : null}
-
-          {values.regionScope === "kabupaten_kota" ? (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="city" required>
-                Kabupaten/Kota
-              </Label>
-              <Input
-                id="city"
-                value={values.city}
-                onChange={(e) => set("city", e.target.value)}
-                maxLength={80}
-                aria-invalid={Boolean(fieldErrors.city)}
-                aria-describedby="city-error"
-                placeholder="Mis. Kota Bandung"
-              />
-              <FieldError id="city-error" message={fieldErrors.city} />
-            </div>
-          ) : null}
+        <div>
+          <h2 className="text-base font-semibold">Jenis akses</h2>
+          <p className="text-sm text-muted-foreground">
+            Bagaimana cara orang memakai penawaran ini.
+          </p>
         </div>
+        <div className="flex flex-col gap-2" role="radiogroup" aria-label="Jenis akses">
+          {ACCESS_TYPES.map((type) => (
+            <label
+              key={type}
+              className={[
+                "flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm",
+                values.accessType === type
+                  ? "border-primary bg-primary-soft"
+                  : "border-border bg-background",
+              ].join(" ")}
+            >
+              <input
+                type="radio"
+                name="accessType"
+                value={type}
+                checked={values.accessType === type}
+                onChange={() => set("accessType", type)}
+                className="mt-0.5"
+              />
+              <span>
+                <span className="font-medium">{ACCESS_TYPE_LABEL[type]}</span>
+                <span className="mt-0.5 block text-muted-foreground">
+                  {ACCESS_TYPE_DESCRIPTION[type]}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <FieldError id="accessType-error" message={fieldErrors.accessType} />
       </section>
 
-      {/* --- Jadwal --- */}
+      {/* --- Kuota gratis --- */}
       <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
-        <h2 className="text-base font-semibold">Jadwal (opsional)</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <h2 className="text-base font-semibold">Kuota gratis</h2>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={values.freeTierAvailable}
+            onChange={(e) => set("freeTierAvailable", e.target.checked)}
+          />
+          Ada free tier / kredit gratis
+        </label>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={values.requiresCard}
+            onChange={(e) => set("requiresCard", e.target.checked)}
+          />
+          Perlu kartu kredit untuk mendaftar
+        </label>
+
+        {values.freeTierAvailable ? (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="freeTier">Besaran kuota gratis</Label>
+            <Textarea
+              id="freeTier"
+              value={values.freeTier}
+              onChange={(e) => set("freeTier", e.target.value)}
+              maxLength={L.freeTierMax}
+              rows={3}
+              aria-invalid={Boolean(fieldErrors.freeTier)}
+              aria-describedby="freeTier-hint freeTier-error"
+              placeholder="Mis. Kredit $5 selama 3 bulan, 30 request/menit, 1 juta token/bulan."
+            />
+            <FieldHint id="freeTier-hint">
+              Opsional. Maksimal {L.freeTierMax} karakter. Tulis apa adanya dari halaman resmi.
+            </FieldHint>
+            <FieldError id="freeTier-error" message={fieldErrors.freeTier} />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Entri ini akan ditandai sebagai penawaran berbayar/murah tanpa free tier.
+          </p>
+        )}
+      </section>
+
+      {/* --- Harga & limit --- */}
+      <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
+        <div>
+          <h2 className="text-base font-semibold">Harga & limit (opsional)</h2>
+          <p className="text-sm text-muted-foreground">
+            Isi bila tercantum di halaman harga resmi. Kosongkan bila tidak diketahui.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="priceInputPerMtok">Harga input / 1 juta token (USD)</Label>
+            <Input
+              id="priceInputPerMtok"
+              inputMode="decimal"
+              value={values.priceInputPerMtok}
+              onChange={(e) => set("priceInputPerMtok", e.target.value)}
+              aria-invalid={Boolean(fieldErrors.priceInputPerMtok)}
+              aria-describedby="priceInputPerMtok-error"
+              placeholder="Mis. 0.15"
+            />
+            <FieldError id="priceInputPerMtok-error" message={fieldErrors.priceInputPerMtok} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="priceOutputPerMtok">Harga output / 1 juta token (USD)</Label>
+            <Input
+              id="priceOutputPerMtok"
+              inputMode="decimal"
+              value={values.priceOutputPerMtok}
+              onChange={(e) => set("priceOutputPerMtok", e.target.value)}
+              aria-invalid={Boolean(fieldErrors.priceOutputPerMtok)}
+              aria-describedby="priceOutputPerMtok-error"
+              placeholder="Mis. 0.60"
+            />
+            <FieldError id="priceOutputPerMtok-error" message={fieldErrors.priceOutputPerMtok} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="rateLimitRpm">Rate limit (request/menit)</Label>
+            <Input
+              id="rateLimitRpm"
+              inputMode="numeric"
+              value={values.rateLimitRpm}
+              onChange={(e) => set("rateLimitRpm", e.target.value)}
+              aria-invalid={Boolean(fieldErrors.rateLimitRpm)}
+              aria-describedby="rateLimitRpm-error"
+              placeholder="Mis. 30"
+            />
+            <FieldError id="rateLimitRpm-error" message={fieldErrors.rateLimitRpm} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="contextWindow">Ukuran konteks (token)</Label>
+            <Input
+              id="contextWindow"
+              inputMode="numeric"
+              value={values.contextWindow}
+              onChange={(e) => set("contextWindow", e.target.value)}
+              aria-invalid={Boolean(fieldErrors.contextWindow)}
+              aria-describedby="contextWindow-error"
+              placeholder="Mis. 128000"
+            />
+            <FieldError id="contextWindow-error" message={fieldErrors.contextWindow} />
+          </div>
+        </div>
+        {showPrice ? null : (
+          <FieldHint>
+            Untuk tool/chat/hosting, harga per token biasanya tidak berlaku — biarkan kosong.
+          </FieldHint>
+        )}
+      </section>
+
+      {/* --- Masa berlaku promo --- */}
+      <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
+        <div>
+          <h2 className="text-base font-semibold">Masa berlaku promosi (opsional)</h2>
+          <p className="text-sm text-muted-foreground">
+            Promo AI cepat berubah — cantumkan tanggal berakhir bila disebutkan provider.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
           {(
             [
-              { key: "publishedAt", label: "Tanggal publikasi sumber" },
-              { key: "startDate", label: "Mulai pendaftaran" },
-              { key: "endDate", label: "Berakhir" },
+              { key: "promoStart", label: "Mulai berlaku" },
+              { key: "promoEnd", label: "Berakhir" },
             ] as const
           ).map(({ key, label }) => (
             <div key={key} className="flex flex-col gap-1.5">
@@ -465,7 +565,7 @@ export function ContributionForm({
           <div>
             <h2 className="text-base font-semibold">Sumber</h2>
             <p className="text-sm text-muted-foreground">
-              Minimal satu tautan yang dapat dibuka. Utamakan situs resmi penyelenggara.
+              Minimal satu tautan yang dapat dibuka. Utamakan dokumentasi atau halaman harga resmi.
             </p>
           </div>
           <Button
@@ -523,7 +623,7 @@ export function ContributionForm({
                   inputMode="url"
                   value={source.url}
                   onChange={(e) => setSource(index, { url: e.target.value })}
-                  placeholder="https://www.contoh.go.id/pengumuman"
+                  placeholder="https://provider.com/pricing"
                   aria-invalid={Boolean(fieldErrors[`sources.${index}.url`])}
                   aria-describedby={`source-url-${index}-error`}
                 />

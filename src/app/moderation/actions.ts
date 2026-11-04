@@ -80,7 +80,7 @@ export async function resolveReport(
   }
 
   revalidatePath("/moderation/reports");
-  revalidatePath("/bansos");
+  revalidatePath("/info");
   revalidatePath("/dashboard/kontribusi");
   return { ok: true, message: "Laporan diselesaikan." };
 }

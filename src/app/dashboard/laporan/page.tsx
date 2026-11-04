@@ -37,7 +37,7 @@ export default async function MyReportsPage() {
                       {REPORT_REASON_LABEL[report.reason]}
                     </p>
                     <Link
-                      href={report.programSlug ? `/bansos/${report.programSlug}` : "#"}
+                      href={report.programSlug ? `/info/${report.programSlug}` : "#"}
                       className="mt-0.5 block font-medium hover:underline"
                     >
                       {report.programTitle}

@@ -1,4 +1,4 @@
-# Implementation Progress — BantuWarga
+# Implementation Progress — AksesAI
 
 > Dokumen hidup. Diperbarui setiap akhir fase sesuai MASTER EXECUTION PROMPT.
 > Legenda: `[ ]` belum dikerjakan · `[x]` selesai **dan teruji** · `[!]` terhambat / butuh konfigurasi atau keputusan manual · `[~]` dikerjakan sebagian (kode ada, verifikasi belum lengkap)
@@ -21,9 +21,9 @@ Dokumentasi diverifikasi terhadap kode aktual (README ditulis ulang, error dokum
 | `pnpm build` | Sukses; 15 route terdaftar, `BUILD_ID` terbentuk |
 | `pnpm test` | **45 tes lulus** (5 file, Vitest 5.1.0) |
 | `pnpm test:rls` | **12 tes lulus** terhadap Supabase lokal (Postgres 17) |
-| `supabase db reset` | 7 migrasi + seed diterapkan bersih |
+| `supabase db reset` | 8 migrasi + seed diterapkan bersih |
 | `node scripts/secret-scan.mjs` | Tidak ada pola secret pada 108 file terlacak |
-| Smoke test dev server | `/` `/bansos` `/login` `/panduan` `/sitemap.xml` → 200; `/admin` → 307 ke `/login`; program contoh tampil di direktori & halaman detail |
+| Smoke test dev server | `/` `/info` `/login` `/panduan` `/sitemap.xml` → 200; `/admin` → 307 ke `/login`; entri contoh tampil di direktori & halaman detail |
 
 ---
 
@@ -65,7 +65,7 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 |---|---|---|---|---|
 | C1 | `DATABASE_SCHEMA.md` §3.1 mendefinisikan trigger `handle_new_user` yang menyisipkan ke `user_roles` **sebelum** `user_roles` didefinisikan pada §3.2 — urutan DDL error jika dieksekusi apa adanya | Migrasi gagal | Migrasi dibuat berurutan: enum → tabel → fungsi → trigger | `[!]` akan diselesaikan di Fase 3 |
 | C2 | `handle_new_user` memakai metadata `user_name`; jika kosong membuat `'user-'||left(id,8)` yang **tidak menjamin unique** → insert `profiles` gagal (`github_username` unique) | Login gagal untuk akun tanpa username GitHub | Tambahkan loop/`on conflict` + fallback deterministik; handle perubahan username saat login ulang | `[!]` |
-| C3 | Kolom `region` adalah *generated column* yang memakai `coalesce(city || ', ', '') || coalesce(province,'Nasional')` — untuk `region_scope='nasional'` menghasilkan string `'Nasional'` OK, tetapi jika province diisi maka `region` ≠ scope | Label wilayah tidak konsisten | Buat fungsi SQL/TS pembentuk label wilayah; dokumentasikan bahwa `region` hanya label tampilan | `[!]` |
+| C3 | Kolom `region` adalah *generated column* legacy domain bansos (memakai `coalesce(city || ', ', '') || coalesce(province,'Nasional')`) — tidak dipakai UI domain AI | Kolom legacy tidak konsisten bila diisi | Biarkan kosong/abaikan; UI memakai `access_type` | `[x]` tidak relevan lagi (domain AI tidak memakai wilayah) |
 | C4 | Policy `profiles_update_own` memakai subquery ke `profiles` dari dalam policy `profiles` → berpotensi **infinite recursion** saat RLS aktif | Semua SELECT profil gagal (error 42P17) | Ganti dengan fungsi `security definer` (`is_banned(auth.uid())`) atau kolom terpisah yang tidak bisa diubah | `[!]` KRITIS |
 | C5 | Policy `programs_owner_update` `with check (status in ('draft','needs_changes'))` **memblokir** `withdraw` (pending→draft) secara aman, tapi juga memungkinkan pemilik mengubah `status` antar draft↔needs_changes secara langsung (dalam RLS); perpindahan status wajib lewat RPC | Bypass aturan transisi status | Tambahkan trigger `forbid_status_change_from_client` (cek `current_user`) atau pindahkan semua tulis ke RPC | `[!]` |
 | C6 | `sources_owner_write` memakai `for all` → pemilik bisa **DELETE** sumber saat draft/needs_changes; saat program dipindah ke pending, reviewer butuh kemampuan melihat (ada) tetapi tidak disebut cara reviewer mengoreksi sumber | Kebutuhan fungsional tidak jelas | Tetapkan: reviewer koreksi sumber lewat RPC `reviewer_edit_program` yang menyentuh `sources` — perlu policy/RPC eksplisit | `[!]` |
@@ -108,7 +108,7 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 | Cloudflare Turnstile (opsional, ada fallback) | Anti-bot laporan | Fase 5/7 |
 | Domain produksi | OAuth redirect, SEO | Fase 11 |
 | Email/kontak resmi & konfirmasi kebijakan privasi | Halaman statis | Fase 9 (konten sudah lengkap; email khusus masih menunggu pemilik) |
-| Repositori GitHub (`<GITHUB_USERNAME>/BantuWarga`) & izin push | Publikasi | Fase 10 |
+| Repositori GitHub (`<GITHUB_USERNAME>/AksesAI`) & izin push | Publikasi | Fase 10 |
 | Akun Vercel | Deploy | Fase 11 |
 | Keputusan lisensi (MIT default sudah ada) | — | Tidak ada |
 
@@ -136,8 +136,8 @@ Dokumen yang **belum** tersedia dan wajib dibuat:
 - [x] Komponen dasar yang dipakai saja (button, input, textarea, card, badge, alert, separator, skeleton, field)
 - [x] Komponen domain: `ProgramCard`, `StatusBadge`, `SourceList`, `DirectoryFilters`, `Pagination`, `EmptyState`
 - [x] Homepage (FR-HOME-1..7)
-- [x] Direktori `/bansos` + query string (FR-DIR-1..6)
-- [x] Detail `/bansos/[slug]` (FR-DET-1..6) + `generateMetadata`
+- [x] Direktori `/info` + query string (FR-DIR-1..6)
+- [x] Detail `/info/[slug]` (FR-DET-1..6) + `generateMetadata`
 - [x] `/kategori/[slug]`
 - [x] `/kontributor/[username]` (FR-PRO)
 - [x] `/tentang`, `/panduan`, `/kebijakan-privasi`

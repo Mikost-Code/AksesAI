@@ -197,18 +197,21 @@ export async function createPendingProgram(contributorId: string, label: string)
   const { data, error } = await svc
     .from("assistance_programs")
     .insert({
-      title: `Program E2E ${label}`,
+      title: `Info E2E ${label}`,
       slug: `e2e-${label}-${unique}`.slice(0, 90),
       description:
-        "Deskripsi program untuk pengujian end-to-end yang cukup panjang melebihi lima puluh karakter.",
+        "Deskripsi info AI untuk pengujian end-to-end yang cukup panjang melebihi lima puluh karakter.",
       category_id: categoryId,
-      organizer: "Organisasi E2E",
+      access_type: "api",
+      provider: "Provider E2E",
+      free_tier: "Kredit $5 selama 3 bulan",
+      // Kolom lama tetap diisi agar trigger/pencarian lama konsisten.
+      organizer: "Provider E2E",
       contributor_id: contributorId,
-      region_scope: "nasional",
       status: "pending",
     })
     .select("id")
     .single();
-  if (error || !data) throw new Error(`Gagal membuat program E2E: ${error?.message}`);
+  if (error || !data) throw new Error(`Gagal membuat info E2E: ${error?.message}`);
   return data.id as string;
 }

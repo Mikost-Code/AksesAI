@@ -1,11 +1,16 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ProgramStatus, RegionScope, ReviewAction } from "@/lib/constants/labels";
+import {
+  ACCESS_TYPE_LABEL,
+  type AccessType,
+  type ProgramStatus,
+  type ReviewAction,
+} from "@/lib/constants/labels";
 import type { ContributionInput } from "@/lib/validation/contribution";
 
 /**
- * Data layer pribadi kontributor.
+ * Data layer pribadi kontributor (AksesAI).
  *
  * Berbeda dengan `lib/programs/*` (anon + cache untuk publik), modul ini
  * membaca data milik pengguna yang sedang login. RLS memfilter baris;
@@ -19,8 +24,9 @@ export type OwnProgramSummary = {
   title: string;
   status: ProgramStatus;
   categoryName: string;
-  regionLabel: string;
-  endDate: string | null;
+  accessTypeLabel: string;
+  provider: string;
+  promoEnd: string | null;
   updatedAt: string;
   reviewNote: string | null;
   sourceCount: number;
@@ -31,8 +37,9 @@ type RawOwnRow = {
   slug: string;
   title: string;
   status: ProgramStatus;
-  region: string | null;
-  end_date: string | null;
+  access_type: AccessType;
+  provider: string | null;
+  promo_end: string | null;
   updated_at: string;
   review_note: string | null;
   categories: { name: string } | { name: string }[] | null;
@@ -50,7 +57,7 @@ export async function listOwnPrograms(
   const { data, error } = await supabase
     .from("assistance_programs")
     .select(
-      "id, slug, title, status, region, end_date, updated_at, review_note, categories(name), sources(id)",
+      "id, slug, title, status, access_type, provider, promo_end, updated_at, review_note, categories(name), sources(id)",
     )
     .eq("contributor_id", contributorId)
     .order("updated_at", { ascending: false });
@@ -66,8 +73,9 @@ export async function listOwnPrograms(
     title: row.title,
     status: row.status,
     categoryName: pickOne(row.categories)?.name ?? "Lainnya",
-    regionLabel: row.region?.trim() ? row.region : "Nasional",
-    endDate: row.end_date,
+    accessTypeLabel: ACCESS_TYPE_LABEL[row.access_type] ?? "Lainnya",
+    provider: row.provider?.trim() ? row.provider : "—",
+    promoEnd: row.promo_end,
     updatedAt: row.updated_at,
     // Catatan reviewer hanya bermakna saat perlu revisi/ditolak.
     reviewNote:
@@ -86,14 +94,18 @@ export type EditableProgram = {
   title: string;
   description: string;
   categoryId: string;
-  regionScope: RegionScope;
-  province: string | null;
-  city: string | null;
-  organizer: string;
+  accessType: AccessType;
+  provider: string;
+  freeTier: string | null;
+  freeTierAvailable: boolean;
+  requiresCard: boolean;
+  priceInputPerMtok: number | null;
+  priceOutputPerMtok: number | null;
+  rateLimitRpm: number | null;
+  contextWindow: number | null;
   requirements: string | null;
-  publishedAt: string | null;
-  startDate: string | null;
-  endDate: string | null;
+  promoStart: string | null;
+  promoEnd: string | null;
   contributorNote: string | null;
   sources: Array<{
     url: string;
@@ -111,14 +123,18 @@ type RawEditable = {
   title: string;
   description: string;
   category_id: string;
-  region_scope: RegionScope;
-  province: string | null;
-  city: string | null;
-  organizer: string;
+  access_type: AccessType;
+  provider: string | null;
+  free_tier: string | null;
+  free_tier_available: boolean;
+  requires_card: boolean;
+  price_input_per_mtok: number | null;
+  price_output_per_mtok: number | null;
+  rate_limit_rpm: number | null;
+  context_window: number | null;
   requirements: string | null;
-  published_at: string | null;
-  start_date: string | null;
-  end_date: string | null;
+  promo_start: string | null;
+  promo_end: string | null;
   contributor_note: string | null;
   sources: Array<{
     source_url: string;
@@ -129,7 +145,7 @@ type RawEditable = {
 };
 
 /**
- * Mengambil program milik pengguna untuk diedit.
+ * Mengambil entri milik pengguna untuk diedit.
  * Mengembalikan null bila tidak ada / bukan miliknya (RLS juga menyaring).
  */
 export async function getEditableProgram(
@@ -140,9 +156,10 @@ export async function getEditableProgram(
   const { data, error } = await supabase
     .from("assistance_programs")
     .select(
-      `id, slug, status, contributor_id, title, description, category_id, region_scope,
-       province, city, organizer, requirements, published_at, start_date, end_date,
-       contributor_note,
+      `id, slug, status, contributor_id, title, description, category_id,
+       access_type, provider, free_tier, free_tier_available, requires_card,
+       price_input_per_mtok, price_output_per_mtok, rate_limit_rpm, context_window,
+       requirements, promo_start, promo_end, contributor_note,
        sources(source_url, source_title, source_type, is_primary)`,
     )
     .eq("id", id)
@@ -168,14 +185,18 @@ export async function getEditableProgram(
     title: data.title,
     description: data.description,
     categoryId: data.category_id,
-    regionScope: data.region_scope,
-    province: data.province,
-    city: data.city,
-    organizer: data.organizer,
+    accessType: data.access_type,
+    provider: data.provider ?? "",
+    freeTier: data.free_tier,
+    freeTierAvailable: data.free_tier_available,
+    requiresCard: data.requires_card,
+    priceInputPerMtok: data.price_input_per_mtok,
+    priceOutputPerMtok: data.price_output_per_mtok,
+    rateLimitRpm: data.rate_limit_rpm,
+    contextWindow: data.context_window,
     requirements: data.requirements,
-    publishedAt: data.published_at,
-    startDate: data.start_date,
-    endDate: data.end_date,
+    promoStart: data.promo_start,
+    promoEnd: data.promo_end,
     contributorNote: data.contributor_note,
     sources: sources.map((s) => ({
       url: s.source_url,
@@ -193,7 +214,7 @@ export const EDITABLE_STATUSES: ReadonlyArray<ProgramStatus> = [
 ];
 
 /**
- * Mendeteksi kemungkinan duplikat: program lain (bukan milik pengguna) dengan
+ * Mendeteksi kemungkinan duplikat: entri lain (bukan milik pengguna) dengan
  * judul serupa atau sumber yang sama, berstatus publik.
  * PRD FR-CON-6 — peringatan lembut, tidak memblokir.
  */

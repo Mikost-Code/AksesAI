@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Kebijakan Privasi",
   description:
-    "Data apa yang disimpan BantuWarga, tujuannya, pihak ketiga yang digunakan, masa retensi, dan cara menghubungi kami.",
+    "Data apa yang disimpan AksesAI, tujuannya, pihak ketiga yang digunakan, masa retensi, dan cara menghubungi kami.",
 };
 
 export default function PrivacyPage() {
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
 
       <h1 className="text-3xl font-bold sm:text-4xl">Kebijakan Privasi</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Kebijakan ini berlaku untuk seluruh penggunaan BantuWarga dan dapat
+        Kebijakan ini berlaku untuk seluruh penggunaan AksesAI dan dapat
         diperbarui sewaktu-waktu; perubahan material akan diumumkan di repositori
         resmi.
       </p>
@@ -39,9 +39,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-semibold">Data yang tidak kami kumpulkan</h2>
           <p className="mt-2 rounded-lg border border-danger/25 bg-danger-soft p-4 text-sm">
-            NIK, nomor KK, foto KTP, nomor rekening, identitas penerima bantuan,
-            atau daftar penerima bantuan. Aplikasi memindai isian dan menolak
-            pengiriman yang terindikasi memuat data tersebut.
+            Data pribadi sensitif seperti API key, token akses, kredensial
+            akun, NIK, nomor KK, foto KTP, dan nomor rekening. Aplikasi
+            memindai isian dan menolak pengiriman yang terindikasi memuat data
+            tersebut.
           </p>
         </section>
 
@@ -58,7 +59,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-semibold">Pihak ketiga</h2>
           <p className="mt-2">
-            BantuWarga menggunakan layanan berikut yang dapat memproses data
+            AksesAI menggunakan layanan berikut yang dapat memproses data
             minimal (mis. log permintaan): <strong>Supabase</strong> (database
             & autentikasi), <strong>Vercel</strong> (hosting),{" "}
             <strong>GitHub</strong> (login), <strong>Upstash</strong>{" "}

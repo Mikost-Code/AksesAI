@@ -16,7 +16,7 @@ export default function AuthLayout({
             >
               BW
             </span>
-            BantuWarga
+            AksesAI
           </Link>
         </div>
       </header>

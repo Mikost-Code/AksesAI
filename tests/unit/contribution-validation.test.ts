@@ -6,24 +6,28 @@ const CATEGORY = "4d5e6f70-1234-4abc-8def-0123456789ab";
 
 function validInput(overrides: Record<string, unknown> = {}) {
   return {
-    title: "Beasiswa Pendidikan untuk Siswa SMA Tahun 2026",
+    title: "Groq API — free tier 30 request per menit untuk Llama 3.3",
     description:
-      "Program beasiswa ini ditujukan bagi siswa SMA berprestasi dengan keterbatasan ekonomi. Informasi lengkap mengikuti sumber resmi penyelenggara.",
+      "Groq menyediakan endpoint inference gratis dengan batas 30 request per menit. Informasi lengkap mengikuti halaman dokumentasi resmi provider.",
     categoryId: CATEGORY,
-    regionScope: "nasional",
-    province: "",
-    city: "",
-    organizer: "Dinas Pendidikan Contoh",
+    accessType: "api",
+    provider: "Groq",
+    freeTier: "30 request/menit, 1.000 request/hari",
+    freeTierAvailable: true,
+    requiresCard: false,
+    priceInputPerMtok: "",
+    priceOutputPerMtok: "",
+    rateLimitRpm: "30",
+    contextWindow: "128000",
     requirements: "",
-    publishedAt: "",
-    startDate: "",
-    endDate: "",
+    promoStart: "",
+    promoEnd: "",
     contributorNote: "",
     sources: [
       {
-        url: "https://contoh.go.id/pengumuman-beasiswa",
-        title: "Pengumuman resmi",
-        type: "situs_resmi",
+        url: "https://console.groq.com/docs/rate-limits",
+        title: "Dokumentasi rate limit",
+        type: "dokumentasi_resmi",
         isPrimary: true,
       },
     ],
@@ -38,43 +42,46 @@ describe("contributionFormSchema — validasi dasar", () => {
   });
 
   // Regresi: klien mengirim `null` (bukan "") untuk field opsional yang
-  // disembunyikan / date kosong. Sebelumnya skema menolak null sehingga
-  // menyimpan draf cakupan nasional gagal. Ditemukan lewat E2E PHASE 8.
-  it("menerima null untuk province, city, dan tanggal (regresi E2E)", () => {
+  // disembunyikan / tanggal kosong.
+  it("menerima null untuk field opsional & tanggal (regresi E2E)", () => {
     const result = contributionFormSchema.safeParse(
       validInput({
-        province: null,
-        city: null,
-        publishedAt: null,
-        startDate: null,
-        endDate: null,
+        freeTier: null,
+        priceInputPerMtok: null,
+        priceOutputPerMtok: null,
+        rateLimitRpm: null,
+        contextWindow: null,
+        promoStart: null,
+        promoEnd: null,
         requirements: null,
         contributorNote: null,
       }),
     );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.province).toBeNull();
-      expect(result.data.city).toBeNull();
-      expect(result.data.publishedAt).toBeNull();
+      expect(result.data.priceInputPerMtok).toBeNull();
+      expect(result.data.rateLimitRpm).toBeNull();
+      expect(result.data.promoEnd).toBeNull();
     }
   });
 
   it("menerima undefined untuk field opsional (klien lama)", () => {
     const result = contributionFormSchema.safeParse(
       validInput({
-        province: undefined,
-        city: undefined,
-        publishedAt: undefined,
-        startDate: undefined,
-        endDate: undefined,
+        freeTier: undefined,
+        priceInputPerMtok: undefined,
+        priceOutputPerMtok: undefined,
+        rateLimitRpm: undefined,
+        contextWindow: undefined,
+        promoStart: undefined,
+        promoEnd: undefined,
       }),
     );
     expect(result.success).toBe(true);
   });
 
   it("menolak judul terlalu pendek", () => {
-    const result = contributionFormSchema.safeParse(validInput({ title: "Bansos" }));
+    const result = contributionFormSchema.safeParse(validInput({ title: "Gratis" }));
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.some((i) => i.path[0] === "title")).toBe(true);
@@ -102,13 +109,28 @@ describe("contributionFormSchema — validasi dasar", () => {
     expect(result.success).toBe(false);
   });
 
+  it("menolak provider kosong", () => {
+    const result = contributionFormSchema.safeParse(validInput({ provider: " " }));
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === "provider")).toBe(true);
+    }
+  });
+
+  it("menolak jenis akses tidak dikenal", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ accessType: "bansos" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
   it("membersihkan spasi berlebih pada judul", () => {
     const result = contributionFormSchema.safeParse(
-      validInput({ title: "  Beasiswa   Pendidikan  untuk   Siswa SMA  " }),
+      validInput({ title: "  Groq   API  free   tier  untuk   Llama  " }),
     );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.title).toBe("Beasiswa Pendidikan untuk Siswa SMA");
+      expect(result.data.title).toBe("Groq API free tier untuk Llama");
     }
   });
 });
@@ -150,8 +172,8 @@ describe("contributionFormSchema — sumber & keamanan URL", () => {
     const result = contributionFormSchema.safeParse(
       validInput({
         sources: [
-          { url: "https://contoh.go.id/a", type: "situs_resmi", isPrimary: true },
-          { url: "https://www.contoh.go.id/a/", type: "lainnya", isPrimary: false },
+          { url: "https://provider.com/a", type: "dokumentasi_resmi", isPrimary: true },
+          { url: "https://www.provider.com/a/", type: "lainnya", isPrimary: false },
         ],
       }),
     );
@@ -162,8 +184,8 @@ describe("contributionFormSchema — sumber & keamanan URL", () => {
     const result = contributionFormSchema.safeParse(
       validInput({
         sources: [
-          { url: "https://contoh.go.id/a", type: "situs_resmi", isPrimary: false },
-          { url: "https://contoh.go.id/b", type: "lainnya", isPrimary: false },
+          { url: "https://provider.com/a", type: "dokumentasi_resmi", isPrimary: false },
+          { url: "https://provider.com/b", type: "halaman_harga", isPrimary: false },
         ],
       }),
     );
@@ -179,8 +201,8 @@ describe("contributionFormSchema — sumber & keamanan URL", () => {
       validInput({
         sources: [
           {
-            url: "https://www.contoh.go.id/berita/?utm_source=x",
-            type: "situs_resmi",
+            url: "https://www.provider.com/pricing/?utm_source=x",
+            type: "halaman_harga",
             isPrimary: true,
           },
         ],
@@ -188,67 +210,129 @@ describe("contributionFormSchema — sumber & keamanan URL", () => {
     );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.sources[0]!.normalized).toBe("https://contoh.go.id/berita");
+      expect(result.data.sources[0]!.normalized).toBe("https://provider.com/pricing");
     }
   });
 });
 
-describe("contributionFormSchema — wilayah & tanggal", () => {
-  it("mewajibkan provinsi untuk cakupan provinsi", () => {
+describe("contributionFormSchema — kuota gratis & harga", () => {
+  it("mengosongkan kuota gratis bila tidak ada free tier", () => {
     const result = contributionFormSchema.safeParse(
-      validInput({ regionScope: "provinsi", province: "" }),
+      validInput({ freeTierAvailable: false, freeTier: "5 USD kredit" }),
     );
     expect(result.success).toBe(false);
-  });
-
-  it("menerima provinsi valid", () => {
-    const result = contributionFormSchema.safeParse(
-      validInput({ regionScope: "provinsi", province: "Jawa Barat" }),
-    );
-    expect(result.success).toBe(true);
-  });
-
-  it("mewajibkan kota untuk cakupan kabupaten/kota", () => {
-    const result = contributionFormSchema.safeParse(
-      validInput({ regionScope: "kabupaten_kota", province: "Jawa Barat", city: "" }),
-    );
-    expect(result.success).toBe(false);
-  });
-
-  it("menghapus provinsi untuk cakupan nasional", () => {
-    const result = contributionFormSchema.safeParse(
-      validInput({ regionScope: "nasional", province: "Jawa Barat" }),
-    );
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.province).toBeNull();
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === "freeTier")).toBe(true);
     }
   });
 
-  it("menolak tanggal berakhir sebelum tanggal mulai", () => {
+  it("menerima tanpa free tier dan tanpa kuota", () => {
     const result = contributionFormSchema.safeParse(
-      validInput({ startDate: "2026-06-01", endDate: "2026-05-01" }),
+      validInput({ freeTierAvailable: false, freeTier: "" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.freeTier).toBeNull();
+      expect(result.data.freeTierAvailable).toBe(false);
+    }
+  });
+
+  it("mengubah harga string menjadi angka", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ priceInputPerMtok: "0.15", priceOutputPerMtok: "0.60" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.priceInputPerMtok).toBeCloseTo(0.15);
+      expect(result.data.priceOutputPerMtok).toBeCloseTo(0.6);
+    }
+  });
+
+  it("menerima koma desimal (input lokal Indonesia)", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ priceInputPerMtok: "0,25" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.priceInputPerMtok).toBeCloseTo(0.25);
+    }
+  });
+
+  it("menolak harga negatif", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ priceInputPerMtok: "-1" }),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((i) => i.path[0] === "priceInputPerMtok"),
+      ).toBe(true);
+    }
+  });
+
+  it("menolak harga bukan angka (tidak diam-diam dikosongkan)", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ priceInputPerMtok: "murah" }),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((i) => i.path[0] === "priceInputPerMtok"),
+      ).toBe(true);
+    }
+  });
+
+  it("menolak rate limit nol saat diisi", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ rateLimitRpm: "0" }),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === "rateLimitRpm")).toBe(true);
+    }
+  });
+
+  it("menolak ukuran konteks bukan bilangan bulat", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ contextWindow: "128000.5" }),
     );
     expect(result.success).toBe(false);
   });
 
-  it("menolak tanggal berakhir di masa lalu", () => {
+  it("menerima checkbox string 'on' sebagai boolean true", () => {
     const result = contributionFormSchema.safeParse(
-      validInput({ endDate: "2020-01-01" }),
+      validInput({ requiresCard: "on" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.requiresCard).toBe(true);
+  });
+});
+
+describe("contributionFormSchema — masa berlaku promo", () => {
+  it("menolak tanggal promo berakhir sebelum mulai", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ promoStart: "2026-06-01", promoEnd: "2026-05-01" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("menolak tanggal promo berakhir di masa lalu", () => {
+    const result = contributionFormSchema.safeParse(
+      validInput({ promoEnd: "2020-01-01" }),
     );
     expect(result.success).toBe(false);
   });
 
   it("menolak format tanggal tidak valid", () => {
     const result = contributionFormSchema.safeParse(
-      validInput({ endDate: "01-06-2026" }),
+      validInput({ promoEnd: "01-06-2026" }),
     );
     expect(result.success).toBe(false);
   });
 
   it("menerima tanggal ISO valid di masa depan", () => {
     const future = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
-    const result = contributionFormSchema.safeParse(validInput({ endDate: future }));
+    const result = contributionFormSchema.safeParse(validInput({ promoEnd: future }));
     expect(result.success).toBe(true);
   });
 });

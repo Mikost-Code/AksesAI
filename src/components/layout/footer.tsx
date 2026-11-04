@@ -6,14 +6,14 @@ const FOOTER_LINKS = [
   {
     heading: "Jelajahi",
     links: [
-      { href: "/bansos", label: "Direktori bansos" },
+      { href: "/info", label: "Direktori info AI" },
       { href: "/panduan", label: "Panduan penggunaan" },
     ],
   },
   {
     heading: "Tentang",
     links: [
-      { href: "/tentang", label: "Tentang BantuWarga" },
+      { href: "/tentang", label: "Tentang AksesAI" },
       { href: "/kebijakan-privasi", label: "Kebijakan privasi" },
     ],
   },
@@ -26,8 +26,8 @@ export function Footer() {
         <div className="md:col-span-1">
           <p className="font-heading text-base font-semibold">{APP_NAME}</p>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Direktori informasi bantuan sosial berbasis kontribusi komunitas,
-            dengan sumber yang dapat diperiksa dan verifikasi manual.
+            Direktori info gratis &amp; murah seputar AI berbasis kontribusi
+            komunitas, dengan sumber yang dapat diperiksa dan verifikasi manual.
           </p>
         </div>
 

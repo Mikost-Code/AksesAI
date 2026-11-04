@@ -63,7 +63,7 @@ function revalidateReview(id: string) {
   revalidatePath("/review");
   revalidatePath(`/review/${id}`);
   revalidatePath("/dashboard/kontribusi");
-  revalidatePath("/bansos");
+  revalidatePath("/info");
 }
 
 /** Reviewer mengambil item antrean (klaim 30 menit). */
@@ -173,6 +173,6 @@ export async function markExpired(
   if (error) return { ok: false, message: mapReviewError(error.message) };
 
   revalidateReview(parsed.data.programId);
-  revalidatePath("/bansos");
+  revalidatePath("/info");
   return { ok: true, message: "Program ditandai kedaluwarsa." };
 }

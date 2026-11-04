@@ -1,4 +1,4 @@
-# Deployment Guide — BantuWarga
+# Deployment Guide — AksesAI
 
 Hosting: **Vercel** (aplikasi) + **Supabase** (database/auth). Repo: GitHub.
 
@@ -72,8 +72,8 @@ Migrasi database: dijalankan **sebelum** deploy kode yang membutuhkannya (migras
 
 ## 7. Smoke Test Produksi
 
-1. Beranda & `/bansos` termuat; pencarian & filter bekerja.
-2. Detail program menampilkan sumber, kontributor, disclaimer.
+1. Beranda & `/info` termuat; pencarian & filter bekerja.
+2. Detail entri menampilkan sumber, kontributor, disclaimer.
 3. Login GitHub berhasil; profil dibuat.
 4. Buat Draft → kirim → muncul di antrean reviewer.
 5. Reviewer: minta revisi → revisi → verify; muncul publik.

@@ -6,14 +6,15 @@ import { EmptyState } from "@/components/empty-state";
 import { Pagination } from "@/components/pagination";
 import { ProgramCard } from "@/components/program-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
 import { getCategories } from "@/lib/programs/categories";
 import { getDirectory } from "@/lib/programs/queries";
 import { parseDirectorySearch } from "@/lib/validation/search";
 
 export const metadata: Metadata = {
-  title: "Direktori bansos",
+  title: "Direktori info AI gratis & murah",
   description:
-    "Cari dan filter informasi bantuan sosial terverifikasi berdasarkan kategori, wilayah, dan status.",
+    "Cari dan filter info AI gratis/murah: API & token gratis, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis.",
 };
 
 export const revalidate = 300;
@@ -34,11 +35,11 @@ export default async function DirectoryPage({
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold sm:text-3xl">Direktori bantuan sosial</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Direktori info AI gratis & murah</h1>
         <p className="max-w-2xl text-muted-foreground">
-          Setiap informasi menyertakan sumber yang dapat diperiksa. Status
-          Terverifikasi berarti telah diperiksa reviewer, bukan jaminan
-          pemerintah.
+          Kumpulan info API/token gratis, free tier, harga per token, model
+          open-weight, tool gratis, dan hosting gratis — dikontribusikan komunitas
+          dan diperiksa reviewer berdasarkan sumber resmi provider.
         </p>
       </div>
 
@@ -50,14 +51,15 @@ export default async function DirectoryPage({
         </Suspense>
       </div>
 
-      <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
+      <div className="mt-6 flex flex-col gap-1 text-sm text-muted-foreground">
         <p aria-live="polite">
           {directory.configured
             ? directory.total > 0
-              ? `${directory.total} informasi ditemukan`
-              : "Belum ada informasi yang cocok"
+              ? `${directory.total} info ditemukan`
+              : "Belum ada info yang cocok"
             : "Direktori belum terhubung ke sumber data"}
         </p>
+        <p className="text-xs">{PLATFORM_DISCLAIMER_SHORT}</p>
       </div>
 
       {directory.items.length > 0 ? (
@@ -80,15 +82,15 @@ export default async function DirectoryPage({
           <EmptyState
             title={
               directory.configured
-                ? "Belum ada informasi yang cocok"
+                ? "Belum ada info yang cocok"
                 : "Direktori belum tersedia"
             }
             description={
               directory.configured
-                ? "Coba ubah kata kunci atau filter, atau bagikan informasi yang Anda temukan dengan sumber yang jelas."
-                : "Data program belum dikonfigurasi pada lingkungan ini. Halaman tetap dapat diakses dan akan menampilkan informasi setelah administrator menghubungkan database."
+                ? "Coba ubah kata kunci atau filter, atau bagikan info gratis/murah yang Anda temukan beserta tautan resminya."
+                : "Data belum dikonfigurasi pada lingkungan ini. Halaman tetap dapat diakses dan akan menampilkan info setelah administrator menghubungkan database."
             }
-            action={{ label: "Bagikan informasi", href: "/login" }}
+            action={{ label: "Bagikan info AI", href: "/login" }}
           />
         </div>
       )}

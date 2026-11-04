@@ -1,4 +1,4 @@
-# System Architecture — BantuWarga
+# System Architecture — AksesAI
 
 ## 1. Gambaran Umum
 
@@ -27,7 +27,7 @@ Tidak ada komponen AI pada runtime.
 ```text
 src/
 ├── app/
-│   ├── (public)/            # /, /bansos, /bansos/[slug], /kategori/[slug], /kontributor/[username], /tentang, /panduan, /kebijakan-privasi
+│   ├── (public)/            # /, /info, /info/[slug], /kategori/[slug], /kontributor/[username], /tentang, /panduan, /kebijakan-privasi
 │   ├── (auth)/login, auth/callback/route.ts
 │   ├── dashboard/           # member
 │   ├── review/              # reviewer
@@ -90,7 +90,7 @@ Pengunjung → form laporan → POST /api/reports
 
 ## 6. Caching & Performa
 
-- `/`, `/bansos`, `/bansos/[slug]`: ISR (`revalidate` 300 dtk) + `revalidatePath/Tag` pada verify/expire/archive.
+- `/`, `/info`, `/info/[slug]`: ISR (`revalidate` 300 dtk) + `revalidatePath/Tag` pada verify/expire/archive.
 - Halaman dashboard/review/moderation/admin: dinamis, tanpa cache publik.
 - Pagination offset (12/halaman); untuk skala besar pertimbangkan keyset.
 - Gambar: `next/image`, avatar GitHub di-allowlist di `next.config`.

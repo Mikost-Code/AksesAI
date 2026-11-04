@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `Kategori ${category.name}`,
     description:
       category.description ??
-      `Informasi bantuan sosial kategori ${category.name} yang telah diverifikasi.`,
+      `Info AI gratis & murah kategori ${category.name} yang telah diverifikasi.`,
   };
 }
 
@@ -44,7 +44,7 @@ export default async function CategoryPage({ params }: PageProps) {
           Beranda
         </Link>
         <span aria-hidden="true"> / </span>
-        <Link href="/bansos" className="hover:text-foreground">
+        <Link href="/info" className="hover:text-foreground">
           Direktori
         </Link>
         <span aria-hidden="true"> / </span>
@@ -75,7 +75,7 @@ export default async function CategoryPage({ params }: PageProps) {
           <EmptyState
             title="Belum ada informasi di kategori ini"
             description="Bagikan informasi yang Anda temukan dengan sumber yang jelas, atau jelajahi kategori lain di direktori."
-            action={{ label: "Buka direktori", href: "/bansos" }}
+            action={{ label: "Buka direktori", href: "/info" }}
           />
         </div>
       )}

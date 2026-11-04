@@ -4,18 +4,20 @@ import { unstable_cache } from "next/cache";
 
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
-import { PAGE_SIZE } from "@/lib/constants/labels";
+import { ACCESS_TYPE_LABEL, PAGE_SIZE } from "@/lib/constants/labels";
 import type { ProgramCardData } from "@/components/program-card";
 import type { DirectorySearch } from "@/lib/validation/search";
 import { pickOne, type RawProgramRow } from "./types";
 
 /**
- * Query publik untuk direktori.
- * Hanya mengambil program berstatus verified/expired (RLS *dan* filter eksplisit).
+ * Query publik untuk direktori AksesAI.
+ * Hanya mengambil entri berstatus verified/expired (RLS *dan* filter eksplisit).
  * Hasil di-cache 300 detik, di-invalidasi via tag saat status berubah.
  */
 
-export const PUBLIC_PROGRAM_SELECT = `id, slug, title, description, region, province, city, organizer, status, end_date, published_at, verified_at,
+export const PUBLIC_PROGRAM_SELECT = `id, slug, title, description, access_type, provider, free_tier,
+  free_tier_available, requires_card, price_input_per_mtok, price_output_per_mtok,
+  rate_limit_rpm, context_window, status, promo_end, verified_at,
   categories(name, slug),
   contributor:profiles!assistance_programs_contributor_id_fkey(github_username, github_avatar)`;
 
@@ -34,10 +36,16 @@ export function toProgramCard(row: RawProgramRow): ProgramCardData {
     title: row.title,
     summary: programSummary(row.description),
     categoryName: category?.name ?? "Lainnya",
-    regionLabel: row.region?.trim() ? row.region : "Nasional",
-    organizer: row.organizer,
+    accessType: row.access_type,
+    accessTypeLabel: ACCESS_TYPE_LABEL[row.access_type] ?? "Lainnya",
+    provider: row.provider?.trim() ? row.provider : "—",
+    freeTier: row.free_tier,
+    freeTierAvailable: row.free_tier_available,
+    requiresCard: row.requires_card,
+    priceInput: row.price_input_per_mtok,
+    priceOutput: row.price_output_per_mtok,
     status: row.status,
-    endDate: row.end_date,
+    promoEnd: row.promo_end,
     contributorUsername: profile?.github_username ?? "kontributor-dihapus",
     contributorAvatar: profile?.github_avatar ?? null,
   };
@@ -70,7 +78,7 @@ async function fetchDirectory(search: DirectorySearch): Promise<DirectoryResult>
     const term = search.q.replace(/[%_,()]/g, " ").trim();
     if (term) {
       query = query.or(
-        `title.ilike.%${term}%,description.ilike.%${term}%,organizer.ilike.%${term}%`,
+        `title.ilike.%${term}%,description.ilike.%${term}%,provider.ilike.%${term}%,free_tier.ilike.%${term}%`,
       );
     }
   }
@@ -78,17 +86,21 @@ async function fetchDirectory(search: DirectorySearch): Promise<DirectoryResult>
     // Filter kategori lewat slug: gunakan inner join tersaring.
     query = query.eq("categories.slug", search.kategori);
   }
-  if (search.provinsi) {
-    query = query.eq("province", search.provinsi);
+  if (search.akses && search.akses !== "semua") {
+    query = query.eq("access_type", search.akses);
   }
-  if (search.kota) {
-    query = query.ilike("city", `%${search.kota.replace(/[%_,()]/g, " ")}%`);
+  if (search.gratis === "gratis") {
+    query = query.eq("free_tier_available", true);
+  } else if (search.gratis === "tanpa_kartu") {
+    query = query.eq("free_tier_available", true).eq("requires_card", false);
+  } else if (search.gratis === "berbayar") {
+    query = query.eq("free_tier_available", false);
   }
 
   const useRelevance = search.urut === "relevansi" && Boolean(search.q);
   query = useRelevance
     ? query.order("verified_at", { ascending: false, nullsFirst: false })
-    : query.order("published_at", { ascending: false, nullsFirst: false });
+    : query.order("verified_at", { ascending: false, nullsFirst: false });
 
   const from = (search.halaman - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;

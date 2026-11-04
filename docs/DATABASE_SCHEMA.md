@@ -1,6 +1,6 @@
-# Database Schema — BantuWarga
+# Database Schema — AksesAI
 
-Supabase PostgreSQL. Semua tabel di schema `public`, **RLS aktif**. Dokumen ini mencerminkan **implementasi nyata** di `supabase/migrations/` (7 migrasi, `20260101000001`–`20260101000007`). Bila mengubah skema, perbarui dokumen ini pada PR yang sama.
+Supabase PostgreSQL. Semua tabel di schema `public`, **RLS aktif**. Dokumen ini mencerminkan **implementasi nyata** di `supabase/migrations/` (8 migrasi, `20260101000001`–`20260101000008`). Migrasi `0008` merenovasi domain: program bansos → **entri info AI gratis/murah**; kolom `region_scope`/`province`/`city`/`region`/`organizer`/`start_date`/`end_date` dipertahankan sebagai legacy, dengan kolom baru `access_type`, `provider`, `free_tier`, harga per token, dan `promo_start`/`promo_end`. Bila mengubah skema, perbarui dokumen ini pada PR yang sama.
 
 ## 1. Diagram Relasi
 
@@ -22,10 +22,15 @@ create extension if not exists pgcrypto;
 
 create type app_role        as enum ('member','reviewer','moderator','admin');
 create type program_status  as enum ('draft','pending','needs_changes','verified','rejected','expired','archived');
-create type region_scope    as enum ('nasional','provinsi','kabupaten_kota');
-create type source_type     as enum ('situs_resmi','media_massa','media_sosial_resmi','dokumen','lainnya');
-create type report_reason   as enum ('tidak_akurat','kedaluwarsa','link_mati','duplikat','dugaan_penipuan','spam');
+create type access_type     as enum ('api','chat','tool','hosting','model');
+create type source_type     as enum ('dokumentasi_resmi','halaman_harga','blog_provider',
+                                     'repo_resmi','media_tepercaya','lainnya');  -- migrasi 0008
+create type report_reason   as enum ('tidak_akurat','kedaluwarsa','link_mati','duplikat','dugaan_penipuan','spam',
+                                     'kuota_berubah','tidak_lagi_gratis','harga_salah');
 create type report_status   as enum ('open','in_review','resolved','dismissed');
+
+-- Legacy domain bansos (migrasi 0008): dipertahankan demi migrasi in-place, tidak dipakai UI.
+create type region_scope    as enum ('nasional','provinsi','kabupaten_kota');
 ```
 
 > Nilai enum disimpan dalam snake_case; label Bahasa Indonesia ada di UI.
@@ -88,7 +93,7 @@ create table categories (
   sort_order  int not null default 0
 );
 ```
-Seed awal yang disarankan: Pendidikan, Kesehatan, Pangan & Sembako, Tunai & Subsidi, Perumahan, Disabilitas & Lansia, UMKM & Usaha, Bencana & Darurat, Lainnya.
+Seed awal (lihat `supabase/seed.sql`): Free API & Token, Free Tier Model, Murah / Hemat Biaya, Model Open-Weight, Tool AI Gratis, Hosting Gratis, Promo & Kredit Terbatas, Lainnya.
 
 ### 3.4 assistance_programs
 ```sql
@@ -98,6 +103,22 @@ create table assistance_programs (
   slug          text not null unique,
   description   text not null check (char_length(description) between 50 and 3000),
   category_id   uuid not null references categories(id),
+
+  -- Domain AI (migrasi 0008)
+  access_type   access_type not null default 'api',  -- api/chat/tool/hosting/model
+  provider      text check (provider is null or char_length(provider) between 2 and 150),
+  free_tier     text check (free_tier is null or char_length(free_tier) <= 500),
+                -- kuota/benefit gratis, mis. "5 USD kredit, 3 bulan"
+  free_tier_available boolean not null default true,
+  requires_card boolean not null default false,      -- perlu kartu kredit untuk daftar
+  price_input_per_mtok  numeric(12, 4) check (price_input_per_mtok  is null or price_input_per_mtok  >= 0),
+  price_output_per_mtok numeric(12, 4) check (price_output_per_mtok is null or price_output_per_mtok >= 0),
+  rate_limit_rpm integer check (rate_limit_rpm is null or rate_limit_rpm > 0),
+  context_window integer check (context_window is null or context_window > 0),
+  promo_start   date,                       -- masa berlaku promo
+  promo_end     date,
+
+  -- Legacy domain bansos (dipertahankan, tidak dipakai UI)
   region_scope  region_scope not null default 'nasional',
   province      text,
   city          text,
@@ -105,10 +126,11 @@ create table assistance_programs (
                   coalesce(city || ', ', '') || coalesce(province, 'Nasional')
                 ) stored,
   organizer     text not null,
-  requirements  text,                       -- hanya yang tercantum di sumber
+  requirements  text,                       -- syarat akses, hanya yang tercantum di sumber
   published_at  date,                       -- tanggal publikasi/ditemukan
   start_date    date,
   end_date      date,
+
   status        program_status not null default 'draft',
   review_note   text,                       -- alasan revisi/penolakan terakhir
   contributor_id uuid not null references profiles(id),
@@ -120,7 +142,8 @@ create table assistance_programs (
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   search_tsv    tsvector generated always as (
-                  to_tsvector('simple', coalesce(title,'') || ' ' || coalesce(description,'') || ' ' || coalesce(organizer,''))
+                  to_tsvector('simple', coalesce(title,'') || ' ' || coalesce(description,'') || ' ' ||
+                              coalesce(provider,'') || ' ' || coalesce(organizer,'') || ' ' || coalesce(free_tier,''))
                 ) stored,
   check (end_date is null or start_date is null or end_date >= start_date),
   check (region_scope <> 'provinsi' or province is not null),
@@ -130,9 +153,12 @@ create index on assistance_programs using gin (search_tsv);
 create index on assistance_programs using gin (title gin_trgm_ops);
 create index on assistance_programs (status, published_at desc);
 create index on assistance_programs (category_id);
-create index on assistance_programs (province, city);
+create index on assistance_programs (province, city);        -- legacy
 create index on assistance_programs (contributor_id);
-create index on assistance_programs (end_date) where status = 'verified';
+create index on assistance_programs (end_date) where status = 'verified';   -- legacy
+create index on assistance_programs (access_type);
+create index on assistance_programs (free_tier_available, requires_card);
+create index on assistance_programs (promo_end) where status = 'verified';
 ```
 
 ### 3.5 sources
@@ -212,7 +238,7 @@ create table site_settings (
   updated_by uuid references profiles(id),
   updated_at timestamptz not null default now()
 );
--- keys: disclaimer_text, expiring_soon_days (14), max_pending_per_day (10), report_rate_per_hour (5)
+-- keys: disclaimer_text, expiring_soon_days (7), max_pending_per_day (10), report_rate_per_hour (5)
 ```
 
 ### 3.10 rate_limit_buckets
@@ -389,7 +415,7 @@ Semua fungsi: memeriksa `auth.uid()`, role, status saat ini (transisi valid), me
 | `resolve_report(id, action, note)` | moderator/admin | open/in_review → resolved/dismissed | |
 | `set_user_banned(uid, bool, reason)` | moderator/admin | — | |
 | `grant_role / revoke_role(uid, role)` | admin | — | tolak jika mencabut admin terakhir |
-| `expire_due_programs()` | cron (service_role) | verified → expired jika `end_date < current_date` | |
+| `expire_due_programs()` | cron (service_role) | verified → expired jika `promo_end < current_date` | diperbarui migrasi 0008 (dari `end_date`) |
 
 ## 7. Akses Data Publik (tanpa view)
 
@@ -415,7 +441,8 @@ select * from assistance_programs
 where status = any($status)
   and ($q is null or search_tsv @@ plainto_tsquery('simple', $q) or title % $q)
   and ($category is null or category_id = $category)
-  and ($province is null or province = $province)
+  and ($akses is null or access_type = $akses::access_type)
+  and ($gratis is null or free_tier_available = $gratis)
 order by case when $q is null then 0 else ts_rank(search_tsv, plainto_tsquery('simple', $q)) end desc,
          published_at desc nulls last
 limit 12 offset $offset;

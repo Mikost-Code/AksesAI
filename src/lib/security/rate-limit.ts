@@ -74,7 +74,7 @@ function getLimiter(rule: RateLimitRule): Ratelimit | null {
   const limiter = new Ratelimit({
     redis: cache.redis,
     limiter: Ratelimit.slidingWindow(rule.limit, `${rule.windowSeconds} s`),
-    prefix: `bantuwarga:rl:${rule.name}`,
+    prefix: `aksesai:rl:${rule.name}`,
     analytics: false,
   });
   cache.limiters.set(key, limiter);

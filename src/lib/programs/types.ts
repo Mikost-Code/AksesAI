@@ -1,4 +1,4 @@
-import type { ProgramStatus } from "@/lib/constants/labels";
+import type { AccessType, ProgramStatus } from "@/lib/constants/labels";
 
 /** Bentuk baris mentah dari PostgREST (embed relasi bisa objek atau array). */
 export type RawProfileEmbed = {
@@ -11,13 +11,17 @@ export type RawProgramRow = {
   slug: string;
   title: string;
   description: string;
-  region: string | null;
-  province: string | null;
-  city: string | null;
-  organizer: string;
+  access_type: AccessType;
+  provider: string | null;
+  free_tier: string | null;
+  free_tier_available: boolean;
+  requires_card: boolean;
+  price_input_per_mtok: number | null;
+  price_output_per_mtok: number | null;
+  rate_limit_rpm: number | null;
+  context_window: number | null;
   status: ProgramStatus;
-  end_date: string | null;
-  published_at: string | null;
+  promo_end: string | null;
   verified_at: string | null;
   categories: { name: string; slug?: string } | Array<{ name: string; slug?: string }> | null;
   /** Embed profil kontributor; nama alias dapat berbeda per query. */

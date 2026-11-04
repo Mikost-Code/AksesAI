@@ -1,4 +1,4 @@
-# Security & Privacy — BantuWarga
+# Security & Privacy — AksesAI
 
 ## 1. Data yang DILARANG Dikumpulkan/Disimpan
 

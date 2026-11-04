@@ -41,7 +41,7 @@ function uuidSuffix(): string {
 }
 
 function buildSlug(title: string): string {
-  const base = slugify(title).slice(0, 80) || "program";
+  const base = slugify(title).slice(0, 80) || "entri";
   return `${base}-${uuidSuffix()}`;
 }
 
@@ -107,15 +107,24 @@ export async function saveDraft(
     title: input.title,
     description: input.description,
     category_id: input.categoryId,
-    region_scope: input.regionScope,
-    province: input.province,
-    city: input.city,
-    organizer: input.organizer,
+    access_type: input.accessType,
+    provider: input.provider,
+    free_tier: input.freeTier,
+    free_tier_available: input.freeTierAvailable,
+    requires_card: input.requiresCard,
+    price_input_per_mtok: input.priceInputPerMtok,
+    price_output_per_mtok: input.priceOutputPerMtok,
+    rate_limit_rpm: input.rateLimitRpm,
+    context_window: input.contextWindow,
     requirements: input.requirements,
-    published_at: input.publishedAt,
-    start_date: input.startDate,
-    end_date: input.endDate,
+    promo_start: input.promoStart,
+    promo_end: input.promoEnd,
     contributor_note: input.contributorNote,
+    // Kolom lama tetap diisi agar trigger/pencarian lama konsisten.
+    organizer: input.provider,
+    published_at: input.promoStart,
+    start_date: input.promoStart,
+    end_date: input.promoEnd,
   };
 
   let savedId: string;

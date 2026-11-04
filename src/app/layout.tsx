@@ -21,7 +21,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(clientEnv().NEXT_PUBLIC_SITE_URL),
   title: {
-    default: `${APP_NAME} — Direktori Informasi Bantuan Sosial`,
+    default: `${APP_NAME} — Direktori Info Gratis & Murah Seputar AI`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -30,12 +30,12 @@ export const metadata: Metadata = {
     type: "website",
     locale: "id_ID",
     siteName: APP_NAME,
-    title: `${APP_NAME} — Direktori Informasi Bantuan Sosial`,
+    title: `${APP_NAME} — Direktori Info Gratis & Murah Seputar AI`,
     description: APP_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${APP_NAME} — Direktori Informasi Bantuan Sosial`,
+    title: `${APP_NAME} — Direktori Info Gratis & Murah Seputar AI`,
     description: APP_DESCRIPTION,
   },
   robots: {

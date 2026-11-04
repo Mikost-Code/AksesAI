@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/constants/labels";
 
 export const NAV_LINKS = [
-  { href: "/bansos", label: "Direktori" },
+  { href: "/info", label: "Direktori" },
   { href: "/panduan", label: "Panduan" },
   { href: "/tentang", label: "Tentang" },
 ] as const;

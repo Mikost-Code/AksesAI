@@ -1,8 +1,8 @@
-# BantuWarga
+# AksesAI
 
-Platform informasi bantuan sosial berbasis kontribusi komunitas. Setiap informasi memiliki sumber yang dapat diperiksa, kontributor yang transparan, dan diverifikasi manual oleh manusia.
+Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/token gratis dari provider, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis. Setiap info memiliki sumber yang dapat diperiksa, kontributor yang transparan, dan diverifikasi manual oleh manusia.
 
-> **BantuWarga bukan lembaga pemerintah, bukan penyalur bansos, dan bukan penentu kelayakan penerima bantuan.** Status _Verified_ berarti informasi telah diperiksa reviewer terhadap sumber yang tersedia — bukan jaminan pemerintah, bukan jaminan bantuan masih tersedia, dan bukan jaminan pendaftaran diterima.
+> **AksesAI bukan afiliasi provider AI mana pun, tidak menjual token, dan tidak menjamin kuota gratis/harga masih tersedia.** Status _Verified_ berarti info telah diperiksa reviewer terhadap dokumentasi atau halaman resmi provider pada saat peninjauan — kuota, harga, dan promo dapat berubah sewaktu-waktu.
 
 ---
 
@@ -30,8 +30,8 @@ Platform informasi bantuan sosial berbasis kontribusi komunitas. Setiap informas
 ## Fitur
 
 **Publik**
-- Direktori bansos dengan pencarian teks penuh, filter (kategori, wilayah, status, tanggal), dan pagination
-- Halaman detail informasi: deskripsi, persyaratan, penyelenggara, tanggal penting, dan **daftar sumber yang dapat diklik**
+- Direktori info AI dengan pencarian teks penuh, filter (kategori, jenis akses, ketersediaan gratis, status), dan pagination
+- Halaman detail info: deskripsi, syarat akses, provider, free tier, harga per token, masa berlaku promo, dan **daftar sumber yang dapat diklik**
 - Riwayat perubahan informasi (audit trail yang dapat dilihat publik)
 - Profil kontributor publik (transparansi siapa yang menyumbang informasi)
 - Formulir laporan publik untuk informasi yang mencurigakan/palsu (dengan atau tanpa login)
@@ -97,8 +97,8 @@ Platform informasi bantuan sosial berbasis kontribusi komunitas. Setiap informas
 
 ```bash
 # 1. Clone
-git clone https://github.com/<owner>/BantuWarga.git
-cd BantuWarga
+git clone https://github.com/<owner>/AksesAI.git
+cd AksesAI
 
 # 2. Install dependensi
 pnpm install
@@ -193,7 +193,7 @@ Ini menulis `src/types/database.ts` dari skema lokal.
 
 1. Buka GitHub → **Settings** → **Developer settings** → **OAuth Apps** → **New OAuth App**.
 2. Isi:
-   - **Application name**: `BantuWarga`
+   - **Application name**: `AksesAI`
    - **Homepage URL**: `http://localhost:3000` (dev) atau domain produksi
    - **Authorization callback URL**: `https://<project-ref>.supabase.co/auth/v1/callback`
 3. Salin **Client ID** dan **Client Secret**.
@@ -304,7 +304,7 @@ node scripts/build-probe.mjs && node scripts/check-client-bundle.mjs
 ## Struktur Repo
 
 ```text
-BantuWarga/
+AksesAI/
 ├── README.md  PRD.md  CONTRIBUTING.md  LICENSE  .env.example
 ├── docs/                  # dokumentasi proyek (lihat tabel di bawah)
 ├── e2e/                   # uji end-to-end Playwright
@@ -336,7 +336,7 @@ BantuWarga/
 
 ## Privasi & Data yang Tidak Dikumpulkan
 
-BantuWarga **secara sengaja tidak mengumpulkan**:
+AksesAI **secara sengaja tidak mengumpulkan**:
 
 - ❌ NIK (Nomor Induk Kependudukan)
 - ❌ Nomor Kartu Keluarga (KK)

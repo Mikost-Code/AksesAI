@@ -72,12 +72,14 @@ async function main() {
   const { data: program } = await cAuth
     .from("assistance_programs")
     .insert({
-      title: "Program Uji Smoke Antrean Review",
+      title: "Info AI Uji Smoke Antrean Review",
       slug: uniqueSlug,
       description:
         "Deskripsi uji smoke untuk antrean review yang cukup panjang melebihi lima puluh karakter.",
       category_id: category.id,
-      organizer: "Org Uji Smoke",
+      access_type: "api",
+      provider: "Provider Uji Smoke",
+      organizer: "Provider Uji Smoke",
       contributor_id: cSign.user.id,
       status: "draft",
     })
@@ -87,7 +89,7 @@ async function main() {
     program_id: program.id,
     source_url: `https://contoh.go.id/${uniqueSlug}`,
     source_url_normalized: `https://contoh.go.id/${uniqueSlug}`,
-    source_type: "situs_resmi",
+    source_type: "dokumentasi_resmi",
     is_primary: true,
   });
   await cAuth.rpc("submit_program", { p_program_id: program.id });
@@ -104,8 +106,8 @@ async function main() {
   const queueHtml = await queue.text();
   log(queue.status === 200, "Reviewer GET /review → 200", `status ${queue.status}`);
   log(
-    queueHtml.includes("Program Uji Smoke Antrean Review"),
-    "Antrean menampilkan program pending",
+    queueHtml.includes("Info AI Uji Smoke Antrean Review"),
+    "Antrean menampilkan info pending",
   );
 
   // 2. Reviewer membuka panel review.

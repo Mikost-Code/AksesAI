@@ -76,7 +76,7 @@ function revalidateAdmin() {
   // Role/blokir memengaruhi akses area staf & tampilan publik (nama kontributor).
   revalidatePath("/review");
   revalidatePath("/moderation/reports");
-  revalidatePath("/bansos");
+  revalidatePath("/info");
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +220,7 @@ export async function saveCategory(input: CategoryInput): Promise<AdminResult> {
 
   revalidatePath("/admin/kategori");
   revalidatePath("/admin");
-  revalidatePath("/bansos");
+  revalidatePath("/info");
   revalidatePath("/kategori/[slug]", "layout");
   return {
     ok: true,

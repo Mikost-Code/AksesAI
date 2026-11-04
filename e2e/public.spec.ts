@@ -13,20 +13,20 @@ test.describe("Halaman publik", () => {
     await expect(page.getByRole("banner")).toBeVisible();
   });
 
-  test("direktori /bansos dapat dimuat & menampilkan hasil atau empty state", async ({
+  test("direktori /info dapat dimuat & menampilkan hasil atau empty state", async ({
     page,
   }) => {
-    const res = await page.goto("/bansos");
+    const res = await page.goto("/info");
     expect(res?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    // Entah ada kartu program atau empty state — keduanya sah.
+    // Entah ada kartu info atau empty state — keduanya sah.
     const main = page.getByRole("main");
     await expect(main).toBeVisible();
   });
 
   test("pencarian direktori menerima query", async ({ page }) => {
-    await page.goto("/bansos?q=bantuan");
-    expect(page.url()).toContain("q=bantuan");
+    await page.goto("/info?q=groq");
+    expect(page.url()).toContain("q=groq");
     await expect(page.getByRole("main")).toBeVisible();
   });
 
@@ -45,8 +45,8 @@ test.describe("Halaman publik", () => {
     await expect(page.getByRole("button", { name: /github/i })).toBeVisible();
   });
 
-  test("slug program tak dikenal → 404", async ({ page }) => {
-    const res = await page.goto("/bansos/tidak-ada-program-ini-xyz");
+  test("slug info tak dikenal → 404", async ({ page }) => {
+    const res = await page.goto("/info/tidak-ada-info-ini-xyz");
     expect(res?.status()).toBe(404);
   });
 

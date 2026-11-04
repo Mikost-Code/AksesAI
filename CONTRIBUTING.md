@@ -1,6 +1,6 @@
-# Panduan Kontribusi Kode — BantuWarga
+# Panduan Kontribusi Kode — AksesAI
 
-Terima kasih sudah membantu membangun BantuWarga. Dokumen ini untuk **kontribusi kode dan dokumentasi**. Untuk kontribusi informasi bansos, lihat halaman `/panduan` di aplikasi.
+Terima kasih sudah membantu membangun AksesAI. Dokumen ini untuk **kontribusi kode dan dokumentasi**. Untuk kontribusi informasi bansos, lihat halaman `/panduan` di aplikasi.
 
 ## Prinsip
 

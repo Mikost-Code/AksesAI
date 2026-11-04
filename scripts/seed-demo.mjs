@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 /**
- * Seed satu program VERIFIED ke Supabase lokal untuk smoke test.
+ * Seed satu entri info AI VERIFIED ke Supabase lokal untuk smoke test.
  *
  * Key di bawah adalah kunci demo Supabase LOKAL yang terdokumentasi publik
  * (issuer `supabase-demo`) — bukan secret proyek, hanya berlaku di 127.0.0.1.
@@ -22,22 +22,41 @@ const { data: created, error: userError } = await admin.auth.admin.createUser({
 if (userError) throw userError;
 await new Promise((r) => setTimeout(r, 300));
 
-const { data: cat } = await admin.from("categories").select("id, name").eq("slug", "pendidikan").single();
+const { data: cat } = await admin
+  .from("categories")
+  .select("id, name")
+  .eq("slug", "free-api")
+  .single();
 
-const slug = `beasiswa-contoh-${Date.now().toString(36)}`;
+const today = new Date().toISOString().slice(0, 10);
+const promoEnd = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+
+const slug = `contoh-api-gratis-${Date.now().toString(36)}`;
 const { data: program, error } = await admin
   .from("assistance_programs")
   .insert({
-    title: "Beasiswa Contoh untuk Pelajar SMA",
+    title: "Contoh Provider AI — free tier API untuk data uji",
     slug,
     description:
-      "Program beasiswa contoh untuk pelajar SMA berprestasi. Informasi ini hanya contoh pengembangan lokal dan bukan program nyata.",
+      "Entri contoh untuk pengembangan lokal: provider fiktif dengan free tier API. Tidak mewakili penawaran nyata mana pun dan hanya dipakai untuk smoke test.",
     category_id: cat.id,
-    region_scope: "nasional",
-    organizer: "Organisasi Contoh (data uji)",
-    requirements: "Siswa SMA aktif; informasi ini data uji.",
-    published_at: new Date().toISOString().slice(0, 10),
-    end_date: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+    access_type: "api",
+    provider: "Contoh Provider (data uji)",
+    free_tier: "Kredit $5 selama 3 bulan, 30 request/menit",
+    free_tier_available: true,
+    requires_card: false,
+    price_input_per_mtok: 0.15,
+    price_output_per_mtok: 0.6,
+    rate_limit_rpm: 30,
+    context_window: 128000,
+    requirements: "Daftar akun email; data uji, bukan penawaran nyata.",
+    promo_start: today,
+    promo_end: promoEnd,
+    // Kolom lama tetap diisi agar trigger/pencarian lama konsisten.
+    organizer: "Contoh Provider (data uji)",
+    published_at: today,
+    start_date: today,
+    end_date: promoEnd,
     status: "verified",
     contributor_id: created.user.id,
     verified_at: new Date().toISOString(),
@@ -48,12 +67,11 @@ if (error) throw error;
 
 await admin.from("sources").insert({
   program_id: program.id,
-  source_url: "https://contoh.go.id/pengumuman-beasiswa",
-  source_url_normalized: "https://contoh.go.id/pengumuman-beasiswa",
-  source_title: "Pengumuman resmi (contoh)",
-  source_type: "situs_resmi",
+  source_url: "https://contoh.example/pricing",
+  source_url_normalized: "https://contoh.example/pricing",
+  source_title: "Halaman harga (contoh)",
+  source_type: "halaman_harga",
   is_primary: true,
 });
 
 console.log("seeded slug:", program.slug);
-

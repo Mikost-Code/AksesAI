@@ -44,6 +44,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    // Satu URL kanonik per halaman. Domain alternatif (mis. alias deployment
+    // Vercel) tidak boleh terindeks ganda agar tidak terjadi konten duplikat.
+    canonical: "/",
+  },
 };
 
 export const viewport: Viewport = {

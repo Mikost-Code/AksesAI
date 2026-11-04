@@ -21,7 +21,6 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - [Deploy ke Vercel](#deploy-ke-vercel)
 - [Struktur Repo](#struktur-repo)
 - [Privasi & Data yang Tidak Dikumpulkan](#privasi--data-yang-tidak-dikumpulkan)
-- [Dokumentasi](#dokumentasi)
 - [Kontribusi](#kontribusi)
 - [Lisensi](#lisensi)
 
@@ -220,7 +219,7 @@ on conflict do nothing;
 
 Setelah itu, kelola role pengguna lain lewat halaman **`/admin/pengguna`** (bukan lewat SQL manual).
 
-> **Alternatif lebih aman untuk produksi:** jalankan pernyataan di atas dengan `service_role` dari lingkungan tepercaya, jangan di SQL Editor yang dibagikan. Tinjau `docs/SECURITY.md` untuk prosedur bootstrap lengkap.
+> **Alternatif lebih aman untuk produksi:** jalankan pernyataan di atas dengan `service_role` dari lingkungan tepercaya (mis. CLI lokal), jangan di SQL Editor yang dibagikan.
 
 ---
 
@@ -297,7 +296,7 @@ node scripts/build-probe.mjs && node scripts/check-client-bundle.mjs
 
    Keduanya diamankan dengan header `Authorization: Bearer <CRON_SECRET>`. Vercel Cron mengirim header ini otomatis bila `CRON_SECRET` diset di environment.
 6. Terapkan migrasi ke Supabase produksi: `supabase db push`.
-7. Jalankan smoke test produksi dari [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md).
+7. Jalankan smoke test produksi: `node scripts/smoke-prod.mjs` (memerlukan `.env.local` menunjuk ke produksi).
 
 ---
 
@@ -305,8 +304,7 @@ node scripts/build-probe.mjs && node scripts/check-client-bundle.mjs
 
 ```text
 AksesAI/
-├── README.md  PRD.md  CONTRIBUTING.md  LICENSE  .env.example
-├── docs/                  # dokumentasi proyek (lihat tabel di bawah)
+├── README.md  LICENSE  .env.example
 ├── e2e/                   # uji end-to-end Playwright
 ├── scripts/               # smoke test HTTP, secret scan, bundle check
 ├── supabase/
@@ -348,33 +346,19 @@ Formulir kontribusi dan laporan memiliki **pemindaian otomatis** yang menolak ki
 
 Data yang disimpan: informasi program dari sumber publik, judul & URL sumber, dan identitas **kontributor** (username GitHub publik) untuk transparansi.
 
-Lihat [`docs/SECURITY.md`](docs/SECURITY.md) dan halaman `/kebijakan-privasi` untuk rincian.
-
----
-
-## Dokumentasi
-
-| Dokumen | Isi |
-|---|---|
-| [PRD.md](PRD.md) | Kebutuhan produk final (FR/NFR) |
-| [docs/PROJECT_HANDOVER.md](docs/PROJECT_HANDOVER.md) | Ringkasan serah terima |
-| [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Arsitektur, alur data, keputusan desain |
-| [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Tabel, RLS, fungsi, trigger |
-| [docs/SECURITY.md](docs/SECURITY.md) | Model keamanan, ancaman, bootstrap admin |
-| [docs/MODERATION_GUIDE.md](docs/MODERATION_GUIDE.md) | Panduan operasional reviewer & moderator |
-| [docs/UI_UX_GUIDELINE.md](docs/UI_UX_GUIDELINE.md) | Prinsip desain, aksesibilitas, komponen |
-| [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | Deploy, cron, smoke test produksi |
-| [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) | Progres implementasi per fase + bukti uji |
-| [docs/AI_DEVELOPMENT_SETUP.md](docs/AI_DEVELOPMENT_SETUP.md) | Workflow AI untuk developer (alat lokal, **bukan** runtime aplikasi) |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Panduan kontribusi kode |
+Lihat halaman `/kebijakan-privasi` untuk rincian.
 
 ---
 
 ## Kontribusi
 
-Kami menerima kontribusi kode, dokumentasi, dan pelaporan bug. Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk konvensi branch, commit, dan proses PR.
+Kami menerima kontribusi kode dan pelaporan bug melalui issue & pull request di repo ini. Konvensi ringkas:
 
-Untuk melaporkan **kerentanan keamanan**, ikuti prosedur di [docs/SECURITY.md](docs/SECURITY.md) — jangan buka issue publik.
+- Branch: `feat/<topik>`, `fix/<topik>`, `chore/<topik>`
+- Commit mengikuti [Conventional Commits](https://www.conventionalcommits.org/id/v1.0.0/)
+- Sebelum membuka PR: `pnpm typecheck && pnpm lint && pnpm test` harus lulus
+
+Untuk melaporkan **kerentanan keamanan**, gunakan [GitHub Security Advisory](https://github.com/zann06/AksesAI/security/advisories/new) — jangan buka issue publik.
 
 ---
 

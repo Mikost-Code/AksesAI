@@ -80,9 +80,13 @@ export const getTopContributors = unstable_cache(
     if (!isSupabaseConfigured()) return [];
 
     const supabase = createSupabaseAnonClient();
+    // profiles punya DUA FK ke assistance_programs (contributor & reviewer),
+    // jadi nama relasi wajib eksplisit agar PostgREST tidak ambigu.
     const { data, error } = await supabase
       .from("profiles")
-      .select("github_username, github_avatar, assistance_programs!inner(count)")
+      .select(
+        "github_username, github_avatar, assistance_programs!assistance_programs_contributor_id_fkey!inner(count)",
+      )
       .eq("assistance_programs.status", "verified")
       .limit(200);
 

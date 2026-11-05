@@ -72,23 +72,18 @@ function GuideCard({
 export default function GuidePage() {
   return (
     <div className="flex flex-col">
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ backgroundImage: "var(--gradient-hero)" }}
-        />
-        <div className="relative mx-auto max-w-[1200px] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+      {/* ── Hero — band hijau hutan ─────────────────────────────────────── */}
+      <section className="hero-forest relative overflow-hidden border-b border-border">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand/80">
               Panduan
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-sand-bright sm:text-4xl">
               Pakai AksesAI{" "}
-              <span className="text-gradient-brand">dengan benar</span>
+              <span className="text-sand">dengan benar</span>
             </h1>
-            <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-sand/80">
               Empat menit membaca ini membuat Anda pandai mencari info AI gratis,
               berkontribusi yang lolos review, dan terhindar dari penipuan.
             </p>
@@ -107,7 +102,7 @@ export default function GuidePage() {
                 <a
                   key={item.href}
                   href={item.href}
-                  className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-primary"
+                  className="rounded-full border border-sand/30 bg-white/10 px-3 py-1 text-xs font-medium text-sand transition-colors hover:border-sand/60 hover:bg-white/20"
                 >
                   {item.label}
                 </a>
@@ -280,25 +275,33 @@ export default function GuidePage() {
           </section>
         </div>
 
-        {/* ── CTA ───────────────────────────────────────────────────────── */}
-        <div className="bg-noise relative mt-10 overflow-hidden rounded-2xl border border-border px-6 py-10 text-center sm:px-12">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{ backgroundImage: "var(--gradient-hero)" }}
-          />
+        {/* ── CTA — band hijau hutan ────────────────────────────────────── */}
+        <div className="hero-forest relative mt-10 overflow-hidden rounded-2xl px-6 py-10 text-center sm:px-12">
           <div className="relative">
-            <h2 className="text-xl font-semibold sm:text-2xl">Siap mencoba?</h2>
-            <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            <h2 className="text-xl font-semibold text-sand-bright sm:text-2xl">
+              Siap mencoba?
+            </h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-sand/80">
               Jelajahi direktori sekarang, atau bagikan info AI gratis &amp; murah yang Anda
               temukan.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/info" className={buttonVariants({ size: "lg" })}>
+              <Link
+                href="/info"
+                className={buttonVariants({ variant: "cream", size: "lg" })}
+              >
                 Jelajahi direktori
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
-              <Link href="/login" className={buttonVariants({ variant: "secondary", size: "lg" })}>
+              <Link
+                href="/login"
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "lg",
+                  className:
+                    "border border-sand/40 text-sand hover:bg-white/10 hover:text-sand-bright",
+                })}
+              >
                 Bagikan informasi
               </Link>
             </div>

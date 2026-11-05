@@ -99,32 +99,16 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="bg-noise relative overflow-hidden border-b border-border">
-        <div aria-hidden="true" className="absolute inset-0 bg-surface" />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-grid-soft"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ backgroundImage: "var(--gradient-hero)" }}
-        />
-        {/* Cahaya lembut di belakang judul agar hero punya kedalaman */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-8 size-[520px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl"
-        />
-
-        <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      {/* ── Hero — band hijau hutan bertekstur (Forest Green + Sand) ────── */}
+      <section className="hero-forest relative overflow-hidden">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
           <div className="mx-auto max-w-3xl text-center animate-[var(--animate-fade-up)]">
-            <h1 className="text-[2rem] font-bold leading-[1.12] tracking-tight sm:text-4xl md:text-5xl lg:text-[3.5rem]">
+            <h1 className="text-[2rem] font-bold leading-[1.12] tracking-tight text-sand-bright sm:text-4xl md:text-5xl lg:text-[3.5rem]">
               Info AI gratis &amp; murah,{" "}
-              <span className="text-gradient-brand">dengan sumber yang jelas</span>.
+              <span className="text-sand">dengan sumber yang jelas</span>.
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-sand/80 sm:text-lg">
               {APP_NAME} mengumpulkan API/token gratis, free tier, harga per
               token, model open-weight, tool, dan hosting gratis. Setiap entri
               menyertakan sumber yang bisa Anda periksa sendiri.
@@ -152,7 +136,11 @@ export default async function HomePage() {
               </div>
               <button
                 type="submit"
-                className={buttonVariants({ size: "lg", className: "h-12 rounded-xl px-7" })}
+                className={buttonVariants({
+                  variant: "cream",
+                  size: "lg",
+                  className: "h-12 rounded-xl px-7",
+                })}
               >
                 Cari
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -160,12 +148,12 @@ export default async function HomePage() {
             </form>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-sm">
-              <span className="text-muted-foreground">Populer:</span>
+              <span className="text-sand/70">Populer:</span>
               {POPULAR.map(({ slug, label }) => (
                 <Link
                   key={slug}
                   href={`/info?kategori=${encodeURIComponent(slug)}`}
-                  className="rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-medium text-foreground/80 transition-all duration-150 hover:-translate-y-px hover:border-primary/35 hover:bg-primary-soft hover:text-primary hover:shadow-[var(--shadow-card)]"
+                  className="rounded-full border border-sand/30 bg-white/10 px-3 py-1 text-xs font-medium text-sand transition-all duration-150 hover:-translate-y-px hover:border-sand/60 hover:bg-white/20"
                 >
                   {label}
                 </Link>
@@ -178,15 +166,13 @@ export default async function HomePage() {
             {TRUST_POINTS.map(({ icon: Icon, title, text }) => (
               <li
                 key={title}
-                className="rounded-xl border border-border bg-background/70 p-4 text-left shadow-[var(--shadow-card)] backdrop-blur-sm transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
+                className="rounded-xl border border-sand/20 bg-white/10 p-4 text-left shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-elevated)]"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-sand/15 text-sand-bright">
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
-                <p className="mt-2.5 text-sm font-semibold">{title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  {text}
-                </p>
+                <p className="mt-2.5 text-sm font-semibold text-sand-bright">{title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-sand/75">{text}</p>
               </li>
             ))}
           </ul>
@@ -297,37 +283,43 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Ajakan bergabung ───────────────────────────────────────────── */}
+      {/* ── Ajakan bergabung — band hijau hutan ────────────────────────── */}
       <section className="mx-auto w-full max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="bg-noise relative overflow-hidden rounded-2xl border border-border bg-surface px-6 py-12 text-center sm:px-12">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{ backgroundImage: "var(--gradient-hero)" }}
-          />
-          <div className="relative mx-auto max-w-2xl">
-            <CheckCircle2 className="mx-auto size-9 text-primary" aria-hidden="true" />
-            <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">
+        <div className="hero-forest relative overflow-hidden rounded-2xl px-6 py-12 text-center sm:px-12">
+          <div className="mx-auto max-w-2xl">
+            <CheckCircle2
+              className="mx-auto size-9 text-sand-bright"
+              aria-hidden="true"
+            />
+            <h2 className="mt-3 text-2xl font-semibold text-sand-bright sm:text-3xl">
               Direktori tumbuh dari kontribusi
             </h2>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-sand/80">
               Ada info API gratis, promo kredit, atau tool AI hemat yang Anda
               pakai? Bagikan beserta tautan resminya — reviewer kami akan
               memeriksa sebelum tayang.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/info" className={buttonVariants({ size: "lg" })}>
+              <Link
+                href="/info"
+                className={buttonVariants({ variant: "cream", size: "lg" })}
+              >
                 Jelajahi direktori
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
               <Link
                 href="/login"
-                className={buttonVariants({ variant: "secondary", size: "lg" })}
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "lg",
+                  className:
+                    "border border-sand/40 text-sand hover:bg-white/10 hover:text-sand-bright",
+                })}
               >
                 Bagikan informasi
               </Link>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
+            <p className="mt-4 text-xs text-sand/70">
               Masuk hanya dengan GitHub — tidak perlu membuat akun baru.
             </p>
           </div>

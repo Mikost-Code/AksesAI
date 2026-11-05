@@ -17,16 +17,24 @@
  *  - primary-foreground #06231F di atas primary #2BB8A6 ≈ 6.9:1
  */
 @theme {
-  --color-background: #ffffff;
-  --color-surface: #f7faf9;
+  /* Netral hangat (tint sand) — terinspirasi Forest Green + Sand Beige.
+     Kontras diverifikasi: foreground di atas putih ≈ 17:1, muted ≈ 6.6:1. */
+  --color-background: #fffefa;
+  --color-surface: #f7f4ec;
   --color-surface-raised: #ffffff;
-  --color-foreground: #0b1623;
-  --color-muted: #f0f4f3;
-  --color-muted-foreground: #55636f;
-  --color-border: #e2e8e6;
-  --color-border-strong: #cfd9d6;
-  --color-input: #e2e8e6;
+  --color-foreground: #101a12;
+  --color-muted: #f1ede1;
+  --color-muted-foreground: #5b6152;
+  --color-border: #e4dfd2;
+  --color-border-strong: #cfc8b8;
+  --color-input: #e4dfd2;
   --color-ring: #0d6e66;
+
+  /* Hijau hutan (dinding/hero) + sand (teks di atasnya) */
+  --color-forest: #1f3d2b;
+  --color-forest-deep: #16301f;
+  --color-sand: #e8dcc4;
+  --color-sand-bright: #f4ecd8;
 
   /* Teal lebih dalam + hijau jade untuk kesan "segar & teknis" */
   --color-primary: #0d6e66;
@@ -74,7 +82,14 @@
     0 6px 14px -6px rgba(11, 22, 35, 0.07);
   --shadow-glow: 0 10px 30px -10px rgba(13, 110, 102, 0.45);
 
-  /* Gradien dekoratif (hero, header section) */
+  /* Gradien dekoratif: band hijau hutan untuk hero & CTA (fade ke krem) */
+  --gradient-forest: linear-gradient(
+    180deg,
+    #16301f 0%,
+    #1f3d2b 58%,
+    #3a5a3f 82%,
+    #b9a97f 100%
+  );
   --gradient-hero: radial-gradient(
       ellipse 75% 55% at 50% -15%,
       rgba(13, 110, 102, 0.13),
@@ -341,6 +356,47 @@
     pointer-events: none;
     opacity: 0.022;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /*
+   * Band hijau hutan untuk hero & CTA — terinspirasi Forest Green + Sand
+   * Beige: dinding hijau pekat bertekstur titik, memudar ke warna latar
+   * halaman di tepi bawah sehingga menyatu tanpa garis pemisah.
+   * Teks di atasnya memakai --color-sand (kontras ≈ 11:1).
+   */
+  .hero-forest {
+    position: relative;
+    background-color: var(--color-forest);
+    background-image: linear-gradient(180deg, var(--color-forest-deep) 0%, var(--color-forest) 55%);
+  }
+  .hero-forest::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+      rgba(232, 220, 196, 0.13) 1px,
+      transparent 1.4px
+    );
+    background-size: 16px 16px;
+  }
+  .hero-forest::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(
+      180deg,
+      transparent 52%,
+      rgba(232, 220, 196, 0.14) 78%,
+      rgba(232, 220, 196, 0.55) 94%,
+      var(--color-background) 100%
+    );
+  }
+  /* Anak langsung hero-forest perlu berada di atas lapisan ::before/::after */
+  .hero-forest > * {
+    position: relative;
+    z-index: 1;
   }
 
   /*

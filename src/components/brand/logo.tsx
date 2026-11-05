@@ -71,28 +71,33 @@ export function LogoMark({
 /**
  * Logo lengkap: mark + wordmark. `APP_NAME` dipecah agar "AI" mendapat
  * penekanan warna tanpa mengubah teks yang dibaca screen reader.
+ * `tone="sand"` untuk penempatan di atas band hijau hutan.
  */
 export function LogoLockup({
   appName = "AksesAI",
   className,
   size = "md",
+  tone = "brand",
 }: {
   appName?: string;
   className?: string;
   size?: "sm" | "md";
+  tone?: "brand" | "sand";
 }) {
   const base = appName.replace(/AI$/, "");
   const markSize = size === "sm" ? "size-7" : "size-8";
   const textSize = size === "sm" ? "text-base" : "text-lg";
+  const wordmarkTone = tone === "sand" ? "text-sand" : "text-foreground";
+  const aiTone = tone === "sand" ? "text-sand-bright" : "text-primary";
 
   return (
     <span className={`flex items-center gap-2.5 ${className ?? ""}`}>
       <LogoMark className={`${markSize} shrink-0`} />
       <span
-        className={`font-heading font-bold tracking-tight text-foreground ${textSize}`}
+        className={`font-heading font-bold tracking-tight ${wordmarkTone} ${textSize}`}
       >
         {base}
-        <span className="text-primary">AI</span>
+        <span className={aiTone}>AI</span>
       </span>
     </span>
   );

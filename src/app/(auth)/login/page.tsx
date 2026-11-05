@@ -85,10 +85,10 @@ export default async function LoginPage({
         </div>
       </div>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-center text-sm text-sand/80">
         <Link
           href="/info"
-          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          className="inline-flex items-center gap-1 font-medium text-sand-bright hover:underline"
         >
           Jelajahi direktori tanpa masuk
           <ArrowRight className="size-3.5" aria-hidden="true" />

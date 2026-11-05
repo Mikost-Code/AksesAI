@@ -48,23 +48,18 @@ const NOT_DOING = [
 export default function AboutPage() {
   return (
     <div className="flex flex-col">
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ backgroundImage: "var(--gradient-hero)" }}
-        />
-        <div className="relative mx-auto max-w-[1200px] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+      {/* ── Hero — band hijau hutan ─────────────────────────────────────── */}
+      <section className="hero-forest relative overflow-hidden border-b border-border">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand/80">
               Tentang
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-sand-bright sm:text-4xl">
               Satu pintu untuk info{" "}
-              <span className="text-gradient-brand">AI gratis &amp; murah</span>
+              <span className="text-sand">AI gratis &amp; murah</span>
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-sand/80">
               AksesAI membantu Anda menemukan API/token gratis dari provider, free tier,
               harga per token, model open-weight, tool gratis, dan hosting gratis — yang
               bersumber jelas dan dapat diperiksa.
@@ -169,28 +164,39 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ── Kontak & CTA ──────────────────────────────────────────────── */}
-        <div className="bg-noise relative mt-10 overflow-hidden rounded-2xl border border-border px-6 py-10 text-center sm:px-12">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{ backgroundImage: "var(--gradient-hero)" }}
-          />
+        {/* ── Kontak & CTA — band hijau hutan ───────────────────────────── */}
+        <div className="hero-forest relative mt-10 overflow-hidden rounded-2xl px-6 py-10 text-center sm:px-12">
           <div className="relative mx-auto max-w-2xl">
-            <h2 className="text-xl font-semibold sm:text-2xl">Punya info untuk dibagikan?</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h2 className="text-xl font-semibold text-sand-bright sm:text-2xl">
+              Punya info untuk dibagikan?
+            </h2>
+            <p className="mt-2 text-sm text-sand/80">
               Bantuan, pertanyaan, atau pengelolaan data: lihat{" "}
-              <Link href="/kebijakan-privasi" className="font-medium text-primary hover:underline">
+              <Link
+                href="/kebijakan-privasi"
+                className="font-medium text-sand-bright underline underline-offset-2 hover:opacity-80"
+              >
                 kebijakan privasi
               </Link>
               . Untuk kontribusi, cukup masuk dengan GitHub.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/login" className={buttonVariants({ size: "lg" })}>
+              <Link
+                href="/login"
+                className={buttonVariants({ variant: "cream", size: "lg" })}
+              >
                 Mulai berkontribusi
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
-              <Link href="/panduan" className={buttonVariants({ variant: "secondary", size: "lg" })}>
+              <Link
+                href="/panduan"
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "lg",
+                  className:
+                    "border border-sand/40 text-sand hover:bg-white/10 hover:text-sand-bright",
+                })}
+              >
                 Baca panduan
               </Link>
             </div>

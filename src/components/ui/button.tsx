@@ -30,6 +30,8 @@ const buttonVariants = cva(
           "border border-border bg-background text-foreground shadow-[var(--shadow-card)] hover:border-border-strong hover:bg-surface hover:shadow-[var(--shadow-card-hover)]",
         ghost: "text-foreground hover:bg-muted",
         subtle: "bg-primary-soft text-primary hover:bg-primary-soft-hover",
+        cream:
+          "bg-sand text-forest shadow-[var(--shadow-card)] hover:bg-sand-bright hover:shadow-[var(--shadow-card-hover)] active:bg-[#ddd0b4]",
         destructive:
           "bg-danger text-white shadow-[0_1px_2px_rgba(11,22,35,0.16)] hover:bg-danger/90 hover:shadow-[0_8px_20px_-8px_rgba(180,35,24,0.6)]",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary-hover",

@@ -142,6 +142,7 @@ Lihat `.env.example` untuk daftar lengkap dengan komentar.
 |---|---|
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting terdistribusi. Bila kosong → fallback PostgreSQL |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Anti-bot laporan anonim. Bila kosong → hanya rate limit IP |
+| `NEXT_PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics (tanpa cookie). Bila kosong → analytics tidak dimuat |
 
 > **Penting:** Jangan pernah memberi prefix `NEXT_PUBLIC_` pada nilai rahasia — apa pun dengan prefix itu **ikut ter-bundel ke JavaScript klien**. Repo ini menyertakan `scripts/check-client-bundle.mjs` yang gagal bila `service_role` bocor ke bundle klien.
 
@@ -313,6 +314,29 @@ node scripts/build-probe.mjs && node scripts/check-client-bundle.mjs
    Keduanya diamankan dengan header `Authorization: Bearer <CRON_SECRET>`. Vercel Cron mengirim header ini otomatis bila `CRON_SECRET` diset di environment.
 6. Terapkan migrasi ke Supabase produksi: `supabase db push`.
 7. Jalankan smoke test produksi: `node scripts/smoke-prod.mjs` (memerlukan `.env.local` menunjuk ke produksi).
+
+### Analytics (opsional)
+
+AksesAI tidak menyematkan analytics secara bawaan. Untuk statistik ramah privasi
+(tanpa cookie, tidak melacak lintas situs), aktifkan [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/):
+
+1. Salin **beacon token** dari Cloudflare Dashboard.
+2. Set `NEXT_PUBLIC_CF_BEACON_TOKEN` di Vercel, lalu redeploy.
+
+Bila variabel kosong, skrip analytics tidak dimuat sama sekali.
+
+### Backup database
+
+Folder `supabase/` (migrasi & seed) hanya ada di komputer pemilik proyek —
+tidak ada di repo publik. Jadwalkan backup berkala:
+
+```bash
+pnpm db:backup          # skema + data (butuh `supabase login` & `supabase link`)
+pnpm db:backup --schema # skema saja
+```
+
+Hasilnya ditulis ke `supabase/backups/*.sql` (diabaikan git). Simpan salinan
+kedua ke penyimpanan lain — file itu satu-satunya cadangan di luar cluster.
 
 ---
 

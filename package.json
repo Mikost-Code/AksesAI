@@ -22,7 +22,8 @@
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
-    "secret:scan": "node scripts/secret-scan.mjs"
+    "secret:scan": "node scripts/secret-scan.mjs",
+    "db:backup": "node scripts/db-backup.mjs"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.4.1",

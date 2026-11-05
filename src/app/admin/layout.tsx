@@ -4,7 +4,6 @@ import { ShieldCheck } from "lucide-react";
 
 import { LogoLockup } from "@/components/brand/logo";
 import { AccountNav } from "@/components/layout/account-nav";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getStaffBadgeCounts } from "@/lib/admin/data";
@@ -41,7 +40,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             <LogoLockup />
           </Link>
-          <ThemeToggle />
           <AccountNav />
         </div>
       </header>

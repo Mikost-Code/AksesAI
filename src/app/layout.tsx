@@ -9,13 +9,6 @@ import { clientEnv } from "@/lib/env";
 
 import "./globals.css";
 
-/**
- * Anti-FOUC mode gelap: berjalan sebelum cat air. Default situs TERANG —
- * mode gelap hanya aktif bila pengguna pernah memilihnya (toggle manual),
- * bukan mengikuti preferensi sistem.
- */
-const THEME_INIT_SCRIPT = `(function(){try{if(localStorage.getItem("tema")==="gelap"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
-
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -73,17 +66,8 @@ export default function RootLayout({
   const cfBeaconToken = clientEnv().NEXT_PUBLIC_CF_BEACON_TOKEN;
 
   return (
-    // suppressHydrationWarning: skrip anti-FOUC menambah class `dark` ke <html>
-    // sebelum hidrasi — perbedaan class ini memang disengaja (tema), bukan bug.
-    <html
-      lang="id"
-      suppressHydrationWarning
-      className={`${inter.variable} ${jakarta.variable}`}
-    >
+    <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
       <body className="min-h-dvh bg-background text-foreground antialiased">
-        <Script id="tema-awal" strategy="beforeInteractive">
-          {THEME_INIT_SCRIPT}
-        </Script>
         {cfBeaconToken ? (
           <Script
             strategy="afterInteractive"

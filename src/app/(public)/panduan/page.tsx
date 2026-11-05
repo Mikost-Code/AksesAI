@@ -119,7 +119,7 @@ export default function GuidePage() {
 
       <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
         {/* ── Mencari & berkontribusi ───────────────────────────────────── */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="animate-stagger grid gap-4 md:grid-cols-2">
           <GuideCard
             icon={<FileSearch aria-hidden="true" />}
             eyebrow="01 · Untuk semua orang"
@@ -223,7 +223,7 @@ export default function GuidePage() {
         </section>
 
         {/* ── Melaporkan & penipuan ─────────────────────────────────────── */}
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="animate-stagger mt-4 grid gap-4 md:grid-cols-2">
           <GuideCard
             icon={<Flag aria-hidden="true" />}
             eyebrow="05 · Jaga komunitas"

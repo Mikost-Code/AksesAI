@@ -53,7 +53,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
             >
               <Menu className="size-5" aria-hidden="true" />
             </summary>
-            <div className="absolute inset-x-0 top-16 border-b border-border bg-background p-4 shadow-[var(--shadow-elevated)] animate-[var(--animate-fade-in)]">
+            <div className="absolute inset-x-0 top-16 origin-top border-b border-border bg-background p-4 shadow-[var(--shadow-elevated)] animate-[var(--animate-menu-in)]">
               <nav aria-label="Navigasi seluler" className="flex flex-col gap-1">
                 {NAV_LINKS.map((link) => (
                   <Link

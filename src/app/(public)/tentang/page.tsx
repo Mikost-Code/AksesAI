@@ -75,7 +75,7 @@ export default function AboutPage() {
 
       <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
         {/* ── Nilai utama ───────────────────────────────────────────────── */}
-        <ul className="grid gap-4 sm:grid-cols-3">
+        <ul className="animate-stagger grid gap-4 sm:grid-cols-3">
           {VALUE_POINTS.map(({ icon: Icon, title, text }) => (
             <li
               key={title}
@@ -91,7 +91,7 @@ export default function AboutPage() {
         </ul>
 
         {/* ── Yang kami lakukan vs tidak ────────────────────────────────── */}
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="animate-stagger mt-6 grid gap-4 lg:grid-cols-2">
           <section className="rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)]">
             <h2 className="flex items-center gap-2 text-base font-semibold">
               <HeartHandshake className="size-5 text-primary" aria-hidden="true" />

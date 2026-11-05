@@ -32,7 +32,7 @@ export default async function AdminCategoriesPage() {
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">Daftar kategori</h2>
         {categories.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="animate-stagger flex flex-col gap-2">
             {categories.map((category) => (
               <li key={category.id}>
                 <article className="card-accent rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]">

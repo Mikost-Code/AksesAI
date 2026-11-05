@@ -159,6 +159,8 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 
 ## Setup Database
 
+> Folder `supabase/` (migrasi, seed, config) **sengaja tidak di-commit** ke repo publik — dikelola lokal oleh pemilik proyek lewat Supabase CLI yang ter-link. Skema tetap dapat direkonstruksi dari database yang berjalan (`supabase db pull`), atau hubungi pemilik untuk salinan migrasi.
+
 ### Supabase lokal
 
 ```bash
@@ -321,10 +323,7 @@ AksesAI/
 ├── README.md  LICENSE  .env.example
 ├── e2e/                   # uji end-to-end Playwright
 ├── scripts/               # smoke test HTTP, secret scan, bundle check
-├── supabase/
-│   ├── migrations/        # skema, RLS, RPC, trigger (berurutan)
-│   ├── seed.sql           # data awal (kategori)
-│   └── config.toml        # konfigurasi Supabase lokal
+├── supabase/              # (lokal saja, tidak di repo) migrasi, seed, config
 ├── src/
 │   ├── app/               # rute App Router
 │   │   ├── (public)/      # beranda, direktori, detail, halaman statis

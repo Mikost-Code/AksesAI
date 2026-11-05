@@ -77,7 +77,10 @@ export default async function AdminHomePage() {
         </p>
       </div>
 
-      <section aria-label="Statistik utama" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section
+        aria-label="Statistik utama"
+        className="animate-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      >
         <StatCard
           label="Menunggu review"
           value={stats.pendingReview}

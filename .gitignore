@@ -55,6 +55,10 @@ opencode.json
 # file bantuan agen yang dibuat otomatis oleh `next dev`
 AGENTS.md
 
+# skema & migrasi database — hanya lokal, tidak dipublikasikan di repo
+# (dikelola lewat Supabase CLI ter-link; simpan cadangan sendiri)
+/supabase/
+
 # hasil screenshot review UI lokal
 ui-shots/
 .env.local.local-backup

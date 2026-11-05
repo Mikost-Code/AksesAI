@@ -10,10 +10,11 @@ import { clientEnv } from "@/lib/env";
 import "./globals.css";
 
 /**
- * Anti-FOUC mode gelap: berjalan sebelum cat air — baca pilihan tersimpan,
- * jatuh ke preferensi sistem bila belum pernah memilih.
+ * Anti-FOUC mode gelap: berjalan sebelum cat air. Default situs TERANG —
+ * mode gelap hanya aktif bila pengguna pernah memilihnya (toggle manual),
+ * bukan mengikuti preferensi sistem.
  */
-const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("tema");if(t==="gelap"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{if(localStorage.getItem("tema")==="gelap"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 const inter = Inter({
   subsets: ["latin"],

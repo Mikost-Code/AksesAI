@@ -23,8 +23,10 @@ const GRANTABLE_ROLES = ["reviewer", "moderator", "admin"] as const;
  *
  * - Mengubah role hanya untuk pemilik (`canManageRoles`) — pantulan gate
  *   Server Action + RPC; admin biasa melihat badge tanpa kontrol.
- * - Blokir untuk moderator/admin/pemilik (`canBan`); proteksi lanjutan
- *   (admin hanya oleh pemilik, pemilik kebal) ditolak di RPC.
+ * - Blokir untuk moderator/admin/pemilik (`canBan`), dengan batasan target
+ *   yang mencerminkan RPC: admin hanya oleh pemilik, pemilik (super_admin)
+ *   tidak dapat diblokir oleh siapa pun — UI menyembunyikan alih-alih
+ *   menampilkan tombol yang pasti ditolak.
  * - Semua otorisasi dan perubahan terjadi di Server Action → RPC; komponen
  *   ini hanya memicu dan menampilkan hasilnya.
  */
@@ -45,6 +47,12 @@ export function UserActions({
   canManageRoles: boolean;
   canBan: boolean;
 }) {
+  const targetIsSuperAdmin = roles.includes("super_admin");
+  const targetIsAdmin = roles.includes("admin");
+  // Blokir terlihat hanya bila viewer berwenang DAN target boleh diblokir:
+  // target pemilik → tidak seorang pun; target admin → hanya pemilik.
+  const showBanControls =
+    canBan && !isSelf && !targetIsSuperAdmin && (!targetIsAdmin || canManageRoles);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -144,8 +152,17 @@ export function UserActions({
         </p>
       ) : null}
 
+      {/* Penjelasan saat blokir disembunyikan karena proteksi target */}
+      {canBan && !isSelf && !showBanControls ? (
+        <p className="text-xs text-muted-foreground">
+          {targetIsSuperAdmin
+            ? "Pemilik (Super Admin) tidak dapat diblokir."
+            : "Hanya pemilik (Super Admin) yang dapat memblokir admin."}
+        </p>
+      ) : null}
+
       {/* Blokir / buka blokir */}
-      {canBan && !isSelf ? (
+      {showBanControls ? (
         isBanned ? (
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`unban-${userId}`}>Buka blokir (alasan wajib)</Label>

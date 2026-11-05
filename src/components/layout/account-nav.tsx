@@ -2,7 +2,6 @@ import { LogIn, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 
@@ -30,7 +29,8 @@ export async function AccountNav() {
 
   return (
     <div className="flex items-center gap-2">
-      <ThemeToggle />
+      {/* Toggle tema TIDAK di sini: sudah ada di navbar publik & header area
+          internal — muncul di dua tempat bila AccountNav dipakai accountSlot. */}
       <Link
         href="/dashboard"
         className={buttonVariants({ variant: "secondary", size: "sm" })}

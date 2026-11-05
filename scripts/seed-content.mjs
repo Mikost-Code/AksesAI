@@ -339,6 +339,27 @@ const ENTRIES = [
       { title: "DeepSeek-V4.1-Flash di Hugging Face (MIT)", url: "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash" },
     ],
   },
+  {
+    slug: "zcode-glm-free-trial",
+    title: "ZCode (z.ai) — trial 5 hari: 8 juta token GLM per hari",
+    category: "tool-ai-gratis",
+    accessType: "tool",
+    provider: "Z.ai (Zhipu)",
+    summary:
+      "Pengguna baru ZCode (aplikasi coding desktop z.ai) mendapat kuota gratis 8 juta token per hari selama 5 hari — 3 juta GLM-5.3 + 5 juta GLM-5.3-Flash — tanpa pembayaran.",
+    description:
+      "ZCode adalah aplikasi coding agent desktop dari z.ai. Pengguna PERTAMA KALI mendapat benefit gratis 5 hari: 8 juta token per hari (3 juta GLM-5.3 + 5 juta GLM-5.3-Flash, konteks 1 juta token) yang reset setiap hari, aktif otomatis setelah menghubungkan akun BigModel. PENTING — soal angka 300 juta/hari & 500 juta/minggu yang beredar di medsos: itu bukan alokasi harian/mingguan tetap; angka tersebut berasal dari kampanye flash terbatas (mis. Weekend Build 300M token Flash dan ZCode 1024 Dev Day 500M token dengan batas 50.000 pack) dan dari kuota plan Team BERBAYAR. GLM-5.3-Flash juga tidak gratis via API z.ai (hanya model-model lama yang gratis). Setelah trial 5 hari berakhir, lanjut dengan plan berbayar mulai $18/bulan — atau pakai di jam off-peak (weekend & di luar Senin–Jumat 14.00–18.00 SGT) saat konsumsi kredit hanya 50%.",
+    freeTier: "5 hari: 8 juta token/hari (3M GLM-5.3 + 5M GLM-5.3-Flash)",
+    freeTierAvailable: true,
+    requiresCard: false,
+    contextWindow: 1000000,
+    requirements:
+      "1) Buat akun BigModel/z.ai (gratis, tanpa kartu kredit). 2) Unduh aplikasi ZCode dari zcode.z.ai (desktop). 3) Hubungkan akun BigModel di pengaturan ZCode — trial aktif otomatis selama 5 hari pertama. 4) Kuota reset setiap hari; habis 5 hari, perlu plan berbayar bila ingin lanjut.",
+    sources: [
+      { title: "ZCode — Docs (welcome & trial)", url: "https://zcode.z.ai/en/docs/welcome" },
+      { title: "Z.ai — Plan Update Notice", url: "https://docs.z.ai/devpack/notice/usage-revision" },
+    ],
+  },
 ];
 
 /**
@@ -440,7 +461,7 @@ for (const entry of ENTRIES) {
     city: null,
     // `region` adalah generated column — tidak boleh diisi manual.
     organizer: entry.provider,
-    requirements: null,
+    requirements: entry.requirements ?? null,
     published_at: today,
     start_date: null,
     end_date: null,

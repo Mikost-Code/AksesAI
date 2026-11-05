@@ -35,7 +35,7 @@ export default async function AdminCategoriesPage() {
           <ul className="flex flex-col gap-2">
             {categories.map((category) => (
               <li key={category.id}>
-                <article className="rounded-lg border border-border bg-background p-4 shadow-[var(--shadow-card)]">
+                <article className="card-accent rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">

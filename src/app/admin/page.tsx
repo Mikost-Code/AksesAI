@@ -31,17 +31,22 @@ function StatCard({
   href?: string;
 }) {
   const body = (
-    <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-4 shadow-[var(--shadow-card)]">
+    <div className="card-accent flex h-full flex-col gap-1 rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-card)] transition-all duration-200 hover:shadow-[var(--shadow-card-hover)]">
       <div className="flex items-center gap-2 text-muted-foreground">
-        {icon}
+        <span className="flex size-7 items-center justify-center rounded-lg bg-primary-soft text-primary [&_svg]:size-4">
+          {icon}
+        </span>
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
-      <p className="font-heading text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-1 font-heading text-2xl font-bold text-foreground">{value}</p>
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
   return href ? (
-    <Link href={href} className="rounded-lg transition-shadow hover:shadow-md">
+    <Link
+      href={href}
+      className="rounded-xl outline-none transition-transform duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary/45"
+    >
       {body}
     </Link>
   ) : (
@@ -156,6 +161,10 @@ export default async function AdminHomePage() {
               <dt className="text-muted-foreground">{APP_ROLE_LABEL.admin}</dt>
               <dd className="font-medium tabular-nums">{stats.roleCounts.admin}</dd>
             </div>
+            <div className="flex items-center justify-between text-sm">
+              <dt className="text-muted-foreground">{APP_ROLE_LABEL.super_admin}</dt>
+              <dd className="font-medium tabular-nums">{stats.roleCounts.super_admin}</dd>
+            </div>
             <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-sm">
               <dt className="text-muted-foreground">Total kategori</dt>
               <dd className="flex items-center gap-2 font-medium tabular-nums">
@@ -187,8 +196,11 @@ export default async function AdminHomePage() {
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
           <li>Periksa antrean review setiap hari agar kontribusi tidak menumpuk.</li>
           <li>Tangani laporan komunitas berdasarkan prioritas alasan.</li>
-          <li>Jangan pernah menambahkan data pribadi penerima bantuan ke platform.</li>
-          <li>Selalu pertahankan minimal satu admin aktif di luar akun Anda.</li>
+          <li>Jangan pernah menaruh API key, token, atau kredensial di dalam konten.</li>
+          <li>
+            Mengatur role hanya oleh pemilik (Super Admin); pertahankan minimal satu
+            admin aktif selain pemilik untuk kesiapan operasional.
+          </li>
         </ul>
       </section>
     </div>

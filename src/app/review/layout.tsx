@@ -2,10 +2,10 @@
 import { redirect } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 
+import { LogoLockup } from "@/components/brand/logo";
 import { AccountNav } from "@/components/layout/account-nav";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
-import { APP_NAME } from "@/lib/constants/labels";
 
 /**
  * Layout area staf (reviewer/moderator/admin).
@@ -27,19 +27,14 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
-      <header className="border-b border-border bg-background">
+      <header className="surface-glass sticky top-0 z-30 border-b border-border/80">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="flex items-center gap-2 font-heading text-lg font-bold text-foreground"
+            aria-label="AksesAI — beranda"
+            className="inline-flex rounded-lg outline-none transition-opacity hover:opacity-90"
           >
-            <span
-              aria-hidden="true"
-              className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
-            >
-              AI
-            </span>
-            {APP_NAME}
+            <LogoLockup />
           </Link>
           <AccountNav />
         </div>

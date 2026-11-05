@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { resolveActiveHref } from "@/lib/nav";
 
 /**
  * Tautan navigasi utama dengan indikator halaman aktif.
@@ -20,6 +21,7 @@ export function NavLinks({
   className?: string;
 }) {
   const pathname = usePathname();
+  const activeHref = resolveActiveHref(pathname, links);
 
   return (
     <nav
@@ -27,8 +29,7 @@ export function NavLinks({
       className={cn("items-center justify-self-center gap-1", className)}
     >
       {links.map((link) => {
-        const active =
-          pathname === link.href || pathname.startsWith(`${link.href}/`);
+        const active = link.href === activeHref;
 
         return (
           <Link

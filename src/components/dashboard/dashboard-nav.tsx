@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { resolveActiveHref } from "@/lib/nav";
 
 type NavItem = {
   href: string;
@@ -65,6 +66,13 @@ export function DashboardNav({
     groups.push({ heading: "Staf", items: staff });
   }
 
+  // Hanya item paling spesifik yang aktif (lihat resolveActiveHref) —
+  // mencegah induk + anak menyala bersamaan di halaman anak.
+  const activeHref = resolveActiveHref(
+    pathname,
+    groups.flatMap((group) => group.items),
+  );
+
   return (
     <nav aria-label="Navigasi dasbor" className="lg:w-56 lg:shrink-0">
       <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 lg:flex-col lg:gap-4 lg:overflow-visible lg:p-3">
@@ -74,9 +82,7 @@ export function DashboardNav({
               {group.heading}
             </p>
             {group.items.map((item) => {
-              const active = item.exact
-                ? pathname === item.href
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const active = item.href === activeHref;
               const Icon = item.icon;
               return (
                 <Link

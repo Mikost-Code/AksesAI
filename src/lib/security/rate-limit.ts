@@ -39,6 +39,7 @@ export const RATE_LIMITS = {
   loginCallback: { limit: 10, windowSeconds: 60 },
   staffActions: { limit: 60, windowSeconds: 60 },
   contributionsDraft: { limit: 30, windowSeconds: 60 },
+  feedbackPerVoter: { limit: 8, windowSeconds: 3600 },
 } as const satisfies Record<string, { limit: number; windowSeconds: number }>;
 
 type UpstashCache = {

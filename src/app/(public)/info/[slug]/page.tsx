@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 import { ReportButton } from "@/components/report/report-button";
+import { ProgramFeedback } from "@/components/program-feedback";
+import { ShareButtons } from "@/components/share-buttons";
 import { SourceList } from "@/components/source-list";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,7 +28,8 @@ import {
   PLATFORM_DISCLAIMER_SHORT,
 } from "@/lib/constants/labels";
 import { formatDateID, formatDateTimeID } from "@/lib/utils";
-import { clientEnv } from "@/lib/env";
+import { clientEnv, isSupabaseConfigured } from "@/lib/env";
+import { createSupabaseAnonClient } from "@/lib/supabase/server";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -58,6 +61,29 @@ function formatNumber(value: number | null, suffix = ""): string {
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+/** Agregat feedback (RPC security definer — baris per pemilih tidak terekspos). */
+async function fetchFeedbackCounts(programId: string): Promise<{
+  helpful: number;
+  notHelpful: number;
+}> {
+  if (!isSupabaseConfigured()) return { helpful: 0, notHelpful: 0 };
+  try {
+    const supabase = createSupabaseAnonClient();
+    const { data, error } = await supabase.rpc("get_program_feedback", {
+      p_program_id: programId,
+    });
+    if (error) throw new Error(error.message);
+    const counts = (data ?? {}) as { helpful?: number; notHelpful?: number };
+    return { helpful: counts.helpful ?? 0, notHelpful: counts.notHelpful ?? 0 };
+  } catch (error) {
+    console.error(
+      "[detail] Feedback gagal:",
+      error instanceof Error ? error.message : "unknown",
+    );
+    return { helpful: 0, notHelpful: 0 };
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   if (!SLUG_PATTERN.test(slug)) return { title: "Info tidak ditemukan" };
@@ -87,8 +113,46 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   const program = await getProgramDetail(slug);
   if (!program) notFound();
 
+  const feedback = await fetchFeedbackCounts(program.id);
+  const site = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const pageUrl = `${site}/info/${program.slug}`;
+  const pageDescription = program.description.replace(/\s+/g, " ").slice(0, 300);
+
+  // Structured data: breadcrumb + halaman entri (rich result Google).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Beranda", item: `${site}/` },
+          { "@type": "ListItem", position: 2, name: "Direktori", item: `${site}/info` },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: program.categoryName,
+            item: `${site}/kategori/${program.categorySlug}`,
+          },
+          { "@type": "ListItem", position: 4, name: program.title },
+        ],
+      },
+      {
+        "@type": "WebPage",
+        name: program.title,
+        description: pageDescription,
+        url: pageUrl,
+        dateModified: program.verifiedAt ?? undefined,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
@@ -279,6 +343,18 @@ export default async function ProgramDetailPage({ params }: PageProps) {
         </article>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+          <Card className="rounded-xl shadow-[var(--shadow-card)]">
+            <CardContent className="flex flex-col gap-5 pt-5">
+              <ShareButtons url={pageUrl} title={program.title} />
+              <Separator />
+              <ProgramFeedback
+                programId={program.id}
+                initialHelpful={feedback.helpful}
+                initialNotHelpful={feedback.notHelpful}
+              />
+            </CardContent>
+          </Card>
+
           <Card className="rounded-xl shadow-[var(--shadow-card)]">
             <CardHeader>
               <CardTitle className="text-base">Dibagikan oleh</CardTitle>

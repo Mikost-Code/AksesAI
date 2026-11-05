@@ -9,6 +9,40 @@
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
+-- has_role / has_any_role: super_admin mewarisi semua role lain
+-- (file terpisah dari ALTER TYPE 0009 karena body `language sql` diparse
+-- saat CREATE dan tidak boleh melihat nilai enum yang baru ditambahkan
+-- dalam transaksi yang sama.)
+-- ---------------------------------------------------------------------------
+create or replace function public.has_role(uid uuid, r public.app_role)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.user_roles ur
+    where ur.user_id = uid
+      and (ur.role = r or ur.role = 'super_admin')
+  );
+$$;
+
+create or replace function public.has_any_role(uid uuid, rs public.app_role[])
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.user_roles ur
+    where ur.user_id = uid
+      and (ur.role = any (rs) or ur.role = 'super_admin')
+  );
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Bootstrap: jadikan pemilik super_admin bila profilnya sudah ada.
 -- Untuk instance baru: jalankan SQL serupa SETELAH login pertama, atau
 -- sisipkan baris user_roles secara manual dengan service_role.

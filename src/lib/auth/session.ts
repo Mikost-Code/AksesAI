@@ -23,7 +23,7 @@ export type CurrentUser = {
 
 function normalizeRoles(raw: unknown): AppRole[] {
   if (!Array.isArray(raw)) return [];
-  const allowed = new Set<AppRole>(["member", "reviewer", "moderator", "admin"]);
+  const allowed = new Set<AppRole>(["member", "reviewer", "moderator", "admin", "super_admin"]);
   return raw
     .map((r) => (typeof r === "object" && r !== null && "role" in r ? (r as { role: unknown }).role : r))
     .filter((r): r is AppRole => typeof r === "string" && allowed.has(r as AppRole));
@@ -66,13 +66,27 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   };
 }
 
+/**
+ * Pemeriksaan role dengan implikasi pemilik: `super_admin` mewarisi semua
+ * role lain — setara (lebih tinggi dari) admin. Cermin dari helper
+ * `has_role`/`has_any_role` di database (migrasi 0009) agar UI dan DB
+ * selalu sepaham.
+ */
 export function hasRole(user: CurrentUser | null, role: AppRole): boolean {
-  return Boolean(user?.roles.includes(role));
+  if (!user) return false;
+  if (user.roles.includes("super_admin")) return true;
+  return user.roles.includes(role);
 }
 
 export function hasAnyRole(user: CurrentUser | null, roles: AppRole[]): boolean {
   if (!user) return false;
+  if (user.roles.includes("super_admin")) return true;
   return roles.some((r) => user.roles.includes(r));
+}
+
+/** Khusus pemilik (`super_admin`), TANPA implikasi — untuk gate yang eksklusif. */
+export function isSuperAdmin(user: CurrentUser | null): boolean {
+  return Boolean(user?.roles.includes("super_admin"));
 }
 
 export type AccessResult =

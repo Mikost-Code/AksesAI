@@ -141,7 +141,18 @@ export const REPORT_STATUS_LABEL: Record<ReportStatus, string> = {
   dismissed: "Diabaikan",
 };
 
-export const APP_ROLES = ["member", "reviewer", "moderator", "admin"] as const;
+/**
+ * Role aplikasi. `super_admin` = pemilik platform: mewarisi semua akses
+ * admin ditambah kewenangan eksklusif mengatur role & memblokir admin.
+ * Role ini hanya dapat diatur lewat konsol database, bukan lewat aplikasi.
+ */
+export const APP_ROLES = [
+  "member",
+  "reviewer",
+  "moderator",
+  "admin",
+  "super_admin",
+] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 export const APP_ROLE_LABEL: Record<AppRole, string> = {
@@ -149,7 +160,12 @@ export const APP_ROLE_LABEL: Record<AppRole, string> = {
   reviewer: "Reviewer",
   moderator: "Moderator",
   admin: "Admin",
+  super_admin: "Super Admin",
 };
+
+/** Role staf yang dapat diberikan/cabut lewat UI (oleh super admin). */
+export const STAFF_ROLE_KEYS = ["reviewer", "moderator", "admin"] as const;
+export type StaffRole = (typeof STAFF_ROLE_KEYS)[number];
 
 export const REVIEW_ACTIONS = [
   "verify",

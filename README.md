@@ -207,19 +207,33 @@ Ini menulis `src/types/database.ts` dari skema lokal.
 
 ## Membuat Admin Pertama
 
-Login GitHub hanya memberi role `member`. Role `admin` **tidak pernah** dibuat otomatis dari data publik.
+Login GitHub hanya memberi role `member`. Role staf **tidak pernah** dibuat otomatis dari data publik.
 
-Setelah akun Anda login pertama kali (sehingga baris `profiles` ada), jalankan **sekali** di SQL Editor Supabase:
+### Role `super_admin` (pemilik)
+
+`super_admin` adalah pemilik platform: mewarisi semua akses admin plus kewenangan eksklusif mengatur role & memblokir admin. Role ini hanya dapat diatur lewat konsol database (bukan lewat aplikasi), dan akunnya tidak dapat dicabut/diblokir lewat aplikasi — pemulihan akses pemilik selalu tersedia.
+
+Setelah akun pemilik login pertama kali (sehingga baris `profiles` ada), jalankan **sekali**:
 
 ```sql
-insert into public.user_roles (user_id, role)
-select id, 'admin' from public.profiles where github_username = '<username-github-anda>'
+insert into public.user_roles (user_id, role, assigned_by)
+select id, 'super_admin', id from public.profiles where github_username = '<username-pemilik>'
 on conflict do nothing;
 ```
 
-Setelah itu, kelola role pengguna lain lewat halaman **`/admin/pengguna`** (bukan lewat SQL manual).
+### Role staf lain (reviewer/moderator/admin)
 
-> **Alternatif lebih aman untuk produksi:** jalankan pernyataan di atas dengan `service_role` dari lingkungan tepercaya (mis. CLI lokal), jangan di SQL Editor yang dibagikan.
+Kelola lewat halaman **`/admin/pengguna`** sebagai pemilik (bukan lewat SQL manual).
+
+| Aksi | Anggota | Reviewer | Moderator | Admin | Super Admin |
+|---|---|---|---|---|---|
+| Review kontribusi | — | ✅ | — | ✅ | ✅ |
+| Moderasi laporan | — | — | ✅ | ✅ | ✅ |
+| Kelola kategori | — | — | — | ✅ | ✅ |
+| Beri/cabut role | — | — | — | — | ✅ |
+| Blokir admin | — | — | — | — | ✅ |
+
+> **Alternatif lebih aman untuk produksi:** jalankan pernyataan SQL di atas dengan `service_role` dari lingkungan tepercaya (mis. CLI lokal), jangan di SQL Editor yang dibagikan.
 
 ---
 

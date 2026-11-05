@@ -38,7 +38,7 @@ const ALL_STATUSES: ProgramStatus[] = [
   "archived",
 ];
 
-const ALL_ROLES: AppRole[] = ["member", "reviewer", "moderator", "admin"];
+const ALL_ROLES: AppRole[] = ["member", "reviewer", "moderator", "admin", "super_admin"];
 
 /**
  * Statistik ringkas untuk halaman `/admin`.

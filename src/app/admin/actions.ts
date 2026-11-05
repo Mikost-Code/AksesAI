@@ -1,22 +1,24 @@
 "use server";
 
 /**
- * Server Actions untuk admin (PHASE 6).
+ * Server Actions untuk admin.
  *
- * Kontrak keamanan (docs/SECURITY.md):
- *  - Autentikasi + role `admin` diperiksa DI DALAM aksi, bukan hanya layout.
- *  - Semua perubahan role/blokir/kategori lewat RPC `security definer`
- *    (`grant_role`, `revoke_role`, `set_user_banned`, `upsert_category`)
- *    yang mencatat audit log dan menegakkan aturan (mis. admin terakhir
- *    tidak dapat dicabut, moderator tidak dapat memblokir admin).
- *  - Admin tidak dapat mengubah role/blokir dirinya sendiri lewat UI untuk
- *    mencegah admin tak sengaja mengunci diri (pemeriksaan tambahan di sini;
- *    RPC tetap menjadi penjaga utama).
+ * Kontrak keamanan:
+ *  - Autentikasi + role diperiksa DI DALAM aksi, bukan hanya layout.
+ *  - Mengatur role (beri/cabut) EKSKLUSIF pemilik `super_admin`; admin biasa
+ *    tetap dapat mengelola kategori. Semua perubahan role/blokir/kategori
+ *    lewat RPC `security definer` (`grant_role`, `revoke_role`,
+ *    `set_user_banned`, `upsert_category`) yang mencatat audit log dan
+ *    menegakkan ulang aturan di database.
+ *  - Akun pemilik (super_admin) tidak dapat dicabut role-nya atau diblokir
+ *    lewat aplikasi — pemulihan akses pemilik selalu tersedia.
+ *  - Role/blokir akun sendiri tidak dapat diubah lewat UI (pemeriksaan
+ *    tambahan; RPC tetap penjaga utama).
  */
 
 import { revalidatePath } from "next/cache";
 
-import { getCurrentUser, hasRole } from "@/lib/auth/session";
+import { getCurrentUser, hasRole, isSuperAdmin } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ADMIN_REASON_MIN, type AppRole } from "@/lib/constants/labels";
 import {
@@ -30,7 +32,7 @@ import {
 export type AdminResult = { ok: true; message: string } | { ok: false; message: string };
 
 async function requireAdmin(): Promise<
-  { ok: true; userId: string } | { ok: false; message: string }
+  { ok: true; userId: string; isOwner: boolean } | { ok: false; message: string }
 > {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Sesi berakhir. Silakan masuk ulang." };
@@ -40,7 +42,7 @@ async function requireAdmin(): Promise<
   if (!hasRole(user, "admin")) {
     return { ok: false, message: "Anda tidak memiliki akses administrator." };
   }
-  return { ok: true, userId: user.id };
+  return { ok: true, userId: user.id, isOwner: isSuperAdmin(user) };
 }
 
 function mapAdminError(message: string): string {
@@ -56,8 +58,20 @@ function mapAdminError(message: string): string {
   if (/alasan wajib|minimal 10 karakter/i.test(message)) {
     return `Alasan wajib diisi minimal ${ADMIN_REASON_MIN} karakter.`;
   }
+  if (/super_admin hanya dapat diatur/i.test(message)) {
+    return "Role Super Admin hanya dapat diatur lewat konsol database.";
+  }
+  if (/milik pemilik \(super_admin\) tidak dapat dicabut/i.test(message)) {
+    return "Role milik pemilik (Super Admin) tidak dapat dicabut lewat aplikasi.";
+  }
+  if (/pemilik \(super_admin\) tidak dapat diblokir/i.test(message)) {
+    return "Pemilik (Super Admin) tidak dapat diblokir.";
+  }
+  if (/hanya pemilik/i.test(message)) {
+    return "Hanya pemilik (Super Admin) yang dapat melakukan aksi ini.";
+  }
   if (/hanya admin yang dapat mengubah status admin/i.test(message)) {
-    return "Hanya admin yang dapat mengubah status admin.";
+    return "Hanya pemilik (Super Admin) yang dapat memblokir admin.";
   }
   if (/tidak ditemukan/i.test(message)) {
     return "Data tidak ditemukan. Muat ulang halaman.";
@@ -83,13 +97,22 @@ function revalidateAdmin() {
 // Role
 // ---------------------------------------------------------------------------
 
-/** Memberikan role staf (reviewer/moderator/admin) kepada pengguna. */
+/**
+ * Memberikan role staf (reviewer/moderator/admin) kepada pengguna.
+ * Khusus pemilik (`super_admin`) — RPC menegakkan ulang di database.
+ */
 export async function grantUserRole(
   userId: string,
   role: Exclude<AppRole, "member">,
 ): Promise<AdminResult> {
   const auth = await requireAdmin();
   if (!auth.ok) return auth;
+  if (!auth.isOwner) {
+    return {
+      ok: false,
+      message: "Hanya pemilik (Super Admin) yang dapat memberikan role.",
+    };
+  }
 
   const parsed = grantRoleSchema.safeParse({ userId, role });
   if (!parsed.success) {
@@ -107,19 +130,24 @@ export async function grantUserRole(
   return { ok: true, message: `Role ${parsed.data.role} diberikan.` };
 }
 
-/** Mencabut role staf dari pengguna. Admin terakhir dilindungi oleh RPC. */
+/** Mencabut role staf dari pengguna. Khusus pemilik; RPC melindungi akun pemilik. */
 export async function revokeUserRole(
   userId: string,
   role: Exclude<AppRole, "member">,
 ): Promise<AdminResult> {
   const auth = await requireAdmin();
   if (!auth.ok) return auth;
-
-  if (userId === auth.userId && role === "admin") {
+  if (!auth.isOwner) {
     return {
       ok: false,
-      message:
-        "Anda tidak dapat mencabut role admin milik sendiri lewat UI. Minta admin lain melakukannya.",
+      message: "Hanya pemilik (Super Admin) yang dapat mencabut role.",
+    };
+  }
+
+  if (userId === auth.userId) {
+    return {
+      ok: false,
+      message: "Role milik pemilik tidak dapat dicabut lewat aplikasi — termasuk oleh diri sendiri.",
     };
   }
 

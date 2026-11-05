@@ -3,18 +3,22 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestUser, isLocalSupabaseUp, serviceClient, type TestUser } from "../rls/helpers";
 
 /**
- * Integrasi admin (PHASE 6) terhadap database nyata.
+ * Integrasi admin terhadap database nyata.
  *
- * Menguji RPC yang dipanggil Server Action `/admin`:
- *  - non-admin tidak boleh memberi/mencabut role atau membuat kategori,
- *  - grant/revoke role berjalan & tercatat di audit log,
- *  - admin terakhir tidak dapat dicabut (RPC menolak),
+ * Menguji RPC yang dipanggil Server Action `/admin` dengan model
+ * super_admin (pemilik):
+ *  - member & admin biasa tidak boleh memberi/mencabut role (khusus pemilik),
+ *  - super_admin memberi/cabut role & tercatat di audit log,
+ *  - akun pemilik (super_admin) tidak dapat dicabut role-nya atau diblokir,
+ *  - admin hanya dapat diblokir oleh pemilik,
  *  - blokir/buka blokir memerlukan alasan ≥ 10 karakter,
- *  - upsert_category membuat & memperbarui kategori (admin saja).
+ *  - upsert_category tetap dapat dilakukan admin biasa.
  */
 describe("Integrasi — admin RPC", () => {
   let up = false;
-  let admin: TestUser;
+  let owner: TestUser; // super_admin (pemilik)
+  let admin: TestUser; // admin biasa
+  let admin2: TestUser; // admin biasa kedua (uji blokir admin)
   let member: TestUser;
   let target: TestUser;
   const createdCategorySlugs: string[] = [];
@@ -25,7 +29,9 @@ describe("Integrasi — admin RPC", () => {
       console.warn("⚠ Supabase lokal tidak berjalan — tes admin di-skip.");
       return;
     }
+    owner = await createTestUser("owner", ["super_admin"]);
     admin = await createTestUser("adm", ["admin"]);
+    admin2 = await createTestUser("adm2", ["admin"]);
     member = await createTestUser("admmember");
     target = await createTestUser("admtarget");
   });
@@ -36,8 +42,12 @@ describe("Integrasi — admin RPC", () => {
     for (const slug of createdCategorySlugs) {
       await svc.from("categories").delete().eq("slug", slug);
     }
-    // Kembalikan status blokir target.
-    await svc.from("profiles").update({ is_banned: false }).eq("id", target.id);
+    // Kembalikan status blokir semua target.
+    for (const user of [target, admin2]) {
+      await svc.from("profiles").update({ is_banned: false }).eq("id", user.id);
+    }
+    // Bersihkan role super_admin sementara pada target (jika masih ada).
+    await svc.from("user_roles").delete().eq("user_id", target.id).eq("role", "super_admin");
   });
 
   it("member biasa tidak dapat memberi role (require_staff menolak)", async () => {
@@ -50,9 +60,19 @@ describe("Integrasi — admin RPC", () => {
     expect(error!.code).toBe("42501");
   });
 
-  it("admin dapat memberi role reviewer, tercatat di audit log", async () => {
+  it("admin biasa tidak dapat memberi role — khusus pemilik", async () => {
     if (!up) return;
     const { error } = await admin.client.rpc("grant_role", {
+      p_user_id: target.id,
+      p_role: "reviewer",
+    });
+    expect(error).not.toBeNull();
+    expect(error!.code).toBe("42501");
+  });
+
+  it("pemilik dapat memberi role reviewer, tercatat di audit log", async () => {
+    if (!up) return;
+    const { error } = await owner.client.rpc("grant_role", {
       p_user_id: target.id,
       p_role: "reviewer",
     });
@@ -83,9 +103,19 @@ describe("Integrasi — admin RPC", () => {
     expect(error!.code).toBe("42501");
   });
 
-  it("admin dapat mencabut role reviewer", async () => {
+  it("admin biasa tidak dapat mencabut role — khusus pemilik", async () => {
     if (!up) return;
     const { error } = await admin.client.rpc("revoke_role", {
+      p_user_id: target.id,
+      p_role: "reviewer",
+    });
+    expect(error).not.toBeNull();
+    expect(error!.code).toBe("42501");
+  });
+
+  it("pemilik dapat mencabut role reviewer", async () => {
+    if (!up) return;
+    const { error } = await owner.client.rpc("revoke_role", {
       p_user_id: target.id,
       p_role: "reviewer",
     });
@@ -99,36 +129,42 @@ describe("Integrasi — admin RPC", () => {
     expect((roles ?? []).map((r) => r.role)).not.toContain("reviewer");
   });
 
-  it("admin terakhir tidak dapat dicabut", async () => {
+  it("role milik pemilik (super_admin) tidak dapat dicabut lewat aplikasi", async () => {
     if (!up) return;
     const svc = serviceClient();
-    const { data: admins } = await svc.from("user_roles").select("user_id").eq("role", "admin");
-    const adminIds = (admins ?? []).map((r) => r.user_id);
+    // Beri role super_admin sementara pada target (hanya bisa lewat service_role).
+    const { error: insertErr } = await svc
+      .from("user_roles")
+      .insert({ user_id: target.id, role: "super_admin" });
+    if (insertErr) throw new Error(`Insert super_admin gagal: ${insertErr.message}`);
 
-    // Fixture ini membuat admin uji satu-satunya admin sistem pada DB bersih.
-    // Bila lingkungan memuat admin lain, aturan "admin terakhir" tidak dapat
-    // diuji tanpa mengubah data nyata — laporkan sebagai skip jujur.
-    if (adminIds.length !== 1) {
-      console.warn(
-        `Lewati uji admin-terakhir: ada ${adminIds.length} admin di DB, butuh tepat 1.`,
-      );
-      return;
-    }
-
-    const { error } = await admin.client.rpc("revoke_role", {
-      p_user_id: admin.id,
-      p_role: "admin",
+    const { error } = await owner.client.rpc("revoke_role", {
+      p_user_id: target.id,
+      p_role: "reviewer",
     });
     expect(error).not.toBeNull();
-    expect(error!.message.toLowerCase()).toContain("admin terakhir");
+    expect(error!.code).toBe("42501");
+    expect(error!.message.toLowerCase()).toContain("pemilik");
 
-    // Role admin harus tetap ada setelah percobaan yang ditolak.
-    const { data: still } = await svc
+    // Pemulihan isolasi: lepas kembali role sementara agar test berikutnya
+    // melihat target sebagai pengguna biasa.
+    const { error: cleanupErr } = await svc
       .from("user_roles")
-      .select("role")
-      .eq("user_id", admin.id)
-      .eq("role", "admin");
-    expect((still ?? []).length).toBe(1);
+      .delete()
+      .eq("user_id", target.id)
+      .eq("role", "super_admin");
+    if (cleanupErr) throw new Error(`Cleanup super_admin gagal: ${cleanupErr.message}`);
+  });
+
+  it("pemilik tidak dapat mencabut role milik diri sendiri lewat RPC", async () => {
+    if (!up) return;
+    const { error } = await owner.client.rpc("revoke_role", {
+      p_user_id: owner.id,
+      p_role: "super_admin",
+    });
+    expect(error).not.toBeNull();
+    expect(error!.code).toBe("42501");
+    expect(error!.message.toLowerCase()).toContain("pemilik");
   });
 
   it("blokir memerlukan alasan minimal 10 karakter", async () => {
@@ -142,7 +178,7 @@ describe("Integrasi — admin RPC", () => {
     expect(error!.message.toLowerCase()).toContain("10 karakter");
   });
 
-  it("admin dapat memblokir lalu membuka blokir pengguna", async () => {
+  it("admin dapat memblokir lalu membuka blokir pengguna biasa", async () => {
     if (!up) return;
     const { error: banErr } = await admin.client.rpc("set_user_banned", {
       p_user_id: target.id,
@@ -163,6 +199,48 @@ describe("Integrasi — admin RPC", () => {
     expect(unbanErr).toBeNull();
     ({ data } = await svc.from("profiles").select("is_banned").eq("id", target.id).single());
     expect(data!.is_banned).toBe(false);
+  });
+
+  it("admin biasa tidak dapat memblokir admin lain — khusus pemilik", async () => {
+    if (!up) return;
+    const { error } = await admin.client.rpc("set_user_banned", {
+      p_user_id: admin2.id,
+      p_banned: true,
+      p_reason: "Percobaan blokir admin oleh admin biasa.",
+    });
+    expect(error).not.toBeNull();
+    expect(error!.code).toBe("42501");
+    expect(error!.message.toLowerCase()).toContain("pemilik");
+  });
+
+  it("pemilik dapat memblokir admin, tetapi tidak akunnya sendiri", async () => {
+    if (!up) return;
+    const svc = serviceClient();
+
+    const { error: banErr } = await owner.client.rpc("set_user_banned", {
+      p_user_id: admin2.id,
+      p_banned: true,
+      p_reason: "Pemilik memblokir admin setelah insiden terverifikasi.",
+    });
+    expect(banErr).toBeNull();
+    const { data } = await svc.from("profiles").select("is_banned").eq("id", admin2.id).single();
+    expect(data!.is_banned).toBe(true);
+
+    const { error: unbanErr } = await owner.client.rpc("set_user_banned", {
+      p_user_id: admin2.id,
+      p_banned: false,
+      p_reason: "Sanksi selesai, admin dipulihkan oleh pemilik.",
+    });
+    expect(unbanErr).toBeNull();
+
+    // Pemilik kebal blokir — bahkan oleh dirinya sendiri lewat RPC.
+    const { error: selfBanErr } = await owner.client.rpc("set_user_banned", {
+      p_user_id: owner.id,
+      p_banned: true,
+      p_reason: "Uji proteksi pemilik terhadap blokir.",
+    });
+    expect(selfBanErr).not.toBeNull();
+    expect(selfBanErr!.message.toLowerCase()).toContain("pemilik");
   });
 
   it("member tidak dapat membuat kategori", async () => {

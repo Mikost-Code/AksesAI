@@ -12,7 +12,10 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { clientEnv } from "@/lib/env";
 import { APP_NAME, DEFAULT_DISCLAIMER_TEXT } from "@/lib/constants/labels";
+import { getTopContributors } from "@/lib/programs/seo";
+import Image from "next/image";
 
 export const metadata = {
   title: "Temukan info AI gratis & murah yang bersumber jelas",
@@ -68,9 +71,34 @@ const POPULAR = [
   { slug: "tool-ai-gratis", label: "Tool AI Gratis" },
 ] as const;
 
-export default function HomePage() {
+export const revalidate = 300;
+
+export default async function HomePage() {
+  // Sitelink search box untuk hasil Google (rute /info sudah menerima ?q=).
+  const site = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: APP_NAME,
+    url: `${site}/`,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${site}/info?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const topContributors = await getTopContributors(3);
+
   return (
     <div className="flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="bg-noise relative overflow-hidden border-b border-border">
         <div aria-hidden="true" className="absolute inset-0 bg-surface" />
@@ -164,6 +192,54 @@ export default function HomePage() {
           </ul>
         </div>
       </section>
+
+      {/* ── Kontributor paling aktif ───────────────────────────────────── */}
+      {topContributors.length > 0 ? (
+        <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold sm:text-xl">
+              Kontributor paling aktif
+            </h2>
+            <Link
+              href="/info"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            >
+              Lihat semua info
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="animate-stagger mt-4 grid gap-3 sm:grid-cols-3">
+            {topContributors.map(({ username, avatarUrl, contributionCount }) => (
+              <li key={username}>
+                <Link
+                  href={`/kontributor/${username}`}
+                  className="card-accent flex items-center gap-3 rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]"
+                >
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt=""
+                      width={44}
+                      height={44}
+                      className="size-11 shrink-0 rounded-full ring-1 ring-border"
+                    />
+                  ) : (
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-soft font-semibold text-primary">
+                      {username.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{username}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {contributionCount} info terverifikasi
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {/* ── Disclaimer ─────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 sm:px-6 lg:px-8">

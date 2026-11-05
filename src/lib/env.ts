@@ -13,6 +13,7 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_CF_BEACON_TOKEN: z.string().min(1).optional(),
 });
 
 export type ClientEnv = z.infer<typeof publicSchema>;
@@ -28,6 +29,8 @@ export function clientEnv(): ClientEnv {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || undefined,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY:
       process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined,
+    NEXT_PUBLIC_CF_BEACON_TOKEN:
+      process.env.NEXT_PUBLIC_CF_BEACON_TOKEN || undefined,
   });
   if (!parsed.success) {
     throw new Error(

@@ -5,6 +5,7 @@ import { LogoLockup } from "@/components/brand/logo";
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { GithubRepoButton } from "@/components/layout/github-repo-button";
 import { NavLinks } from "@/components/layout/nav-links";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
 export const NAV_LINKS = [
@@ -40,6 +41,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
         <NavLinks links={NAV_LINKS} className="hidden md:flex" />
 
         <div className="flex items-center gap-2 justify-self-end">
+          <ThemeToggle />
           <GithubRepoButton className="hidden sm:inline-flex" />
           {accountSlot ?? (
             <Link href="/login" className={buttonVariants({ size: "sm" })}>

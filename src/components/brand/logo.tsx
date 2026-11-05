@@ -40,7 +40,7 @@ export function LogoMark({
         width="32"
         height="32"
         rx="9"
-        fill={isMono ? "currentColor" : "var(--color-primary)"}
+        fill={isMono ? "currentColor" : "var(--color-logo-bg, var(--color-primary))"}
       />
       {/* Lengkung "gerbang akses" */}
       <path

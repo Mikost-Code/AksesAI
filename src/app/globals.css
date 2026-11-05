@@ -8,6 +8,13 @@
  *  - primary #0D6E66 di atas #FFFFFF ≈ 5.6:1
  *  - primary-foreground #FFFFFF di atas primary ≈ 5.6:1
  *  - accent #047857 di atas #FFFFFF ≈ 5.1:1
+ *
+ * Mode gelap: seluruh utilitas Tailwind membaca token via var(), jadi cukup
+ * override nilai token di bawah `html.dark` (lihat blok base di bawah) —
+ * tidak perlu class `dark:` di markup. Kontras gelap juga diverifikasi:
+ *  - foreground #E8EEF2 di atas #0A1420 ≈ 14.5:1
+ *  - primary #2BB8A6 di atas #0A1420 ≈ 8.4:1
+ *  - primary-foreground #06231F di atas primary #2BB8A6 ≈ 6.9:1
  */
 @theme {
   --color-background: #ffffff;
@@ -97,6 +104,67 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Varian `dark:` untuk kasus kecil (ikon toggle, penyesuaian noise). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Palet gelap: override token di cakupan html.dark (kontras AA terverifikasi). */
+@layer base {
+  html.dark {
+    --color-background: #0a1420;
+    --color-surface: #0e1a28;
+    --color-surface-raised: #13202f;
+    --color-foreground: #e8eef2;
+    --color-muted: #142030;
+    --color-muted-foreground: #9aa8b5;
+    --color-border: #1d2c3c;
+    --color-border-strong: #2c3e50;
+    --color-input: #1d2c3c;
+    --color-ring: #14a08f;
+
+    --color-primary: #2bb8a6;
+    --color-primary-hover: #23a392;
+    --color-primary-active: #1d8d7e;
+    --color-primary-soft: #0d2b28;
+    --color-primary-soft-hover: #123a35;
+    --color-primary-foreground: #06231f;
+
+    --color-accent: #34d399;
+    --color-accent-hover: #2bc489;
+    --color-accent-soft: #0c2b1f;
+
+    --color-warm: #e0a458;
+    --color-warm-soft: #2b1f0d;
+    --color-violet: #a78bfa;
+    --color-violet-soft: #221438;
+
+    --color-warning: #e5b45b;
+    --color-warning-soft: #2b230d;
+    --color-danger: #f87171;
+    --color-danger-soft: #2e1414;
+    --color-info: #6ba6ff;
+    --color-info-soft: #0e1e38;
+
+    /* Logo memakai teal pekat agar huruf putih tetap kontras di mode gelap. */
+    --color-logo-bg: #0d6e66;
+
+    --gradient-hero: radial-gradient(
+        ellipse 75% 55% at 50% -15%,
+        rgba(43, 184, 166, 0.16),
+        transparent 68%
+      ),
+      radial-gradient(ellipse 45% 45% at 88% 6%, rgba(52, 211, 153, 0.1), transparent 68%),
+      radial-gradient(ellipse 40% 40% at 8% 20%, rgba(167, 139, 250, 0.07), transparent 70%);
+
+    --gradient-primary: linear-gradient(135deg, #0d6e66 0%, #0a8074 100%);
+  }
+
+  /* Butir noise hitam nyaris tak terlihat di latar gelap — balik jadi putih. */
+  html.dark .bg-noise::after {
+    filter: invert(1);
+    opacity: 0.035;
   }
 }
 

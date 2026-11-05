@@ -2,6 +2,7 @@ import { LogIn, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 
@@ -29,6 +30,7 @@ export async function AccountNav() {
 
   return (
     <div className="flex items-center gap-2">
+      <ThemeToggle />
       <Link
         href="/dashboard"
         className={buttonVariants({ variant: "secondary", size: "sm" })}

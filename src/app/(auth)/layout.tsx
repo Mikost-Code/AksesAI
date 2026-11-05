@@ -24,7 +24,7 @@ export default function AuthLayout({
           <Link
             href="/"
             aria-label="AksesAI — beranda"
-            className="inline-flex rounded-lg outline-none transition-opacity hover:opacity-80"
+            className="inline-flex rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 transition-opacity hover:opacity-80"
           >
             <LogoLockup />
           </Link>

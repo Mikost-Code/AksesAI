@@ -32,7 +32,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
         <Link
           href="/"
           aria-label="AksesAI — beranda"
-          className="group -ml-1 rounded-lg px-1 py-1 outline-none transition-transform duration-200 hover:scale-[1.01]"
+          className="group -ml-1 rounded-lg px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 transition-transform duration-200 hover:scale-[1.01]"
         >
           <LogoLockup className="transition-opacity group-hover:opacity-90" />
         </Link>
@@ -59,7 +59,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+                    className="select-none rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:inset-ring-2 focus-visible:inset-ring-primary/40"
                   >
                     {link.label}
                   </Link>

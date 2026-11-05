@@ -28,7 +28,7 @@ export function Footer() {
           <Link
             href="/"
             aria-label={`${APP_NAME} — beranda`}
-            className="inline-flex rounded-lg outline-none"
+            className="inline-flex rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2"
           >
             <LogoLockup />
           </Link>

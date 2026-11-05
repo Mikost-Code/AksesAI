@@ -84,7 +84,10 @@ export function DashboardNav({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150",
+                    "flex shrink-0 select-none items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150",
+                    // Fokus inset (bukan outline mengambang) agar tidak terlihat
+                    // "kotak dobel" di atas status aktif saat item diklik ulang.
+                    "outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-primary/40",
                     active
                       ? "bg-primary-soft text-primary shadow-[var(--shadow-card)]"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",

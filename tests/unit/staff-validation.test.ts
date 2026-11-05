@@ -42,6 +42,8 @@ describe("adminUserSearchSchema", () => {
     expect(adminUserSearchSchema.parse({ search: "budi", page: "2" })).toEqual({
       search: "budi",
       page: 2,
+      peran: "semua",
+      blokir: "semua",
     });
   });
   it("memotong pencarian kosong & trailing", () => {
@@ -50,6 +52,16 @@ describe("adminUserSearchSchema", () => {
   it("membatasi panjang pencarian (catch → kosong)", () => {
     const long = "x".repeat(500);
     expect(adminUserSearchSchema.parse({ search: long }).search).toBe("");
+  });
+  it("menerima filter peran & blokir yang valid", () => {
+    const parsed = adminUserSearchSchema.parse({ peran: "admin", blokir: "diblokir" });
+    expect(parsed.peran).toBe("admin");
+    expect(parsed.blokir).toBe("diblokir");
+  });
+  it("filter tak dikenal jatuh ke default (catch)", () => {
+    const parsed = adminUserSearchSchema.parse({ peran: "hacker", blokir: "x" });
+    expect(parsed.peran).toBe("semua");
+    expect(parsed.blokir).toBe("semua");
   });
 });
 

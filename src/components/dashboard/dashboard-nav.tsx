@@ -8,6 +8,7 @@ import {
   Flag,
   Gauge,
   LayoutDashboard,
+  ScrollText,
   Settings,
   ShieldAlert,
   Users,
@@ -31,10 +32,15 @@ export function DashboardNav({
   canReview,
   canModerate,
   isAdmin,
+  pendingReview = 0,
+  openReports = 0,
 }: {
   canReview: boolean;
   canModerate: boolean;
   isAdmin: boolean;
+  /** Jumlah antrean untuk badge (dihitung di layout server). */
+  pendingReview?: number;
+  openReports?: number;
 }) {
   const pathname = usePathname();
 
@@ -62,6 +68,7 @@ export function DashboardNav({
       staff.push({ href: "/admin", label: "Admin", icon: Gauge });
       staff.push({ href: "/admin/pengguna", label: "Pengguna & role", icon: Users });
       staff.push({ href: "/admin/kategori", label: "Kategori", icon: Settings });
+      staff.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });
     }
     groups.push({ heading: "Staf", items: staff });
   }
@@ -84,6 +91,13 @@ export function DashboardNav({
             {group.items.map((item) => {
               const active = item.href === activeHref;
               const Icon = item.icon;
+              // Badge jumlah antrean: hanya untuk item yang relevan & > 0.
+              const badge =
+                item.href === "/review"
+                  ? pendingReview
+                  : item.href === "/moderation/reports"
+                    ? openReports
+                    : 0;
               return (
                 <Link
                   key={item.href}
@@ -101,6 +115,14 @@ export function DashboardNav({
                 >
                   <Icon className="size-4 shrink-0" aria-hidden={true} />
                   {item.label}
+                  {badge > 0 ? (
+                    <span
+                      aria-label={`${badge} menunggu tindakan`}
+                      className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground tabular-nums"
+                    >
+                      {badge}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

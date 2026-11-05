@@ -4,12 +4,14 @@ import {
   Activity,
   CircleAlert,
   Clock,
+  Download,
   FileText,
   Inbox,
   Settings,
   Users,
 } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
 import { getAdminStats } from "@/lib/admin/data";
 import { PROGRAM_STATUS_LABEL, APP_ROLE_LABEL } from "@/lib/constants/labels";
 import { formatDateTimeID } from "@/lib/utils";
@@ -69,12 +71,30 @@ export default async function AdminHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Ringkasan admin</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Gambaran operasional platform. Aksi sensitif (role, blokir, kategori) tercatat
-          pada audit log yang tidak dapat diubah.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Ringkasan admin</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Gambaran operasional platform. Aksi sensitif (role, blokir, kategori) tercatat
+            pada audit log yang tidak dapat diubah.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <a
+            href="/api/admin/export?tipe=program"
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
+          >
+            <Download className="size-4" aria-hidden="true" />
+            Export program
+          </a>
+          <a
+            href="/api/admin/export?tipe=pengguna"
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
+          >
+            <Download className="size-4" aria-hidden="true" />
+            Export pengguna
+          </a>
+        </div>
       </div>
 
       <section
@@ -187,6 +207,36 @@ export default async function AdminHomePage() {
             <Clock className="size-3.5" aria-hidden="true" />
             Cron terakhir:{" "}
             {stats.lastCronRun ? formatDateTimeID(stats.lastCronRun) : "belum pernah berjalan"}
+          </p>
+        </section>
+
+        <section className="rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Entri baru per minggu</h2>
+            <span className="text-xs text-muted-foreground">8 minggu terakhir</span>
+          </div>
+          <div className="mt-4 flex items-end gap-2" aria-hidden="true">
+            {(() => {
+              const max = Math.max(1, ...stats.weeklyContributions);
+              return stats.weeklyContributions.map((count, index) => (
+                <div key={index} className="flex flex-1 flex-col items-center gap-1.5">
+                  <span className="text-[10px] font-medium tabular-nums text-muted-foreground">
+                    {count}
+                  </span>
+                  <div
+                    className="w-full rounded-t-md bg-primary/85 transition-colors hover:bg-primary"
+                    style={{
+                      height: `${Math.max(4, (count / max) * 72)}px`,
+                      opacity: count > 0 ? 1 : 0.25,
+                    }}
+                  />
+                </div>
+              ));
+            })()}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Total {stats.weeklyContributions.reduce((a, b) => a + b, 0)} entri baru dalam 8
+            minggu terakhir (semua status).
           </p>
         </section>
       </div>

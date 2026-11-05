@@ -26,6 +26,8 @@ export type AdminStats = {
   pendingReview: number;
   totalCategories: number;
   lastCronRun: string | null;
+  /** Jumlah entri baru per minggu, 8 minggu terakhir (urut lama → baru). */
+  weeklyContributions: number[];
 };
 
 const ALL_STATUSES: ProgramStatus[] = [
@@ -154,6 +156,27 @@ export async function getAdminStats(): Promise<AdminStats> {
     .limit(1)
     .maybeSingle();
 
+  // Tren 8 minggu: entri baru per minggu (semua status, dari created_at).
+  const WEEKS = 8;
+  const weekStart = new Date();
+  weekStart.setUTCHours(0, 0, 0, 0);
+  weekStart.setUTCDate(weekStart.getUTCDate() - (WEEKS * 7 - 1));
+  const { data: recentPrograms, error: trendError } = await supabase
+    .from("assistance_programs")
+    .select("created_at")
+    .gte("created_at", weekStart.toISOString());
+  const weeklyContributions = Array.from({ length: WEEKS }, () => 0);
+  if (trendError) {
+    console.error("[admin-stats] tren mingguan:", trendError.message);
+  } else {
+    for (const row of (recentPrograms ?? []) as Array<{ created_at: string }>) {
+      const created = new Date(row.created_at).getTime();
+      const weeksAgo = Math.floor((Date.now() - created) / (7 * 24 * 3600 * 1000));
+      const index = WEEKS - 1 - Math.min(WEEKS - 1, Math.max(0, weeksAgo));
+      weeklyContributions[index] = (weeklyContributions[index] ?? 0) + 1;
+    }
+  }
+
   return {
     totalPrograms,
     byStatus,
@@ -164,6 +187,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     pendingReview,
     totalCategories,
     lastCronRun: (cronLog as { created_at: string } | null)?.created_at ?? null,
+    weeklyContributions,
   };
 }
 
@@ -206,20 +230,42 @@ function normalizeRoleRows(
 export async function listUsers(options: {
   search?: string;
   page?: number;
-}): Promise<{ items: AdminUser[]; total: number; pageSize: number }> {
+  /** Filter pengguna yang memiliki role tertentu ("semua" = tanpa filter). */
+  role?: string;
+  /** Filter status blokir; undefined = tanpa filter. */
+  banned?: boolean;
+}): Promise<{
+  items: AdminUser[];
+  total: number;
+  pageSize: number;
+  contributions: Record<string, number>;
+}> {
   const supabase = await createSupabaseServerClient();
   const pageSize = 50;
   const page = Math.min(500, Math.max(1, Math.trunc(options.page ?? 1)));
   const from = (page - 1) * pageSize;
 
+  // Filter role memakai inner join tersaring; tanpa filter, embed biasa.
+  const roleFilter = options.role && options.role !== "semua" ? options.role : undefined;
+  const rolesEmbed = roleFilter
+    ? "user_roles!inner(role)"
+    : "user_roles!user_id(role)";
+
   let query = supabase
     .from("profiles")
     .select(
-      "id, github_username, github_avatar, is_banned, created_at, user_roles!user_id(role)",
+      `id, github_username, github_avatar, is_banned, created_at, ${rolesEmbed}`,
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
     .range(from, from + pageSize - 1);
+
+  if (roleFilter) {
+    query = query.eq("user_roles.role", roleFilter);
+  }
+  if (options.banned === true) {
+    query = query.eq("is_banned", true);
+  }
 
   const search = options.search?.trim();
   if (search) {
@@ -230,21 +276,173 @@ export async function listUsers(options: {
   const { data, error, count } = await query;
   if (error) {
     console.error("[admin-users] Query gagal:", error.message);
+    return { items: [], total: 0, pageSize, contributions: {} };
+  }
+
+  const items = ((data ?? []) as unknown as RawAdminUser[]).map((row) => ({
+    id: row.id,
+    username: row.github_username,
+    avatarUrl: row.github_avatar,
+    isBanned: row.is_banned,
+    roles: normalizeRoleRows(row.user_roles),
+    createdAt: row.created_at,
+  }));
+
+  // Jumlah kontribusi per pengguna (semua status kecuali draf) — satu query
+  // ringan untuk seluruh halaman, bukan per baris.
+  const contributions: Record<string, number> = {};
+  if (items.length > 0) {
+    const { data: programRows, error: countError } = await supabase
+      .from("assistance_programs")
+      .select("contributor_id")
+      .in(
+        "contributor_id",
+        items.map((item) => item.id),
+      )
+      .neq("status", "draft");
+    if (countError) {
+      console.error("[admin-users] Hitung kontribusi gagal:", countError.message);
+    } else {
+      for (const row of (programRows ?? []) as Array<{ contributor_id: string }>) {
+        contributions[row.contributor_id] =
+          (contributions[row.contributor_id] ?? 0) + 1;
+      }
+    }
+  }
+
+  return { items, total: count ?? 0, pageSize, contributions };
+}
+
+// ---------------------------------------------------------------------------
+// Audit log
+// ---------------------------------------------------------------------------
+
+export type AuditLogEntry = {
+  id: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  actorUsername: string | null;
+};
+
+/** Kategori filter audit log — prefix kolom `action`. */
+export const AUDIT_CATEGORIES = [
+  "role",
+  "user",
+  "program",
+  "report",
+  "category",
+  "setting",
+  "cron",
+] as const;
+export type AuditCategory = (typeof AUDIT_CATEGORIES)[number];
+
+type RawAuditRow = {
+  id: string;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  profiles: Array<{ github_username: string }> | null;
+};
+
+/**
+ * Audit log (append-only) untuk `/admin/audit`. RLS hanya mengizinkan admin;
+ * fungsi ini tetap dipanggil dari sesi admin sehingga kebijakan berlaku.
+ */
+export async function listAuditLogs(options: {
+  page?: number;
+  category?: string;
+}): Promise<{ items: AuditLogEntry[]; total: number; pageSize: number }> {
+  const supabase = await createSupabaseServerClient();
+  const pageSize = 50;
+  const page = Math.min(500, Math.max(1, Math.trunc(options.page ?? 1)));
+  const from = (page - 1) * pageSize;
+
+  let query = supabase
+    .from("moderation_logs")
+    .select(
+      "id, action, target_type, target_id, reason, metadata, created_at, profiles!moderation_logs_actor_id_fkey(github_username)",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(from, from + pageSize - 1);
+
+  const category =
+    options.category && AUDIT_CATEGORIES.includes(options.category as AuditCategory)
+      ? options.category
+      : undefined;
+  if (category) {
+    query = query.like("action", `${category}.%`);
+  }
+
+  const { data, error, count } = await query;
+  if (error) {
+    console.error("[admin-audit] Query gagal:", error.message);
     return { items: [], total: 0, pageSize };
   }
 
   return {
-    items: ((data ?? []) as unknown as RawAdminUser[]).map((row) => ({
+    items: ((data ?? []) as unknown as RawAuditRow[]).map((row) => ({
       id: row.id,
-      username: row.github_username,
-      avatarUrl: row.github_avatar,
-      isBanned: row.is_banned,
-      roles: normalizeRoleRows(row.user_roles),
+      action: row.action,
+      targetType: row.target_type,
+      targetId: row.target_id,
+      reason: row.reason,
+      metadata: row.metadata ?? {},
       createdAt: row.created_at,
+      actorUsername: row.profiles?.[0]?.github_username ?? null,
     })),
     total: count ?? 0,
     pageSize,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Badge jumlah antrean staf (sidebar dasbor)
+// ---------------------------------------------------------------------------
+
+export type StaffBadgeCounts = {
+  pendingReview: number;
+  openReports: number;
+};
+
+/**
+ * Jumlah antrean untuk badge navigasi. `withReports`=false (reviewer) —
+ * kebijakan RLS laporan hanya untuk moderator/admin, jadi tidak dihitung.
+ */
+export async function getStaffBadgeCounts(
+  withReports: boolean,
+): Promise<StaffBadgeCounts> {
+  const supabase = await createSupabaseServerClient();
+
+  const [pending, reports] = await Promise.all([
+    supabase
+      .from("assistance_programs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .then(({ count, error }) => {
+        if (error) console.error("[staff-badge] pending:", error.message);
+        return count ?? 0;
+      }),
+    withReports
+      ? supabase
+          .from("reports")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["open", "in_review"])
+          .then(({ count, error }) => {
+            if (error) console.error("[staff-badge] reports:", error.message);
+            return count ?? 0;
+          })
+      : Promise.resolve(0),
+  ]);
+
+  return { pendingReview: pending, openReports: reports };
 }
 
 // ---------------------------------------------------------------------------

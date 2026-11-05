@@ -103,6 +103,12 @@ export const paginationSchema = z.object({
 
 export const adminUserSearchSchema = paginationSchema.extend({
   search: z.string().trim().max(100).catch(""),
+  /** Filter pengguna ber-role tertentu; "semua" = tanpa filter. */
+  peran: z
+    .enum(["semua", "member", "reviewer", "moderator", "admin", "super_admin"])
+    .catch("semua"),
+  /** "diblokir" = hanya pengguna terblokir. */
+  blokir: z.enum(["semua", "diblokir"]).catch("semua"),
 });
 
 export type StaffRoleInput = z.infer<typeof staffRoleSchema>;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Users } from "lucide-react";
+import { Download, Search, Users } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
 import { RoleBadge } from "@/components/admin/role-badge";
@@ -19,18 +19,25 @@ export const dynamic = "force-dynamic";
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; halaman?: string }>;
+  searchParams: Promise<{ q?: string; halaman?: string; peran?: string; blokir?: string }>;
 }) {
   const current = await getCurrentUser();
   if (!current) return null;
 
   const params = await searchParams;
-  const { page, search } = adminUserSearchSchema.parse({
+  const { page, search, peran, blokir } = adminUserSearchSchema.parse({
     page: params.halaman,
     search: params.q,
+    peran: params.peran,
+    blokir: params.blokir,
   });
 
-  const { items, total, pageSize } = await listUsers({ search, page });
+  const { items, total, pageSize, contributions } = await listUsers({
+    search,
+    page,
+    role: peran,
+    banned: blokir === "diblokir" ? true : undefined,
+  });
   const canManageRoles = isSuperAdmin(current);
   const canBan = hasAnyRole(current, ["moderator", "admin"]);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -38,6 +45,8 @@ export default async function AdminUsersPage({
   function href(targetPage: number): string {
     const sp = new URLSearchParams();
     if (search) sp.set("q", search);
+    if (peran !== "semua") sp.set("peran", peran);
+    if (blokir === "diblokir") sp.set("blokir", "diblokir");
     if (targetPage > 1) sp.set("halaman", String(targetPage));
     const qs = sp.toString();
     return qs ? `/admin/pengguna?${qs}` : "/admin/pengguna";
@@ -53,15 +62,24 @@ export default async function AdminUsersPage({
             log yang tidak dapat diubah.
           </p>
         </div>
-        {canManageRoles ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-soft px-3 py-1 text-xs font-medium text-violet">
-            Anda pemilik — dapat mengelola role
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Pengelolaan role hanya oleh pemilik (Super Admin)
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {canManageRoles ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-soft px-3 py-1 text-xs font-medium text-violet">
+              Anda pemilik — dapat mengelola role
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+              Pengelolaan role hanya oleh pemilik (Super Admin)
+            </span>
+          )}
+          <a
+            href="/api/admin/export?tipe=pengguna"
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
+          >
+            <Download className="size-4" aria-hidden="true" />
+            Export CSV
+          </a>
+        </div>
       </div>
 
       <form action="/admin/pengguna" method="get" className="flex flex-wrap items-end gap-2">
@@ -75,15 +93,47 @@ export default async function AdminUsersPage({
             type="search"
             defaultValue={search}
             placeholder="mis. budi"
-            className="h-10 w-64"
+            className="h-10 w-56"
             maxLength={100}
           />
         </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="peran" className="text-xs font-medium text-muted-foreground">
+            Peran
+          </label>
+          <select
+            id="peran"
+            name="peran"
+            defaultValue={peran}
+            className="h-10 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/45"
+          >
+            <option value="semua">Semua peran</option>
+            <option value="member">Anggota</option>
+            <option value="reviewer">Reviewer</option>
+            <option value="moderator">Moderator</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="blokir" className="text-xs font-medium text-muted-foreground">
+            Status
+          </label>
+          <select
+            id="blokir"
+            name="blokir"
+            defaultValue={blokir}
+            className="h-10 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/45"
+          >
+            <option value="semua">Semua status</option>
+            <option value="diblokir">Diblokir</option>
+          </select>
+        </div>
         <button type="submit" className={buttonVariants({ size: "default" })}>
           <Search className="size-4" aria-hidden="true" />
-          Cari
+          Terapkan
         </button>
-        {search ? (
+        {search || peran !== "semua" || blokir !== "semua" ? (
           <Link href="/admin/pengguna" className={buttonVariants({ variant: "secondary" })}>
             Reset
           </Link>
@@ -121,6 +171,14 @@ export default async function AdminUsersPage({
                         </Link>
                         <p className="text-xs text-muted-foreground">
                           Bergabung {formatDateID(user.createdAt)}
+                          {contributions[user.id] ? (
+                            <>
+                              {" · "}
+                              <span className="font-medium text-foreground/80">
+                                {contributions[user.id]} kontribusi
+                              </span>
+                            </>
+                          ) : null}
                         </p>
                       </div>
                     </div>

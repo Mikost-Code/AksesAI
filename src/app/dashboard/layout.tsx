@@ -6,6 +6,7 @@ import { LogoLockup } from "@/components/brand/logo";
 import { AccountNav } from "@/components/layout/account-nav";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
+import { getStaffBadgeCounts } from "@/lib/admin/data";
 import { PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
 
 /**
@@ -28,6 +29,12 @@ export default async function DashboardLayout({
   const canModerate = hasAnyRole(user, ["moderator", "admin"]);
   const isAdmin = hasAnyRole(user, ["admin"]);
 
+  // Badge antrean di sidebar: dihitung di server agar tanpa request klien.
+  const badgeCounts =
+    canReview || canModerate
+      ? await getStaffBadgeCounts(canModerate)
+      : { pendingReview: 0, openReports: 0 };
+
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <header className="surface-glass sticky top-0 z-30 border-b border-border/80">
@@ -44,7 +51,7 @@ export default async function DashboardLayout({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-8">
-        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} />
+        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} pendingReview={badgeCounts.pendingReview} openReports={badgeCounts.openReports} />
         <main id="main-content" className="min-w-0 flex-1">
           {user.isBanned ? (
             <div

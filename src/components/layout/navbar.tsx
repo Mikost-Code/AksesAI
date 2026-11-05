@@ -29,25 +29,33 @@ export const NAV_LINKS = [
 export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
   return (
     <header className="surface-glass sticky top-0 z-40 border-b border-border/80 transition-shadow duration-300">
-      <div className="mx-auto grid h-16 max-w-[1200px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      {/*
+       * Tinggi 16 (64px) tetap, tetapi padding horizontal lebih rapat di layar
+       * kecil dan gap antar tombol diturunkan ke 1 agar logo + toggle tema +
+       * tombol masuk + hamburger tidak berdesakan pada 360–390px.
+       */}
+      <div className="mx-auto grid h-16 max-w-[1200px] grid-cols-[auto_1fr_auto] items-center gap-2 px-3 sm:gap-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           aria-label="AksesAI — beranda"
           className="group -ml-1 rounded-lg px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 transition-transform duration-200 hover:scale-[1.01]"
         >
+          {/* Wordmark disembunyikan di layar sangat kecil; mark tetap terlihat. */}
           <LogoLockup className="transition-opacity group-hover:opacity-90" />
         </Link>
 
         <NavLinks links={NAV_LINKS} className="hidden md:flex" />
 
-        <div className="flex items-center gap-2 justify-self-end">
+        <div className="flex items-center gap-1 justify-self-end sm:gap-2">
           <ThemeToggle />
           <GithubRepoButton className="hidden sm:inline-flex" />
-          {accountSlot ?? (
-            <Link href="/login" className={buttonVariants({ size: "sm" })}>
-              Masuk
-            </Link>
-          )}
+          <span className="hidden sm:inline-flex">
+            {accountSlot ?? (
+              <Link href="/login" className={buttonVariants({ size: "sm" })}>
+                Masuk
+              </Link>
+            )}
+          </span>
           <details className="group/menu md:hidden">
             <summary
               className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md transition-colors hover:bg-surface [&::-webkit-details-marker]:hidden"
@@ -66,6 +74,20 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     {link.label}
                   </Link>
                 ))}
+                {/* Tautan akun dipindah ke sini di layar kecil agar bar tetap lega. */}
+                <div className="mt-1 border-t border-border pt-2 sm:hidden">
+                  {accountSlot ?? (
+                    <Link
+                      href="/login"
+                      className={buttonVariants({
+                        size: "sm",
+                        className: "w-full",
+                      })}
+                    >
+                      Masuk
+                    </Link>
+                  )}
+                </div>
                 <a
                   href="https://github.com/zann06/AksesAI"
                   target="_blank"

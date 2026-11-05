@@ -11,11 +11,25 @@ page.on("console", (m) => {
   if (m.type() === "error") errors.push(m.text().slice(0, 200));
 });
 
-// Beranda: pastikan badge pill sudah hilang
+// Beranda: pastikan badge pill di area hero sudah hilang.
+//
+// Pemeriksaan dibatasi pada <section> hero (section pertama di <main>) dan
+// pada BENTUK badge (elemen `rounded-full` berisi teks di atas <h1>) — bukan
+// sekadar pencarian teks di seluruh halaman. Versi lama test ini salah
+// melaporkan "masih ada" karena teks deskripsi di footer/metadata juga
+// mengandung frasa yang sama.
 await page.goto(BASE, { waitUntil: "networkidle" });
 await page.waitForTimeout(800);
-const badgeAda = await page.getByText("Direktori info gratis & murah seputar AI", { exact: false }).count();
-console.log("badge pill beranda masih ada:", badgeAda > 0 ? "YA (masih)" : "TIDAK (sudah dihapus)");
+const heroBadge = await page
+  .locator("main > section")
+  .first()
+  .locator("h1 ~ *, :scope > * span.rounded-full, :scope > div > span.rounded-full")
+  .filter({ hasText: /dikurasi|seputar AI|info gratis/i })
+  .count();
+console.log(
+  "badge pill hero masih ada:",
+  heroBadge > 0 ? "YA (masih)" : "TIDAK (sudah dihapus)",
+);
 
 // Bar progres harus muncul saat klik navigasi
 await page.goto(BASE, { waitUntil: "networkidle" });

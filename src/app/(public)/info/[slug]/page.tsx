@@ -194,34 +194,43 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             {program.title}
           </h1>
 
-          <dl className="mt-6 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+          {/*
+           * Sel yang nilainya tidak diketahui sumber SENGAJA dihilangkan, bukan
+           * diisi "Tidak tercantum": deretan placeholder kosong terbaca seperti
+           * data hilang/cacat, padahal artinya "provider tidak mempublikasikan".
+           *
+           * Pembatas memakai `border` per sel (bukan trik `gap-px` + latar
+           * parent) supaya jumlah sel ganjil tidak menyisakan kotak abu-abu
+           * kosong di pojok kanan bawah.
+           */}
+          <dl className="mt-6 grid overflow-hidden rounded-xl border border-border [&>div]:border-b [&>div]:border-border [&>div:last-child]:border-b-0 sm:grid-cols-2 sm:[&>div:nth-child(odd)]:border-r sm:[&>div:nth-last-child(-n+2)]:border-b-0">
             {[
-              { icon: Sparkles, label: "Provider", value: program.provider, tone: "primary" },
+              { icon: Sparkles, label: "Provider", value: program.provider },
               {
                 icon: Gift,
                 label: "Kuota gratis",
                 value: program.freeTierAvailable
                   ? (program.freeTier?.trim() ?? "Ada free tier (besaran tidak tercantum)")
                   : "Tidak ada free tier",
-                tone: "accent",
               },
               {
                 icon: CreditCard,
                 label: "Kartu kredit",
                 value: program.requiresCard ? "Diperlukan untuk mendaftar" : "Tidak diperlukan",
-                tone: "muted",
               },
               {
                 icon: Layers,
                 label: "Ukuran konteks",
-                value: formatNumber(program.contextWindow, " token"),
-                tone: "muted",
+                value: program.contextWindow
+                  ? formatNumber(program.contextWindow, " token")
+                  : null,
               },
               {
                 icon: Gauge,
                 label: "Rate limit",
-                value: formatNumber(program.rateLimitRpm, " request/menit"),
-                tone: "muted",
+                value: program.rateLimitRpm
+                  ? formatNumber(program.rateLimitRpm, " request/menit")
+                  : null,
               },
               {
                 icon: CalendarDays,
@@ -229,23 +238,24 @@ export default async function ProgramDetailPage({ params }: PageProps) {
                 value:
                   program.promoStart || program.promoEnd
                     ? `${formatDateID(program.promoStart) ?? "—"} s.d. ${formatDateID(program.promoEnd) ?? "—"}`
-                    : "Tidak tercantum pada sumber",
-                tone: "muted",
+                    : null,
               },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="flex items-start gap-2.5 bg-background p-4">
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-muted-foreground">
-                    <Icon className="size-4" aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0">
-                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
-                    <dd className="text-sm font-medium leading-snug">{item.value}</dd>
+            ]
+              .filter((item) => item.value !== null)
+              .map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-start gap-2.5 bg-background p-4">
+                    <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-muted-foreground">
+                      <Icon className="size-4" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0">
+                      <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                      <dd className="text-sm font-medium leading-snug">{item.value}</dd>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </dl>
 
           <Alert variant="info" className="mt-6">
@@ -256,22 +266,33 @@ export default async function ProgramDetailPage({ params }: PageProps) {
 
           <section className="mt-8">
             <h2 className="text-xl font-semibold tracking-tight">Harga per token</h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {[
-                { label: "Input", value: formatPrice(program.priceInputPerMtok) },
-                { label: "Output", value: formatPrice(program.priceOutputPerMtok) },
-              ].map((price) => (
-                <div
-                  key={price.label}
-                  className="rounded-lg border border-border bg-surface p-4"
-                >
-                  <p className="text-xs text-muted-foreground">{price.label}</p>
-                  <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums">
-                    {price.value}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {program.priceInputPerMtok === null &&
+            program.priceOutputPerMtok === null ? (
+              // Dua kartu kosong berisi "Tidak tercantum" hanya menambah
+              // kebisingan; satu kalimat menjelaskan situasinya lebih baik.
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Harga per token tidak dipublikasikan pada sumber yang diperiksa —
+                kemungkinan gratis penuh, berbasis kuota, atau skema harga khusus.
+                Lihat halaman harga resmi provider di bagian Sumber informasi.
+              </p>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {[
+                  { label: "Input", value: formatPrice(program.priceInputPerMtok) },
+                  { label: "Output", value: formatPrice(program.priceOutputPerMtok) },
+                ].map((price) => (
+                  <div
+                    key={price.label}
+                    className="rounded-lg border border-border bg-surface p-4"
+                  >
+                    <p className="text-xs text-muted-foreground">{price.label}</p>
+                    <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums">
+                      {price.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="mt-2 text-xs text-muted-foreground">
               Harga dapat berubah kapan saja. Selalu periksa halaman harga resmi provider.
             </p>

@@ -54,7 +54,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     rateLimit: 15,
-    contextWindow: "1.000.000 token (bervariasi per model)",
+    contextWindow: 1000000,
     sources: [
       { title: "Gemini API Pricing (free tier)", url: "https://ai.google.dev/pricing" },
       { title: "Gemini API Rate Limits", url: "https://ai.google.dev/gemini-api/docs/rate-limits" },
@@ -74,7 +74,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     rateLimit: 30,
-    contextWindow: "Bervariasi per model (≤ 131.072 token)",
+    contextWindow: 131072,
     sources: [
       { title: "Groq Pricing", url: "https://groq.com/pricing/" },
       { title: "Groq Rate Limits", url: "https://console.groq.com/docs/rate-limits" },
@@ -94,7 +94,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     rateLimit: 20,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "OpenRouter Models", url: "https://openrouter.ai/models" },
       { title: "OpenRouter FAQ — free models", url: "https://openrouter.ai/docs/faq" },
@@ -113,7 +113,7 @@ const ENTRIES = [
     freeTier: "Kredit gratis bulanan untuk akun gratis",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "Hugging Face Inference Providers", url: "https://huggingface.co/docs/inference-providers" },
       { title: "Hugging Face Pricing", url: "https://huggingface.co/pricing" },
@@ -132,7 +132,7 @@ const ENTRIES = [
     freeTier: "Tier gratis berbatas rate untuk pengembangan",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "Mistral AI Pricing", url: "https://mistral.ai/pricing" },
       { title: "Mistral Docs", url: "https://docs.mistral.ai/" },
@@ -151,7 +151,7 @@ const ENTRIES = [
     freeTier: "Sepenuhnya gratis (berjalan lokal)",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model & RAM",
+    contextWindow: null,
     sources: [
       { title: "Ollama — Library model", url: "https://ollama.com/library" },
       { title: "Ollama GitHub", url: "https://github.com/ollama/ollama" },
@@ -170,7 +170,7 @@ const ENTRIES = [
     freeTier: "Gratis untuk penggunaan pribadi",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model & RAM",
+    contextWindow: null,
     sources: [
       { title: "LM Studio", url: "https://lmstudio.ai/" },
       { title: "LM Studio Docs", url: "https://lmstudio.ai/docs" },
@@ -189,7 +189,7 @@ const ENTRIES = [
     freeTier: "Alokasi neuron gratis harian",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "Cloudflare Workers AI Pricing", url: "https://developers.cloudflare.com/workers-ai/platform/pricing/" },
       { title: "Workers AI Models", url: "https://developers.cloudflare.com/workers-ai/models/" },
@@ -208,7 +208,7 @@ const ENTRIES = [
     freeTier: "Kuota permintaan gratis per akun GitHub",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "GitHub Models", url: "https://docs.github.com/en/github-models" },
       { title: "GitHub Models — rate limits", url: "https://docs.github.com/en/github-models/use-github-models/prototyping-with-ai-models" },
@@ -227,7 +227,7 @@ const ENTRIES = [
     freeTier: null,
     freeTierAvailable: false,
     requiresCard: false,
-    contextWindow: "64.000 token",
+    contextWindow: 64000,
     sources: [
       { title: "DeepSeek API Pricing", url: "https://api-docs.deepseek.com/quick_start/pricing" },
       { title: "DeepSeek Platform", url: "https://platform.deepseek.com/" },
@@ -246,7 +246,7 @@ const ENTRIES = [
     freeTier: null,
     freeTierAvailable: false,
     requiresCard: true,
-    contextWindow: "1.000.000 token",
+    contextWindow: 1000000,
     priceInput: 0.075,
     priceOutput: 0.3,
     sources: [
@@ -266,7 +266,7 @@ const ENTRIES = [
     freeTier: "Model :free dapat dipakai tanpa biaya",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "OpenRouter Chat", url: "https://openrouter.ai/chat" },
       { title: "OpenRouter Models", url: "https://openrouter.ai/models" },
@@ -342,7 +342,7 @@ const ENTRIES = [
     freeTier: "Kredit percobaan untuk akun baru (periode terbatas)",
     freeTierAvailable: true,
     requiresCard: true,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "Together AI Pricing", url: "https://www.together.ai/pricing" },
     ],
@@ -360,7 +360,7 @@ const ENTRIES = [
     freeTier: "Batas permintaan harian gratis",
     freeTierAvailable: true,
     requiresCard: false,
-    contextWindow: "Bervariasi per model",
+    contextWindow: null,
     sources: [
       { title: "Cerebras Inference Pricing", url: "https://www.cerebras.ai/pricing" },
       { title: "Cerebras Docs", url: "https://inference-docs.cerebras.ai/" },
@@ -368,9 +368,30 @@ const ENTRIES = [
   },
 ];
 
+/**
+ * Cermin dari normalizeSourceUrl (src/lib/security/ssrf-guard.ts):
+ * host lowercase tanpa www, tanpa fragment/param pelacakan/trailing slash.
+ */
+function normalizeSourceUrl(url) {
+  const parsed = new URL(url);
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  const path = parsed.pathname.replace(/\/+$/, "");
+  const params = new URLSearchParams(parsed.search);
+  for (const key of Array.from(params.keys())) {
+    const lower = key.toLowerCase();
+    if (lower === "ref" || lower.startsWith("utm_") || ["fbclid", "gclid", "igshid", "ref_src"].includes(lower)) {
+      params.delete(key);
+    }
+  }
+  params.sort();
+  const query = params.toString();
+  return `${parsed.protocol}//${host}${path}${query ? `?${query}` : ""}`;
+}
+
 function toApiType(accessType) {
-  // Enum access_type di DB; `tool`/`hosting` dipetakan ke nilai terdekat.
-  return accessType;
+  // Enum access_type di DB: api | chat | tool | hosting | model.
+  // "lokal" (Ollama/LM Studio) paling tepat ke model open-weight.
+  return accessType === "lokal" ? "model" : accessType;
 }
 
 const contributorUsername = "zann06";
@@ -419,7 +440,7 @@ for (const entry of ENTRIES) {
     region_scope: "nasional",
     province: null,
     city: null,
-    region: "Online",
+    // `region` adalah generated column — tidak boleh diisi manual.
     organizer: entry.provider,
     requirements: null,
     published_at: today,
@@ -483,6 +504,7 @@ for (const entry of ENTRIES) {
     entry.sources.map((s, index) => ({
       program_id: programId,
       source_url: s.url,
+      source_url_normalized: normalizeSourceUrl(s.url),
       source_title: s.title,
       is_primary: index === 0,
       source_type: "dokumentasi_resmi",

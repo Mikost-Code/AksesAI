@@ -360,6 +360,27 @@ const ENTRIES = [
       { title: "Z.ai — Plan Update Notice", url: "https://docs.z.ai/devpack/notice/usage-revision" },
     ],
   },
+  {
+    slug: "codebuddy-deepseek-v41-flash",
+    title: "CodeBuddy (internasional) — DeepSeek V4.1 Flash gratis",
+    category: "tool-ai-gratis",
+    accessType: "tool",
+    provider: "CodeBuddy (Tencent)",
+    summary:
+      "Aplikasi coding CodeBuddy versi internasional (codebuddy.ai) menyertakan model DeepSeek V4.1 Flash tanpa biaya; batas waktu kampanye tidak pernah diumumkan, jadi status gratisnya perlu dicek ulang.",
+    description:
+      "CodeBuddy adalah produk coding dari Tencent, satu keluarga dengan WorkBuddy dan memakai akun yang sama. Versi internasional (domain .ai) berisi katalog model yang sama dengan versi Tiongkok (.cn), termasuk DeepSeek V4.1 Flash selain GLM-5.x, Kimi-K2.x, MiniMax-M3, dan DeepSeek V4 Pro. Nominal gratisnya berbentuk kuota akun, bukan harga per token: pemakaian ditagih ke kuota paket yang terisi ulang pada siklus tertentu (harian, mingguan, atau bulanan) dan habis sampai jadwal isi ulang berikutnya. Model DeepSeek V4.1 Flash sendiri tidak muncul di daftar harga publik saat ini, jadi tidak ada angka rupiah yang bisa dijadikan patokan. PENTING — soal tanggal berakhir: kampanye WorkBuddy Intl pernah diumumkan 'gratis sampai 31 Oktober 2026' dan jendela itu sudah lewat, sementara sebagian pengguna melaporkan DeepSeek V4.1 Flash masih bisa dipakai harian sampai sekarang. Tidak ada pengumuman resmi yang memperpanjang atau mencabut kuota ini secara tertulis, jadi perlakukan label gratis sebagai sementara: cek kuota di aplikasi sebelum memindahkan alur kerja penting, dan anggap model ini bisa berbayar atau hilang kapan saja tanpa pemberitahuan. Untuk rute API bening tanpa kuota akun, lihat entri OpenCode dan DeepSeek API kami yang terpisah.",
+    freeTier: "DeepSeek V4.1 Flash dipakai dari kuota akun CodeBuddy internasional (batas waktu tidak diumumkan)",
+    freeTierAvailable: true,
+    requiresCard: false,
+    contextWindow: 1000000,
+    requirements:
+      "1) Unduh aplikasi CodeBuddy versi internasional dari codebuddy.ai — pakai domain .ai, bukan .cn, karena akun dan kuotanya berbeda. 2) Daftar/masuk lewat OAuth (Google, GitHub, atau X). 3) Buka pemilih model dan pilih DeepSeek V4.1 Flash. Catatan: bila memakai 9router sebagai perantara, masuk lewat OAuth CodeBuddy di dashboard 9router (provider 'codebuddy-intl', alias cbai) lalu pakai model deepseek-v4.1-flash; gateway mereka menolak permintaan tanpa header percakapan dan membalas 400 kode 11128.",
+    sources: [
+      { title: "CodeBuddy — situs resmi (internasional)", url: "https://www.codebuddy.ai/" },
+      { title: "9router — daftar provider codebuddy-intl (katalog model & OAuth)", url: "https://github.com/decolua/9router/blob/master/open-sse/providers/registry/codebuddy-intl.js" },
+    ],
+  },
 ];
 
 /**

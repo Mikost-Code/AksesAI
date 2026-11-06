@@ -64,7 +64,7 @@ export default async function Image() {
         </div>
 
         <div style={{ display: "flex", gap: 20, marginTop: 48 }}>
-          {["Free API & Token", "Free Tier Model", "Tool AI Gratis", "Hosting Gratis"].map(
+          {["Free API & Token", "Free Tier Model", "Tool AI Gratis", "Open-Weight"].map(
             (label) => (
               <div
                 key={label}

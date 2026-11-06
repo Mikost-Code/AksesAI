@@ -7,7 +7,7 @@
 export const APP_NAME = "AksesAI";
 
 export const APP_DESCRIPTION =
-  "Direktori info gratis dan murah seputar AI: token/API gratis dari provider, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis — dikontribusikan komunitas dan diverifikasi manual.";
+  "Direktori info gratis dan murah seputar AI: token/API gratis dari provider, free tier, harga per token, model open-weight, dan tool gratis — dikontribusikan komunitas dan diverifikasi manual.";
 
 export const PROGRAM_STATUSES = [
   "draft",

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { Plus, Save, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FieldError, FieldHint, Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -160,15 +161,12 @@ export function CategoryForm({
             onChange={(e) => set("sortOrder", Number.parseInt(e.target.value, 10) || 0)}
           />
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={values.isActive}
-            onChange={(e) => set("isActive", e.target.checked)}
-            className="size-4 rounded border-input"
-          />
-          Aktif (tampil di publik)
-        </label>
+        <Checkbox
+          checked={values.isActive}
+          onCheckedChange={(next) => set("isActive", next)}
+          label="Aktif (tampil di publik)"
+          className="w-auto"
+        />
       </div>
 
       <div className="flex gap-2">

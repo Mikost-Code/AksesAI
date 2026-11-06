@@ -7,6 +7,7 @@ import { AccountNav } from "@/components/layout/account-nav";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getStaffBadgeCounts } from "@/lib/admin/data";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import { PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
 
 /**
@@ -30,10 +31,12 @@ export default async function DashboardLayout({
   const isAdmin = hasAnyRole(user, ["admin"]);
 
   // Badge antrean di sidebar: dihitung di server agar tanpa request klien.
-  const badgeCounts =
+  const [badgeCounts, unreadNotifications] = await Promise.all([
     canReview || canModerate
-      ? await getStaffBadgeCounts(canModerate)
-      : { pendingReview: 0, openReports: 0 };
+      ? getStaffBadgeCounts(canModerate)
+      : Promise.resolve({ pendingReview: 0, openReports: 0 }),
+    getUnreadNotificationCount(user.id),
+  ]);
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
@@ -51,7 +54,7 @@ export default async function DashboardLayout({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-8">
-        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} pendingReview={badgeCounts.pendingReview} openReports={badgeCounts.openReports} />
+        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} pendingReview={badgeCounts.pendingReview} openReports={badgeCounts.openReports} unreadNotifications={unreadNotifications} />
         <main id="main-content" className="min-w-0 flex-1">
           {user.isBanned ? (
             <div

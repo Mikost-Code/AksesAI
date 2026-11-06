@@ -1,3 +1,5 @@
+"use client";
+
 import { BookOpen, Code2, ExternalLink, Newspaper, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +18,13 @@ const TYPE_ICON = {
 /**
  * Daftar sumber (UI_UX §6.4). Tautan keluar memakai
  * `rel="noopener noreferrer nofollow ugc"` (SECURITY §5).
+ *
+ * Komponen ini KLIEN hanya karena harus mencatat klik. Dua hal yang dijaga:
+ *  1. Navigasi tidak tertahan: pencatatan dikirim `fetch` dengan `keepalive`
+ *     sehingga tetap terkirim walau tab langsung ditinggalkan, tanpa
+ *     mengubah target tautan atau memakai `preventDefault`.
+ *  2. Kegagalan pencatatan tidak pernah memblokir tautan — semua galat
+ *     ditelan. Statistik adalah sinyal lunak, bukan fitur kritis.
  */
 export function SourceList({ sources }: { sources: ProgramSource[] }) {
   if (sources.length === 0) {
@@ -24,6 +33,21 @@ export function SourceList({ sources }: { sources: ProgramSource[] }) {
         Tidak tercantum pada sumber.
       </p>
     );
+  }
+
+  function track(sourceId: string) {
+    try {
+      void fetch("/api/source-clicks", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sourceId }),
+        keepalive: true,
+      }).catch(() => {
+        /* pencatatan bersifat best-effort */
+      });
+    } catch {
+      /* pencatatan bersifat best-effort */
+    }
   }
 
   return (
@@ -45,11 +69,17 @@ export function SourceList({ sources }: { sources: ProgramSource[] }) {
               <p className="mt-1 break-all text-sm text-muted-foreground">
                 {source.domain}
               </p>
+              {source.clickCount > 0 ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {source.clickCount.toLocaleString("id-ID")} pengunjung membuka tautan ini
+                </p>
+              ) : null}
             </div>
             <a
               href={source.url}
               target="_blank"
               rel="noopener noreferrer nofollow ugc"
+              onClick={() => track(source.id)}
               className="shrink-0 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-surface"
             >
               Buka sumber

@@ -29,16 +29,19 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 ## Fitur
 
 **Publik**
-- Direktori info AI dengan pencarian teks penuh, filter (kategori, jenis akses, ketersediaan gratis, status), dan pagination
+- Direktori info AI dengan **pencarian full-text berperingkat** (`ts_rank` atas `search_tsv`), filter (kategori, jenis akses, ketersediaan gratis, status), dan pagination
 - Halaman detail info: deskripsi, syarat akses, provider, free tier, harga per token, masa berlaku promo, dan **daftar sumber yang dapat diklik**
 - Riwayat perubahan informasi (audit trail yang dapat dilihat publik)
-- Profil kontributor publik (transparansi siapa yang menyumbang informasi)
+- **Riwayat perubahan harga** per entri (snapshot otomatis saat harga/kuota berubah)
+- **Penghitung klik per sumber** ("N pengunjung membuka tautan ini") sebagai sinyal kualitas
+- Profil kontributor publik dengan **jenjang kontributor** (baru → aktif → terpercaya → pakar, berdasarkan kontribusi terverifikasi)
 - Formulir laporan publik untuk informasi yang mencurigakan/palsu (dengan atau tanpa login)
 
 **Kontributor** (login GitHub)
 - Dashboard kontribusi: draf, menunggu tinjauan, perlu revisi, terbit, ditolak
 - Formulir kontribusi bertahap dengan validasi real-time dan pemindaian data pribadi
-- Notifikasi alasan penolakan/permintaan revisi dari reviewer
+- **Pusat notifikasi in-app** (lonceng di navbar + `/dashboard/notifikasi`): diverifikasi, perlu revisi, ditolak, dan pengingat promo
+- **Pengingat promo** — simpan entri ("Ingatkan saya") dan terima notifikasi beberapa hari sebelum promo berakhir (dikirim oleh salah satu cron harian)
 
 **Reviewer**
 - Antrean tinjauan dengan sistem klaim (30 menit) agar tidak ada tinjauan ganda
@@ -52,6 +55,7 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 **Admin**
 - Ringkasan statistik platform
 - Manajemen pengguna: pencarian, blokir/buka blokir (wajib alasan), pemberian/pencabutan role
+- **Riwayat moderasi per pengguna** (siapa memblokir/memberi role dan alasannya) agar keputusan dapat diaudit dalam konteks akun
 - Manajemen kategori: buat, ubah, aktifkan/nonaktifkan
 
 **Keamanan & kepatuhan**
@@ -60,6 +64,9 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - Pengguna tidak dapat mengubah role miliknya sendiri
 - Login GitHub hanya memberi role `member`; role lain hanya diberikan admin
 - Audit log immutable (tidak dapat diubah/dihapus)
+- **Rate limit fail-closed di produksi** (tanpa backend → tolak, bukan loloskan)
+- **Anti-spoofing IP**: header proxy tepercaya diutamakan; `X-Forwarded-For` dibaca dari entri **terakhir**
+- **Hash IP terpisah per tujuan** sehingga hash lintas fitur tidak dapat dikorelasikan
 - **Tanpa AI/chatbot di dalam aplikasi** — tidak memerlukan API key AI apa pun
 
 ---
@@ -73,8 +80,8 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 | UI | Tailwind CSS v4, komponen shadcn/ui (ditulis tangan; Radix Select untuk dropdown) |
 | Database & Auth | Supabase (PostgreSQL, GitHub OAuth, RLS) |
 | Validasi | Zod |
-| Rate limiting | Upstash Redis (opsional) → fallback PostgreSQL |
-| Anti-bot | Cloudflare Turnstile (opsional) |
+| Rate limiting | Upstash Redis (disarankan) → fallback PostgreSQL → fail-closed di produksi |
+| Anti-bot | Cloudflare Turnstile (wajib di produksi untuk laporan anonim) |
 | Testing | Vitest (unit, RLS, integrasi) + Playwright (E2E) |
 | Deploy | Vercel + Vercel Cron |
 | CI | GitHub Actions |
@@ -140,8 +147,8 @@ Lihat `.env.example` untuk daftar lengkap dengan komentar.
 
 | Variabel | Keterangan |
 |---|---|
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting terdistribusi. Bila kosong → fallback PostgreSQL |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Anti-bot laporan anonim. Bila kosong → hanya rate limit IP |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting terdistribusi. Bila kosong → fallback PostgreSQL; bila keduanya kosong di produksi → **fail-closed** |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Anti-bot laporan anonim. Di produksi `TURNSTILE_SECRET_KEY` **wajib** — tanpanya laporan ditolak |
 | `NEXT_PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics (tanpa cookie). Bila kosong → analytics tidak dimuat |
 
 > **Penting:** Jangan pernah memberi prefix `NEXT_PUBLIC_` pada nilai rahasia — apa pun dengan prefix itu **ikut ter-bundel ke JavaScript klien**. Repo ini menyertakan `scripts/check-client-bundle.mjs` yang gagal bila `service_role` bocor ke bundle klien.

@@ -404,6 +404,71 @@ export async function listAuditLogs(options: {
 }
 
 // ---------------------------------------------------------------------------
+// Riwayat moderasi per pengguna (halaman /admin/pengguna)
+// ---------------------------------------------------------------------------
+
+export type UserModerationEntry = {
+  id: string;
+  action: string;
+  reason: string | null;
+  createdAt: string;
+  actorUsername: string | null;
+};
+
+/**
+ * Riwayat moderasi untuk satu pengguna: role diberikan/dicabut, blokir dibuka,
+ * dsb.
+ *
+ * Mengapa tidak memakai `listAuditLogs` lalu memfilter di memori: audit log
+ * berisi ribuan baris dan admin membuka halaman ini per pengguna. Query di
+ * sini menyaring langsung di DB (`target_type='user' and target_id=userId`)
+ * sehingga hanya membaca belasan baris paling relevan. RLS tetap berlaku
+ * karena memakai sesi admin — bila `target_id` berisi program, baris tidak
+ * ikut terbaca di sini.
+ *
+ * `action` difilter ke prefix `user.`/`role.` karena hanya itu yang menargetkan
+ * akun; baris sistem lain (mis. `cron.*) yang kebetulan menyentuh id pengguna
+ * tidak relevan untuk penjelasan "mengapa akun ini dibatasi".
+ */
+export async function listUserModerationHistory(
+  userId: string,
+  limit = 20,
+): Promise<UserModerationEntry[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("moderation_logs")
+    .select(
+      "id, action, reason, created_at, profiles!moderation_logs_actor_id_fkey(github_username)",
+    )
+    .eq("target_type", "user")
+    .eq("target_id", userId)
+    .or("action.like.user.%,action.like.role.%")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(1, limit), 50));
+
+  if (error) {
+    console.error("[admin-users] Riwayat moderasi gagal:", error.message);
+    return [];
+  }
+
+  return (
+    (data ?? []) as unknown as Array<{
+      id: string;
+      action: string;
+      reason: string | null;
+      created_at: string;
+      profiles: Array<{ github_username: string }> | null;
+    }>
+  ).map((row) => ({
+    id: row.id,
+    action: row.action,
+    reason: row.reason,
+    createdAt: row.created_at,
+    actorUsername: row.profiles?.[0]?.github_username ?? null,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // Badge jumlah antrean staf (sidebar dasbor)
 // ---------------------------------------------------------------------------
 

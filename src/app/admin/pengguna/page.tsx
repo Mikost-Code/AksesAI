@@ -6,10 +6,15 @@ import { Download, Search, Users } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { RoleBadge } from "@/components/admin/role-badge";
 import { UserActions } from "@/components/admin/user-actions";
+import { UserModerationHistory } from "@/components/admin/user-moderation-history";
+import {
+  FilterSelect,
+  filterSelectClassName,
+} from "@/components/ui/filter-select";
 import { Input } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, hasAnyRole, isSuperAdmin } from "@/lib/auth/session";
-import { listUsers } from "@/lib/admin/data";
+import { listUserModerationHistory, listUsers } from "@/lib/admin/data";
 import { adminUserSearchSchema } from "@/lib/validation/staff";
 import { formatDateID } from "@/lib/utils";
 
@@ -38,6 +43,22 @@ export default async function AdminUsersPage({
     role: peran,
     banned: blokir === "diblokir" ? true : undefined,
   });
+
+  // Riwayat moderasi hanya berguna untuk akun yang pernah ditindak. Memuatnya
+  // untuk SEMUA pengguna berarti 50 query tambahan per halaman; dibatasi ke
+  // pengguna yang sedang diblokir atau yang punya role staf (kandidat paling
+  // sering ditindak). Pengguna biasa tanpa riwayat tidak perlu query.
+  const historyCandidates = items.filter(
+    (user) => user.isBanned || user.roles.some((role) => role !== "member"),
+  );
+  const historyEntries = await Promise.all(
+    historyCandidates.map(async (user) => [
+      user.id,
+      await listUserModerationHistory(user.id, 10),
+    ] as const),
+  );
+  const moderationHistory = new Map(historyEntries);
+
   const canManageRoles = isSuperAdmin(current);
   const canBan = hasAnyRole(current, ["moderator", "admin"]);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -101,33 +122,37 @@ export default async function AdminUsersPage({
           <label htmlFor="peran" className="text-xs font-medium text-muted-foreground">
             Peran
           </label>
-          <select
+          <FilterSelect
             id="peran"
             name="peran"
-            defaultValue={peran}
-            className="h-10 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/45"
-          >
-            <option value="semua">Semua peran</option>
-            <option value="member">Anggota</option>
-            <option value="reviewer">Reviewer</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-            <option value="super_admin">Super Admin</option>
-          </select>
+            label="Peran"
+            value={peran}
+            className={filterSelectClassName}
+            options={[
+              { value: "semua", label: "Semua peran" },
+              { value: "member", label: "Anggota" },
+              { value: "reviewer", label: "Reviewer" },
+              { value: "moderator", label: "Moderator" },
+              { value: "admin", label: "Admin" },
+              { value: "super_admin", label: "Super Admin" },
+            ]}
+          />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="blokir" className="text-xs font-medium text-muted-foreground">
             Status
           </label>
-          <select
+          <FilterSelect
             id="blokir"
             name="blokir"
-            defaultValue={blokir}
-            className="h-10 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/45"
-          >
-            <option value="semua">Semua status</option>
-            <option value="diblokir">Diblokir</option>
-          </select>
+            label="Status"
+            value={blokir}
+            className={filterSelectClassName}
+            options={[
+              { value: "semua", label: "Semua status" },
+              { value: "diblokir", label: "Diblokir" },
+            ]}
+          />
         </div>
         <button type="submit" className={buttonVariants({ size: "default" })}>
           <Search className="size-4" aria-hidden="true" />
@@ -207,6 +232,8 @@ export default async function AdminUsersPage({
                     canManageRoles={canManageRoles}
                     canBan={canBan}
                   />
+
+                  <UserModerationHistory entries={moderationHistory.get(user.id) ?? []} />
                 </article>
               </li>
             );

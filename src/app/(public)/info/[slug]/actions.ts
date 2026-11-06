@@ -7,7 +7,8 @@
  *  - Identitas pemilih = sha256(salt:identitas) dihitung di server (IP untuk
  *    anonim, id pengguna untuk yang login). IP mentah tidak pernah disimpan.
  *  - Satu suara per identitas per entri (upsert di DB, unique constraint).
- *  - Rate limit per identitas (Upstash → fallback Postgres → fail-open).
+ *  - Rate limit per identitas (Upstash → fallback Postgres → fail-closed di
+ *    production bila tidak ada backend).
  *  - Validasi + agregat lewat RPC `security definer` (migrasi 0011); tabel
  *    `program_feedback` tidak punya policy klien.
  */
@@ -19,7 +20,7 @@ import { z } from "zod";
 import { checkRateLimitWithFallback } from "@/lib/security/rate-limit-server";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { getClientIp, hashIpAddress } from "@/lib/security/ip-hash";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin";
 
 const feedbackSchema = z.object({
   programId: z.uuid({ error: "ID entri tidak valid." }),
@@ -42,7 +43,7 @@ export async function submitProgramFeedback(
   // Identitas pemilih: akun bila login, hash IP bila anonim.
   const user = await getCurrentUser();
   const identity = user ? `user:${user.id}` : `ip:${getClientIp(await headers())}`;
-  const voterHash = hashIpAddress(identity);
+  const voterHash = hashIpAddress(identity, "feedback");
 
   const rule = { name: "feedback", ...RATE_LIMITS.feedbackPerVoter };
   const limit = await checkRateLimitWithFallback("feedback", voterHash, rule);
@@ -53,7 +54,13 @@ export async function submitProgramFeedback(
     };
   }
 
-  const supabase = await createSupabaseServerClient();
+  // SERVICE_ROLE: `voter_hash` adalah nilai yang dipercaya (dihitung server).
+  // RPC tidak diekspos ke anon/authenticated (migrasi 0012) agar suara tidak
+  // dapat dipalsukan langsung lewat PostgREST.
+  if (!hasServiceRoleEnv()) {
+    return { ok: false, message: "Umpan balik belum tersedia. Coba lagi nanti." };
+  }
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("record_program_feedback", {
     p_program_id: parsed.data.programId,
     p_voter_hash: voterHash,

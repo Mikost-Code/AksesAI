@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, Info, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DateField } from "@/components/ui/date-field";
 import { FieldError, FieldHint, Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { RadioCard } from "@/components/ui/radio-card";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ACCESS_TYPES,
@@ -317,22 +321,16 @@ export function ContributionForm({
             <Label htmlFor="category" required>
               Kategori
             </Label>
-            <select
+            <Select
               id="category"
+              label="Kategori"
               value={values.categoryId}
-              onChange={(e) => set("categoryId", e.target.value)}
-              aria-invalid={Boolean(fieldErrors.categoryId)}
-              aria-describedby="category-error"
-              className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-              required
-            >
-              <option value="">Pilih kategori…</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onValueChange={(next) => set("categoryId", next)}
+              className={
+                fieldErrors.categoryId ? "border-danger" : undefined
+              }
+              options={categories.map((c) => ({ value: c.id, label: c.name }))}
+            />
             <FieldError id="category-error" message={fieldErrors.categoryId} />
           </div>
 
@@ -383,30 +381,15 @@ export function ContributionForm({
         </div>
         <div className="flex flex-col gap-2" role="radiogroup" aria-label="Jenis akses">
           {ACCESS_TYPES.map((type) => (
-            <label
+            <RadioCard
               key={type}
-              className={[
-                "flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm",
-                values.accessType === type
-                  ? "border-primary bg-primary-soft"
-                  : "border-border bg-background",
-              ].join(" ")}
-            >
-              <input
-                type="radio"
-                name="accessType"
-                value={type}
-                checked={values.accessType === type}
-                onChange={() => set("accessType", type)}
-                className="mt-0.5"
-              />
-              <span>
-                <span className="font-medium">{ACCESS_TYPE_LABEL[type]}</span>
-                <span className="mt-0.5 block text-muted-foreground">
-                  {ACCESS_TYPE_DESCRIPTION[type]}
-                </span>
-              </span>
-            </label>
+              name="accessType"
+              value={type}
+              checked={values.accessType === type}
+              onSelect={() => set("accessType", type)}
+              title={ACCESS_TYPE_LABEL[type]}
+              description={ACCESS_TYPE_DESCRIPTION[type]}
+            />
           ))}
         </div>
         <FieldError id="accessType-error" message={fieldErrors.accessType} />
@@ -416,23 +399,18 @@ export function ContributionForm({
       <section className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
         <h2 className="text-base font-semibold">Kuota gratis</h2>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+        <div className="flex flex-col gap-2">
+          <Checkbox
             checked={values.freeTierAvailable}
-            onChange={(e) => set("freeTierAvailable", e.target.checked)}
+            onCheckedChange={(next) => set("freeTierAvailable", next)}
+            label="Ada free tier / kredit gratis"
           />
-          Ada free tier / kredit gratis
-        </label>
-
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={values.requiresCard}
-            onChange={(e) => set("requiresCard", e.target.checked)}
+            onCheckedChange={(next) => set("requiresCard", next)}
+            label="Perlu kartu kredit untuk mendaftar"
           />
-          Perlu kartu kredit untuk mendaftar
-        </label>
+        </div>
 
         {values.freeTierAvailable ? (
           <div className="flex flex-col gap-1.5">
@@ -545,13 +523,13 @@ export function ContributionForm({
           ).map(({ key, label }) => (
             <div key={key} className="flex flex-col gap-1.5">
               <Label htmlFor={key}>{label}</Label>
-              <Input
+              <DateField
                 id={key}
-                type="date"
+                label={label}
                 value={values[key]}
-                onChange={(e) => set(key, e.target.value)}
-                aria-invalid={Boolean(fieldErrors[key])}
-                aria-describedby={`${key}-error`}
+                onChange={(next) => set(key, next)}
+                invalid={Boolean(fieldErrors[key])}
+                describedBy={`${key}-error`}
               />
               <FieldError id={`${key}-error`} message={fieldErrors[key]} />
             </div>
@@ -591,15 +569,14 @@ export function ContributionForm({
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Sumber {index + 1}</p>
                 <div className="flex items-center gap-2">
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-                    <input
-                      type="radio"
-                      name="primarySource"
-                      checked={source.isPrimary}
-                      onChange={() => markPrimary(index)}
-                    />
-                    Utama
-                  </label>
+                  <RadioCard
+                    name="primarySource"
+                    value={String(index)}
+                    checked={source.isPrimary}
+                    onSelect={() => markPrimary(index)}
+                    title="Utama"
+                    className="w-auto p-2 text-xs"
+                  />
                   {values.sources.length > L.sourcesMin ? (
                     <button
                       type="button"
@@ -646,22 +623,20 @@ export function ContributionForm({
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={`source-type-${index}`}>Jenis sumber</Label>
-                  <select
+                  <Select
                     id={`source-type-${index}`}
+                    label="Jenis sumber"
                     value={source.type}
-                    onChange={(e) =>
+                    onValueChange={(next) =>
                       setSource(index, {
-                        type: e.target.value as ContributionFormValues["sources"][number]["type"],
+                        type: next as ContributionFormValues["sources"][number]["type"],
                       })
                     }
-                    className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-                  >
-                    {SOURCE_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {SOURCE_TYPE_LABEL[t]}
-                      </option>
-                    ))}
-                  </select>
+                    options={SOURCE_TYPES.map((t) => ({
+                      value: t,
+                      label: SOURCE_TYPE_LABEL[t],
+                    }))}
+                  />
                 </div>
               </div>
             </li>

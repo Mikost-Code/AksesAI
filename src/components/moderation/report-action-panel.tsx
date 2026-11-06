@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FieldError, FieldHint, Label } from "@/components/ui/field";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   markReportInReview,
@@ -97,18 +98,14 @@ export function ReportActionPanel({
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`action-${reportId}`}>Aksi moderasi</Label>
-        <select
+        <Select
           id={`action-${reportId}`}
+          label="Aksi moderasi"
           value={action}
-          onChange={(e) => setAction(e.target.value as ModerationAction)}
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-        >
-          {ACTIONS.map((a) => (
-            <option key={a.value} value={a.value}>
-              {a.label}
-            </option>
-          ))}
-        </select>
+          onValueChange={(next) => setAction(next as ModerationAction)}
+          className="h-9"
+          options={ACTIONS.map((a) => ({ value: a.value, label: a.label }))}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">

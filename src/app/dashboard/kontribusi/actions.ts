@@ -15,6 +15,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidateDirectory } from "@/lib/cache-tags";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
   contributionFormSchema,
@@ -236,6 +237,9 @@ export async function submitProgram(programId: string): Promise<ActionResult> {
 
   revalidatePath("/dashboard/kontribusi");
   revalidatePath(`/dashboard/kontribusi/${programId}`);
+  // Antrean reviewer membaca cache yang sama dengan direktori — buang tag agar
+  // item langsung muncul di halaman review tanpa menunggu TTL.
+  revalidateDirectory();
   return { ok: true, message: "Kontribusi dikirim untuk ditinjau reviewer." };
 }
 
@@ -252,6 +256,7 @@ export async function withdrawProgram(programId: string): Promise<ActionResult> 
 
   revalidatePath("/dashboard/kontribusi");
   revalidatePath(`/dashboard/kontribusi/${programId}`);
+  revalidateDirectory();
   return { ok: true, message: "Kontribusi ditarik kembali ke draf." };
 }
 

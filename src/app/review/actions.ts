@@ -12,6 +12,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidateDirectory } from "@/lib/cache-tags";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { REVIEW_REASON_MIN } from "@/lib/constants/labels";
@@ -64,6 +65,10 @@ function revalidateReview(id: string) {
   revalidatePath(`/review/${id}`);
   revalidatePath("/dashboard/kontribusi");
   revalidatePath("/info");
+  // `revalidatePath` tidak menyentuh entri `unstable_cache`; tag wajib juga
+  // dibuang agar direktori & profil kontributor langsung mencerminkan status
+  // baru (lihat catatan di lib/cache-tags.ts).
+  revalidateDirectory();
 }
 
 /** Reviewer mengambil item antrean (klaim 30 menit). */
@@ -174,5 +179,6 @@ export async function markExpired(
 
   revalidateReview(parsed.data.programId);
   revalidatePath("/info");
+  revalidateDirectory();
   return { ok: true, message: "Program ditandai kedaluwarsa." };
 }

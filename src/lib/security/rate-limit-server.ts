@@ -14,8 +14,15 @@ import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin
  * Urutan:
  *  1. Upstash Redis (sliding window) — bila dikonfigurasi.
  *  2. RPC Postgres `check_rate_limit` lewat service_role — bila service_role ada.
- *  3. Fail-open terkendali (izinkan, tandai backend "disabled") — agar gangguan
- *     infrastruktur tidak mematikan seluruh situs. Dinasionalkan di log.
+ *  3. Tidak ada backend → FAIL-CLOSED di production.
+ *
+ * Mengapa gagal-tertutup di production: rate limit adalah satu-satunya lapisan
+ * yang menahan penyalahgunaan (spam laporan, submission massal). Bila kita
+ * "fail-open" ketika tidak ada backend, lingkungan production yang salah
+ * konfigurasi justru membuka pintu bagi banjir permintaan, dan kegagalan itu
+ * tidak terlihat (situs tetap normal). Lebih baik permintaan gagal dengan
+ * pesan "coba lagi" dan operator melihat alert di log. Di development /
+ * test diizinkan agar tidak menghambat pekerjaan lokal.
  *
  * Catatan: RPC `check_rate_limit` memakai tabel fallback (lihat migrasi 0002).
  */
@@ -54,12 +61,26 @@ export async function checkRateLimitWithFallback(
     }
   }
 
-  // Tanpa Upstash maupun service_role: jangan blokir pengguna sah.
-  const hasAnyBackend = Boolean(serverEnv().UPSTASH_REDIS_REST_URL);
-  if (!hasAnyBackend && !hasServiceRoleEnv()) {
-    console.warn("[ratelimit] tidak ada backend rate limit; permintaan diizinkan.", {
+  const hasUpstash = Boolean(serverEnv().UPSTASH_REDIS_REST_URL);
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction) {
+    // Tidak ada backend yang dapat memutuskan → tolak, jangan buka pintu.
+    console.error("[ratelimit] TIDAK ADA backend rate limit di production — permintaan DITOLAK.", {
       bucket: bucketPrefix,
+      upstash: hasUpstash,
+      postgres: hasServiceRoleEnv(),
     });
+    return {
+      success: false,
+      remaining: 0,
+      retryAfterSeconds: 60,
+      backend: "disabled",
+    };
   }
+
+  console.warn("[ratelimit] tidak ada backend rate limit (non-production); permintaan diizinkan.", {
+    bucket: bucketPrefix,
+  });
   return { success: true, remaining: 1, retryAfterSeconds: 0, backend: "disabled" };
 }

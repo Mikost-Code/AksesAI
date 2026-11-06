@@ -3,26 +3,30 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { requireServerEnv } from "@/lib/env-server";
+import { parseClientIp } from "@/lib/security/client-ip";
 
 /**
- * Hash IP pelapor: sha256(ip + IP_HASH_SALT).
+ * Hash IP pelapor: sha256(salt + purpose + ip).
  * IP mentah tidak pernah disimpan (docs/SECURITY.md §1).
  * Retensi hash: 90 hari (cron pembersihan).
+ *
+ * `purpose` memisahkan ruang hash per konteks (laporan, umpan balik, rate
+ * limit anonim). Tanpa pemisahan, hash yang sama dapat muncul di dua tabel
+ * dan memungkinkan korelasi silang — dengan pemisahan per-tujuan,
+ * penyimpanan yang sama tidak dapat dihubungkan antar fitur.
  */
-export function hashIpAddress(ip: string): string {
+export function hashIpAddress(ip: string, purpose: string = "default"): string {
   const salt = requireServerEnv("IP_HASH_SALT");
-  return createHash("sha256").update(`${salt}:${ip}`).digest("hex");
+  return createHash("sha256").update(`${salt}:${purpose}:${ip}`).digest("hex");
 }
 
 /**
  * Mengambil IP klien dari header proxy.
- * Vercel menempatkan IP di `x-forwarded-for` (entri pertama) atau `x-real-ip`.
+ *
+ * Logika parsing (dan alasan keamanannya — terutama mengapa entri TERAKHIR
+ * `x-forwarded-for` dipakai, bukan yang pertama) tinggal di
+ * `lib/security/client-ip.ts` agar dapat diuji unit tanpa memuat modul ini.
  */
 export function getClientIp(headers: Headers): string {
-  const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return headers.get("x-real-ip")?.trim() || "0.0.0.0";
+  return parseClientIp(headers);
 }

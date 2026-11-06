@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FieldError, FieldHint, Label } from "@/components/ui/field";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   REPORT_DESCRIPTION_MAX,
@@ -173,7 +174,14 @@ export function ReportDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby="report-dialog-title"
-      className="w-[min(560px,calc(100vw-2rem))] rounded-lg border border-border bg-background p-0 shadow-xl backdrop:bg-black/40"
+      /*
+       * `m-auto` WAJIB: `showModal()` memusatkan dialog lewat `margin: auto`
+       * pada UA stylesheet, tetapi reset Tailwind (`* { margin: 0 }`)
+       * membuangnya sehingga dialog jatuh ke posisi statis (menempel kiri).
+       * `max-h` + `overflow-y-auto` menjaga dialog tetap dapat digulir pada
+       * layar pendek (ponsel landscape, zoom 200%).
+       */
+      className="m-auto max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-border bg-background p-0 shadow-xl backdrop:bg-black/40"
       onClose={onClose}
     >
       <div className="p-5">
@@ -207,19 +215,16 @@ export function ReportDialog({
               <Label htmlFor="report-reason" required>
                 Alasan laporan
               </Label>
-              <select
+              <Select
                 id="report-reason"
+                label="Alasan laporan"
                 value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                className="h-10 rounded-md border border-input bg-background px-2 text-sm"
-                required
-              >
-                {REPORT_REASONS.map((value) => (
-                  <option key={value} value={value}>
-                    {REPORT_REASON_LABEL[value]}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setReason}
+                options={REPORT_REASONS.map((value) => ({
+                  value,
+                  label: REPORT_REASON_LABEL[value],
+                }))}
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">

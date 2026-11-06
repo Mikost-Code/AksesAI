@@ -13,6 +13,11 @@ import { timingSafeEqualString } from "@/lib/security/timing-safe";
  *  - Wajib `CRON_SECRET` (dibandingkan konstanta-waktu).
  *  - Memakai service_role DI SERVER SAJA (tidak pernah ke browser).
  *  - RPC `expire_due_programs` menulis riwayat & audit log.
+ *
+ * Setelah program kedaluwarsa, `notify_ending_promos` (migrasi 0013) mengirim
+ * pengingat untuk promo yang berakhir dalam N hari ke pengguna yang menyimpan
+ * pengingat. Keduanya dijalankan di sini agar pengingat tidak butuh cron
+ * terpisah — satu jadwal harian cukup untuk keduanya.
  */
 
 export const dynamic = "force-dynamic";
@@ -42,7 +47,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "rpc_failed" }, { status: 500 });
     }
     const expired = typeof data === "number" ? data : 0;
-    return NextResponse.json({ ok: true, expired }, { status: 200 });
+
+    // Pengingat promo bersifat tambahan: kegagalannya tidak boleh membuat
+    // seluruh cron (dan proses kedaluwarsa yang sudah berhasil) dianggap gagal.
+    let promoReminders = 0;
+    const { data: reminderData, error: reminderError } = await admin.rpc(
+      "notify_ending_promos",
+    );
+    if (reminderError) {
+      console.error("[cron/expire] notify_ending_promos gagal:", reminderError.message);
+    } else if (typeof reminderData === "number") {
+      promoReminders = reminderData;
+    }
+
+    return NextResponse.json({ ok: true, expired, promoReminders }, { status: 200 });
   } catch (error) {
     console.error(
       "[cron/expire] exception:",

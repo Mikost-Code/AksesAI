@@ -14,13 +14,16 @@ import {
 } from "lucide-react";
 
 import { ReportButton } from "@/components/report/report-button";
+import { PriceHistory } from "@/components/price-history";
 import { ProgramFeedback } from "@/components/program-feedback";
 import { ShareButtons } from "@/components/share-buttons";
 import { SourceList } from "@/components/source-list";
 import { StatusBadge } from "@/components/status-badge";
+import { WatchlistButton } from "@/components/watchlist-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getProgramDetail } from "@/lib/programs/detail";
 import {
   ACCESS_TYPE_LABEL,
@@ -110,7 +113,10 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   const { slug } = await params;
   if (!SLUG_PATTERN.test(slug)) notFound();
 
-  const program = await getProgramDetail(slug);
+  // Status pengingat bersifat per pengguna; `viewerId` hanya dipakai untuk
+  // melapisi hasil cache di `getProgramDetail` (lihat catatan di sana).
+  const viewer = await getCurrentUser();
+  const program = await getProgramDetail(slug, viewer?.id ?? null);
   if (!program) notFound();
 
   const feedback = await fetchFeedbackCounts(program.id);
@@ -296,6 +302,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             <p className="mt-2 text-xs text-muted-foreground">
               Harga dapat berubah kapan saja. Selalu periksa halaman harga resmi provider.
             </p>
+            <PriceHistory history={program.priceHistory} />
           </section>
 
           <section className="mt-8">
@@ -367,6 +374,17 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           <Card className="rounded-xl shadow-[var(--shadow-card)]">
             <CardContent className="flex flex-col gap-5 pt-5">
               <ShareButtons url={pageUrl} title={program.title} />
+              {/* Pengingat hanya relevan bila ada tanggal berakhir promo. */}
+              {program.promoEnd ? (
+                <>
+                  <Separator />
+                  <WatchlistButton
+                    programId={program.id}
+                    initialWatching={program.watching}
+                    isLoggedIn={Boolean(viewer)}
+                  />
+                </>
+              ) : null}
               <Separator />
               <ProgramFeedback
                 programId={program.id}

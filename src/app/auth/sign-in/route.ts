@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { rateLimitUpstash, RATE_LIMITS } from "@/lib/security/rate-limit";
+import { checkRateLimitWithFallback } from "@/lib/security/rate-limit-server";
+import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { getClientIp } from "@/lib/security/ip-hash";
 import { safeInternalPath } from "@/lib/security/safe-redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -26,11 +27,12 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request.headers);
-  const limited = await rateLimitUpstash(
-    { name: "login-callback", ...RATE_LIMITS.loginCallback },
+  const limited = await checkRateLimitWithFallback(
+    "login-callback",
     ip,
+    { name: "login-callback", ...RATE_LIMITS.loginCallback },
   );
-  if (limited && !limited.success) {
+  if (!limited.success) {
     return NextResponse.redirect(new URL("/login?error=auth_failed", siteUrl), 303);
   }
 

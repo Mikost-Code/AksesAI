@@ -4,7 +4,9 @@ import { serverEnv } from "@/lib/env-server";
 import { reportInputSchema } from "@/lib/validation/report";
 import { scanSensitiveText, sensitiveScanUserMessage } from "@/lib/security/sensitive-scan";
 import { hashIpAddress, getClientIp } from "@/lib/security/ip-hash";
-import { rateLimitUpstash, RATE_LIMITS } from "@/lib/security/rate-limit";
+import { RATE_LIMITS } from "@/lib/security/rate-limit";
+import { checkRateLimitWithFallback } from "@/lib/security/rate-limit-server";
+import { isSameOrigin } from "@/lib/security/same-origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createServiceRoleClient, hasServiceRoleEnv } from "@/lib/supabase/admin";
 
@@ -13,19 +15,22 @@ export const runtime = "nodejs";
 /**
  * Verifikasi Turnstile.
  *
- * Turnstile bersifat OPSIONAL: bila `TURNSTILE_SECRET_KEY` tidak diset, laporan
- * tetap diterima (rate limit per-IP & per-program tetap berlaku). Namun di
- * PRODUCTION, ketiadaan secret dicatat sebagai peringatan agar operator sadar
- * bahwa lapisan anti-bot tidak aktif — keputusan ini sengaja tidak memblokir
- * pengguna sungguhan hanya karena konfigurasi belum diisi.
+ * Di PRODUCTION verifikasi ini WAJIB: bila `TURNSTILE_SECRET_KEY` tidak diset,
+ * endpoint menolak semua laporan (fail-closed) — bukan sekadar mencatat
+ * peringatan. Akar masalahnya: laporan anonim ditulis lewat service_role,
+ * sehingga anti-bot adalah satu-satunya lapisan yang menahan banjir laporan
+ * otomatis. Konfigurasi yang lupa diisi tidak boleh diam-diam mematikan
+ * perlindungan. Di luar production Turnstile opsional agar `curl`/skrip lokal
+ * tetap mudah dipakai.
  */
 async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
   const secret = serverEnv().TURNSTILE_SECRET_KEY;
   if (!secret) {
     if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "[reports] TURNSTILE_SECRET_KEY tidak diset di production — verifikasi anti-bot NONAKTIF; rate limit tetap berlaku.",
+      console.error(
+        "[reports] TURNSTILE_SECRET_KEY tidak diset di production — laporan DITOLAK (fail-closed).",
       );
+      return false;
     }
     return true;
   }
@@ -44,26 +49,6 @@ async function verifyTurnstile(token: string | undefined, ip: string): Promise<b
 }
 
 /**
- * Pemeriksaan origin untuk permintaan yang mengubah data (CSRF).
- *
- * Browser selalu mengirim `Origin` pada POST lintas/asal-sama; `SameSite=Lax`
- * pada cookie sesi sudah menahan CSRF, ini lapisan kedua. Bila header tidak ada
- * (klien non-browser/curl), kita TOLAK di production dan izinkan di dev agar
- * `curl`/skrip lokal mudah dipakai.
- */
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) {
-    return process.env.NODE_ENV !== "production";
-  }
-  try {
-    return new URL(origin).host === request.headers.get("host");
-  } catch {
-    return false;
-  }
-}
-
-/**
  * POST /api/reports — laporan publik (login maupun anonim).
  *
  * Alur: origin check → validasi Zod → pemindaian data sensitif → Turnstile →
@@ -71,7 +56,7 @@ function sameOrigin(request: NextRequest): boolean {
  * IP mentah tidak disimpan; hanya hash bergaram.
  */
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) {
+  if (!isSameOrigin(request)) {
     return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 403 });
   }
 
@@ -112,7 +97,9 @@ export async function POST(request: NextRequest) {
 
   let ipHash: string;
   try {
-    ipHash = hashIpAddress(ip);
+    // Purpose terpisah ("report") agar hash tidak dapat dikorelasikan dengan
+    // hash rate limit / konteks lain yang memakai IP yang sama.
+    ipHash = hashIpAddress(ip, "report");
   } catch (error) {
     console.error("[reports] IP_HASH_SALT tidak dikonfigurasi:", error instanceof Error ? error.message : error);
     return NextResponse.json(
@@ -121,22 +108,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const limit = await rateLimitUpstash(
-    { name: "reports-ip", ...RATE_LIMITS.reportsPerIp },
+  // Lewat pembungkus fallback: Upstash → Postgres → fail-closed (production).
+  const limit = await checkRateLimitWithFallback(
+    "reports-ip",
     ipHash,
+    { name: "reports-ip", ...RATE_LIMITS.reportsPerIp },
   );
-  if (limit && !limit.success) {
+  if (!limit.success) {
     return NextResponse.json(
       { error: "Terlalu banyak laporan dari jaringan ini. Coba lagi nanti." },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
 
-  const perProgram = await rateLimitUpstash(
-    { name: "reports-program", ...RATE_LIMITS.reportPerProgramPerIp },
+  const perProgram = await checkRateLimitWithFallback(
+    "reports-program",
     `${ipHash}:${input.programId}`,
+    { name: "reports-program", ...RATE_LIMITS.reportPerProgramPerIp },
   );
-  if (perProgram && !perProgram.success) {
+  if (!perProgram.success) {
     return NextResponse.json(
       { error: "Anda sudah melaporkan informasi ini. Terima kasih." },
       { status: 429 },

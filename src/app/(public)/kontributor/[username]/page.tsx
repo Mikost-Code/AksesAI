@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, CheckCircle2, ExternalLink, FileText } from "lucide-react";
+import { CalendarDays, BadgeCheck, CheckCircle2, ExternalLink, FileText } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
 import { ProgramCard } from "@/components/program-card";
@@ -54,6 +54,17 @@ export default async function ContributorPage({ params }: PageProps) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold">{profile.username}</h1>
+              <Badge
+                variant={profile.badge.key === "baru" ? "neutral" : "success"}
+                title={
+                  profile.badge.nextThreshold
+                    ? `Terverifikasi ${profile.totalVerified} dari ${profile.badge.nextThreshold} untuk jenjang berikutnya`
+                    : "Jenjang tertinggi"
+                }
+              >
+                <BadgeCheck className="size-3.5" aria-hidden="true" />
+                {profile.badge.label}
+              </Badge>
               {profile.url ? (
                 <a
                   href={profile.url}

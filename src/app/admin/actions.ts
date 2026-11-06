@@ -18,6 +18,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidateCategoryCache, revalidateDirectory } from "@/lib/cache-tags";
 import { getCurrentUser, hasRole, isSuperAdmin } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ADMIN_REASON_MIN, type AppRole } from "@/lib/constants/labels";
@@ -91,6 +92,9 @@ function revalidateAdmin() {
   revalidatePath("/review");
   revalidatePath("/moderation/reports");
   revalidatePath("/info");
+  // Tag cache `unstable_cache` (direktori & profil kontributor) tidak ikut
+  // dibuang oleh `revalidatePath` — lihat lib/cache-tags.ts.
+  revalidateDirectory();
 }
 
 // ---------------------------------------------------------------------------
@@ -250,6 +254,7 @@ export async function saveCategory(input: CategoryInput): Promise<AdminResult> {
   revalidatePath("/admin");
   revalidatePath("/info");
   revalidatePath("/kategori/[slug]", "layout");
+  revalidateCategoryCache();
   return {
     ok: true,
     message: data.id ? "Kategori diperbarui." : "Kategori dibuat.",

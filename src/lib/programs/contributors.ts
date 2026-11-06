@@ -4,10 +4,18 @@ import { unstable_cache } from "next/cache";
 
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
+import { TAG_PROFILES } from "@/lib/cache-tags";
 import type { ProgramStatus } from "@/lib/constants/labels";
 import type { ProgramCardData } from "@/components/program-card";
 import { toProgramCard, PUBLIC_PROGRAM_SELECT } from "./queries";
 import type { RawProgramRow } from "./types";
+import { resolveContributorBadge, type ContributorBadge } from "./contributor-badge";
+
+/**
+ * Jenjang kontributor — logika murni tinggal di `./contributor-badge` agar
+ * dapat diuji unit tanpa memuat `server-only` / koneksi database.
+ */
+export type { ContributorBadge, ContributorBadgeKey } from "./contributor-badge";
 
 export type ContributorProfile = {
   username: string;
@@ -18,6 +26,8 @@ export type ContributorProfile = {
   totalContributions: number;
   totalVerified: number;
   programs: ProgramCardData[];
+  /** Jenjang berdasarkan `totalVerified` (lihat `resolveContributorBadge`). */
+  badge: ContributorBadge;
 };
 
 /**
@@ -68,6 +78,7 @@ async function fetchContributor(username: string): Promise<ContributorProfile | 
     totalContributions,
     totalVerified,
     programs: ((programs ?? []) as unknown as RawProgramRow[]).map(toProgramCard),
+    badge: resolveContributorBadge(totalVerified),
   };
 }
 
@@ -75,7 +86,7 @@ export async function getContributor(username: string): Promise<ContributorProfi
   const cached = unstable_cache(
     () => fetchContributor(username),
     ["contributor", username],
-    { revalidate: 300, tags: ["profiles"] },
+    { revalidate: 300, tags: [TAG_PROFILES] },
   );
   return cached();
 }

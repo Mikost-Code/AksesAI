@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   FilePlus2,
   Files,
   Flag,
@@ -34,6 +35,7 @@ export function DashboardNav({
   isAdmin,
   pendingReview = 0,
   openReports = 0,
+  unreadNotifications = 0,
 }: {
   canReview: boolean;
   canModerate: boolean;
@@ -41,6 +43,8 @@ export function DashboardNav({
   /** Jumlah antrean untuk badge (dihitung di layout server). */
   pendingReview?: number;
   openReports?: number;
+  /** Notifikasi belum dibaca (lonceng di item "Notifikasi"). */
+  unreadNotifications?: number;
 }) {
   const pathname = usePathname();
 
@@ -56,6 +60,7 @@ export function DashboardNav({
           icon: FilePlus2,
         },
         { href: "/dashboard/laporan", label: "Laporan saya", icon: Flag },
+        { href: "/dashboard/notifikasi", label: "Notifikasi", icon: Bell },
       ],
     },
   ];
@@ -97,7 +102,9 @@ export function DashboardNav({
                   ? pendingReview
                   : item.href === "/moderation/reports"
                     ? openReports
-                    : 0;
+                    : item.href === "/dashboard/notifikasi"
+                      ? unreadNotifications
+                      : 0;
               return (
                 <Link
                   key={item.href}

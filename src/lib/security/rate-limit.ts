@@ -40,6 +40,7 @@ export const RATE_LIMITS = {
   staffActions: { limit: 60, windowSeconds: 60 },
   contributionsDraft: { limit: 30, windowSeconds: 60 },
   feedbackPerVoter: { limit: 8, windowSeconds: 3600 },
+  sourceClicksPerIp: { limit: 60, windowSeconds: 60 },
 } as const satisfies Record<string, { limit: number; windowSeconds: number }>;
 
 type UpstashCache = {

@@ -11,6 +11,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidateDirectory } from "@/lib/cache-tags";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { reportIdSchema, resolveReportSchema } from "@/lib/validation/staff";
@@ -82,6 +83,9 @@ export async function resolveReport(
   revalidatePath("/moderation/reports");
   revalidatePath("/info");
   revalidatePath("/dashboard/kontribusi");
+  // Aksi resolusi dapat mengarsipkan/mengembalikan program ke antrean —
+  // cache direktori harus ikut dibuang (path saja tidak cukup).
+  revalidateDirectory();
   return { ok: true, message: "Laporan diselesaikan." };
 }
 

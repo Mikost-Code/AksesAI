@@ -4,11 +4,19 @@ import { unstable_cache } from "next/cache";
 
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
+import { TAG_PROGRAMS_PUBLIC } from "@/lib/cache-tags";
 
 /**
  * Data pendukung SEO: sitemap, gambar Open Graph, dan bukti sosial.
  * Semua query memakai client anon (RLS berlaku) dan hanya menyentuh
  * entri berstatus verified/expired.
+ *
+ * Tag cache memakai konstanta `TAG_PROGRAMS_PUBLIC` yang sama dengan direktori.
+ * Sebelumnya modul ini memakai string `"programs-public"` (tanda hubung)
+ * sedangkan direktori memakai `"programs:public"` (titik dua) — aksi yang
+ * merevalidasi satu tag tidak pernah menyegarkan satunya, sehingga sitemap &
+ * kartu OG terus menyajikan data lama. Satu konstanta menghilangkan kelas bug
+ * ini sepenuhnya.
  */
 
 export type PublicProgramPath = {
@@ -37,7 +45,7 @@ export const listPublicProgramPaths = unstable_cache(
     );
   },
   ["seo-program-paths"],
-  { revalidate: 300, tags: ["programs-public"] },
+  { revalidate: 300, tags: [TAG_PROGRAMS_PUBLIC] },
 );
 
 export type ProgramOgData = {
@@ -62,7 +70,7 @@ export const getProgramForOg = unstable_cache(
     return data as ProgramOgData;
   },
   ["seo-program-og"],
-  { revalidate: 300, tags: ["programs-public"] },
+  { revalidate: 300, tags: [TAG_PROGRAMS_PUBLIC] },
 );
 
 export type TopContributor = {
@@ -112,5 +120,5 @@ export const getTopContributors = unstable_cache(
     );
   },
   ["seo-top-contributors"],
-  { revalidate: 300, tags: ["programs-public"] },
+  { revalidate: 300, tags: [TAG_PROGRAMS_PUBLIC] },
 );

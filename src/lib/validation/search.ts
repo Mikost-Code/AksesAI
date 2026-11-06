@@ -45,18 +45,27 @@ export function parseDirectorySearch(
   const parsed = directorySearchSchema.safeParse(raw);
   if (parsed.success) return parsed.data;
 
+  // Hanya buang field yang memang tidak valid; `undefined` membuat Zod memakai
+  // default-nya, bukan mengosongkan filter yang sebenarnya baik. Logika ini
+  // ditulis per-field (tanpa spread `raw`) agar field baru tidak lolos validasi.
   const result = { ...fallback };
   const retry = {
-    ...raw,
+    q: raw.q,
+    kategori: raw.kategori,
     akses: raw.akses && ["semua", ...ACCESS_TYPES].includes(raw.akses as never)
       ? raw.akses
       : undefined,
     gratis: raw.gratis && FREE_TIER_VALUES.includes(raw.gratis) ? raw.gratis : undefined,
-    status: ["verified", "expired", "semua"].includes(raw.status ?? "")
-      ? raw.status
-      : undefined,
-    urut: ["terbaru", "relevansi"].includes(raw.urut ?? "") ? raw.urut : undefined,
-    halaman: Number.isFinite(Number(raw.halaman)) ? raw.halaman : undefined,
+    status:
+      raw.status && ["verified", "expired", "semua"].includes(raw.status)
+        ? raw.status
+        : undefined,
+    urut:
+      raw.urut && ["terbaru", "relevansi"].includes(raw.urut) ? raw.urut : undefined,
+    halaman:
+      raw.halaman !== undefined && Number.isFinite(Number(raw.halaman))
+        ? raw.halaman
+        : undefined,
   };
   const second = directorySearchSchema.safeParse(retry);
   return second.success ? second.data : result;

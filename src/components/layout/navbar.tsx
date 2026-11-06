@@ -86,15 +86,11 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     </Link>
                   )}
                 </div>
-                <a
-                  href="https://github.com/zann06/AksesAI"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 flex items-center gap-2 border-t border-border px-3 pt-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:hidden"
-                >
+                {/* Tidak ada tautan repo: repo proyek bersifat privat. */}
+                <div className="mt-1 flex items-center gap-2 border-t border-border px-3 pt-3 text-sm font-medium text-muted-foreground sm:hidden">
                   <GitHubIcon className="size-4" aria-hidden="true" />
-                  Lihat source di GitHub
-                </a>
+                  Proyek sumber terbuka
+                </div>
               </nav>
             </div>
           </details>

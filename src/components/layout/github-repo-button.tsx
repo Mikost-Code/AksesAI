@@ -1,27 +1,31 @@
-﻿import { Eye, GitFork, Star } from "lucide-react";
-import Link from "next/link";
+﻿import { Star } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { cn } from "@/lib/utils";
 
 /**
- * Badge statistik repo GitHub (star, fork, watch) untuk navbar.
+ * Badge statistik repo GitHub (jumlah bintang) untuk navbar.
+ *
+ * SENGAJA BUKAN TAUTAN — hanya penanda, bukan jalan masuk ke repo. Repo
+ * proyek ini bersifat privat, sehingga tautan ke sana akan berakhir 404 dan
+ * mengundang orang mengira tautannya rusak. Bila kelak repo dipublikasikan
+ * lagi, badge ini bisa dijadikan `<a>` tanpa mengubah bagian lain.
  *
  * Data diambil dari REST API publik GitHub saat render server. Response
  * di-cache oleh Data Cache Next.js (`revalidate` 3600 detik), jadi request
- * berulang tidak memukul API GitHub. Bila API gagal/rate-limited (mis. saat
- * build statis tanpa jaringan), komponen dirender sebagai tautan polos
- * tanpa angka â€” halaman tidak pernah gagal karena badge ini.
+ * berulang tidak memukul API GitHub.
+ *
+ * Bila API gagal/rate-limited ATAU repo privat (GitHub membalas 404), komponen
+ * TIDAK menampilkan angka nol — nol akan terbaca sebagai "repo tidak punya
+ * bintang", padahal artinya "angkanya tidak tersedia". Dalam kondisi itu bagian
+ * statistik dihilangkan dan hanya ikon penanda yang tampil.
  */
 
 const REPO_OWNER = "zann06";
 const REPO_NAME = "AksesAI";
-const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 
 type GithubRepo = {
   stargazers_count?: number;
-  forks_count?: number;
-  subscribers_count?: number;
 };
 
 async function fetchRepoStats(): Promise<GithubRepo | null> {
@@ -42,54 +46,40 @@ function formatCount(n: number): string {
   return String(n);
 }
 
-function Metric({ icon, value, label }: { icon: React.ReactNode; value?: number; label: string }) {
-  if (value === undefined) return null;
-  return (
-    <span
-      className="inline-flex items-center gap-1 tabular-nums"
-      title={`${label}: ${value.toLocaleString("id-ID")}`}
-    >
-      {icon}
-      {formatCount(value)}
-    </span>
-  );
-}
-
+/**
+ * `div`, bukan `span`, karena badge bukan lagi elemen interaktif dan tidak
+ * berada di dalam paragraf/tautan mana pun.
+ */
 export async function GithubRepoButton({ className = "" }: { className?: string }) {
   const repo = await fetchRepoStats();
+  const stars = repo?.stargazers_count;
 
   return (
-    <Link
-      href={REPO_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`Repo GitHub ${REPO_OWNER}/${REPO_NAME} (buka di tab baru)`}
+    <div
+      // `select-none` + kursor normal menegaskan badge ini hanya informasi.
+      aria-label={
+        stars === undefined
+          ? "Proyek sumber terbuka di GitHub"
+          : `Proyek sumber terbuka di GitHub, ${stars.toLocaleString("id-ID")} bintang`
+      }
+      title={
+        stars === undefined
+          ? "Repo GitHub proyek ini tidak tersedia untuk publik"
+          : `${stars.toLocaleString("id-ID")} bintang di GitHub`
+      }
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground",
+        "inline-flex h-8 cursor-default select-none items-center gap-1.5 rounded-md border border-border px-2.5 text-sm font-medium text-muted-foreground",
         className,
       )}
     >
       <GitHubIcon className="size-4 shrink-0" />
       <span className="hidden lg:inline">GitHub</span>
-      {repo ? (
-        <span className="flex items-center gap-2 border-l border-border pl-2 text-xs">
-          <Metric
-            icon={<Star className="size-3.5" aria-hidden="true" />}
-            value={repo.stargazers_count}
-            label="Star"
-          />
-          <Metric
-            icon={<GitFork className="size-3.5" aria-hidden="true" />}
-            value={repo.forks_count}
-            label="Fork"
-          />
-          <Metric
-            icon={<Eye className="size-3.5" aria-hidden="true" />}
-            value={repo.subscribers_count}
-            label="Watcher"
-          />
+      {stars !== undefined ? (
+        <span className="flex items-center gap-2 border-l border-border pl-2 text-xs tabular-nums">
+          <Star className="size-3.5" aria-hidden="true" />
+          {formatCount(stars)}
         </span>
       ) : null}
-    </Link>
+    </div>
   );
 }

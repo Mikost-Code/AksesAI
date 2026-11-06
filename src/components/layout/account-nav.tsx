@@ -1,7 +1,8 @@
-import { Bell, LogIn, LayoutDashboard } from "lucide-react";
+import { Bell, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { GitHubIcon } from "@/components/icons/github-icon";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -25,9 +26,13 @@ export async function AccountNav() {
     return (
       <Link
         href="/login"
+        // Ikon GitHub, bukan ikon panah masuk: satu-satunya cara masuk memang
+        // OAuth GitHub, jadi ikonnya sekaligus memberi tahu apa yang akan
+        // terjadi saat tombol ditekan. Referensi: tombol "Masuk" pada desain
+        // acuan memakai ikon di sisi kiri teks.
         className={buttonVariants({ variant: "default", size: "sm" })}
       >
-        <LogIn className="size-4" aria-hidden="true" />
+        <GitHubIcon className="size-4" aria-hidden="true" />
         Masuk
       </Link>
     );

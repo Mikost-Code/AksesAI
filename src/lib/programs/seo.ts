@@ -122,3 +122,77 @@ export const getTopContributors = unstable_cache(
   ["seo-top-contributors"],
   { revalidate: 300, tags: [TAG_PROGRAMS_PUBLIC] },
 );
+
+export type DirectoryStats = {
+  /** Entri yang masih berlaku. */
+  aktif: number;
+  /** Entri yang promonya sudah lewat / ditandai kedaluwarsa. */
+  kedaluwarsa: number;
+  /** Jumlah kontributor yang punya minimal satu entri terverifikasi. */
+  kontributor: number;
+  /** Jumlah sumber resmi yang tercatat di seluruh entri publik. */
+  sumber: number;
+};
+
+/**
+ * Angka ringkas direktori untuk pita statistik di beranda.
+ *
+ * Mengapa `count` + `head: true` dan bukan mengambil barisnya: yang dibutuhkan
+ * hanya jumlah, dan PostgREST menghitung di server tanpa mengirim data. Untuk
+ * jumlah sumber & kontributor, angkanya hanya bisa didapat dari sisi klien
+ * (`sources` tidak punya agregat), jadi query-nya dibatasi kolom yang sangat
+ * kecil dan dibatasi RLS yang sama.
+ *
+ * Mengembalikan `null` bila DB tidak dikonfigurasi atau query gagal — beranda
+ * lalu menyembunyikan pitanya alih-alih menampilkan angka nol yang menyesatkan
+ * (pelajaran dari badge GitHub: "0" terbaca sebagai fakta, bukan kegagalan).
+ */
+export const getDirectoryStats = unstable_cache(
+  async (): Promise<DirectoryStats | null> => {
+    if (!isSupabaseConfigured()) return null;
+
+    const supabase = createSupabaseAnonClient();
+
+    const [aktif, kedaluwarsa, sumber, kontributor] = await Promise.all([
+      supabase
+        .from("assistance_programs")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "verified"),
+      supabase
+        .from("assistance_programs")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "expired"),
+      // Sumber hanya dihitung untuk entri yang tampil di direktori.
+      supabase
+        .from("sources")
+        .select("id, assistance_programs!inner(status)", {
+          count: "exact",
+          head: true,
+        })
+        .in("assistance_programs.status", ["verified", "expired"]),
+      supabase
+        .from("profiles")
+        .select(
+          "github_username, assistance_programs!assistance_programs_contributor_id_fkey!inner(count)",
+          { count: "exact" },
+        )
+        .eq("assistance_programs.status", "verified")
+        .limit(500),
+    ]);
+
+    const failed = [aktif, kedaluwarsa, sumber, kontributor].find((r) => r.error);
+    if (failed) {
+      console.error("[seo] Statistik direktori gagal:", failed.error?.message);
+      return null;
+    }
+
+    return {
+      aktif: aktif.count ?? 0,
+      kedaluwarsa: kedaluwarsa.count ?? 0,
+      sumber: sumber.count ?? 0,
+      kontributor: kontributor.count ?? 0,
+    };
+  },
+  ["seo-directory-stats"],
+  { revalidate: 300, tags: [TAG_PROGRAMS_PUBLIC] },
+);

@@ -11,10 +11,11 @@ import {
 import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
+import { DirectoryStatsBar } from "@/components/layout/directory-stats-bar";
 import { Input } from "@/components/ui/input";
 import { clientEnv } from "@/lib/env";
 import { APP_NAME, DEFAULT_DISCLAIMER_TEXT } from "@/lib/constants/labels";
-import { getTopContributors } from "@/lib/programs/seo";
+import { getDirectoryStats, getTopContributors } from "@/lib/programs/seo";
 import Image from "next/image";
 
 export const metadata = {
@@ -92,6 +93,7 @@ export default async function HomePage() {
   };
 
   const topContributors = await getTopContributors(3);
+  const stats = await getDirectoryStats();
 
   return (
     <div className="flex flex-col">
@@ -161,21 +163,13 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Tiga pilar kepercayaan */}
-          <ul className="mx-auto mt-12 grid max-w-4xl gap-3 sm:grid-cols-3 animate-stagger">
-            {TRUST_POINTS.map(({ icon: Icon, title, text }) => (
-              <li
-                key={title}
-                className="rounded-xl border border-sand/20 bg-white/10 p-4 text-left shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-elevated)]"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-sand/15 text-sand-bright">
-                  <Icon className="size-4" aria-hidden="true" />
-                </span>
-                <p className="mt-2.5 text-sm font-semibold text-sand-bright">{title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-sand/75">{text}</p>
-              </li>
-            ))}
-          </ul>
+          {/* Pita angka direktori — menggantikan tiga kartu pilar.
+              Satu pita lebih ringkas dan isinya fakta terukur, bukan slogan.
+              Pilar kepercayaan dipindah ke bagian "Cara kerja" di bawah. */}
+          <DirectoryStatsBar
+            stats={stats}
+            className="mx-auto mt-12 max-w-3xl animate-[var(--animate-fade-up)]"
+          />
         </div>
       </section>
 
@@ -280,6 +274,24 @@ export default async function HomePage() {
               );
             })}
           </ol>
+
+          {/* Tiga pilar kepercayaan — dipindah dari hero. Di sini ia melengkapi
+              alur kerja: bukan lagi pemanis di atas lipatan, melainkan prinsip
+              yang menjelaskan mengapa tiap langkah dilakukan begitu. */}
+          <ul className="mx-auto mt-12 grid max-w-4xl gap-3 sm:grid-cols-3">
+            {TRUST_POINTS.map(({ icon: Icon, title, text }) => (
+              <li
+                key={title}
+                className="rounded-xl border border-border bg-background p-4 text-left shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-elevated)]"
+              >
+                <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                  <Icon className="size-4" aria-hidden="true" />
+                </span>
+                <p className="mt-2.5 text-sm font-semibold">{title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{text}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

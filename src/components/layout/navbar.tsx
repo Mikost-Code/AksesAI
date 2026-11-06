@@ -49,7 +49,11 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
           <GithubRepoButton className="hidden sm:inline-flex" />
           <span className="hidden sm:inline-flex">
             {accountSlot ?? (
+              // Fallback bila slot akun tidak diberikan. Ikon GitHub dipakai
+              // agar konsisten dengan <AccountNav /> — satu-satunya cara masuk
+              // adalah OAuth GitHub.
               <Link href="/login" className={buttonVariants({ size: "sm" })}>
+                <GitHubIcon className="size-4" aria-hidden="true" />
                 Masuk
               </Link>
             )}
@@ -82,6 +86,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                         className: "w-full",
                       })}
                     >
+                      <GitHubIcon className="size-4" aria-hidden="true" />
                       Masuk
                     </Link>
                   )}

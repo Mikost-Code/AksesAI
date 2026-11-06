@@ -47,7 +47,16 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
 
         <div className="flex items-center gap-1 justify-self-end sm:gap-2">
           <GithubRepoButton className="hidden sm:inline-flex" />
-          <span className="hidden sm:inline-flex">
+          {/*
+           * Slot akun TIDAK lagi disembunyikan di layar kecil. Sebelumnya
+           * keluarganya `hidden sm:inline-flex` sehingga pengguna login di
+           * ponsel tidak melihat apa pun — tidak ada tanda bahwa ia sudah
+           * masuk, dan tombol Masuk pun tidak ada karena menu seluler hanya
+           * menampilkannya ketika `accountSlot` kosong. Sekarang tombol
+           * Masuk/menu akun selalu tampil; hanya badge GitHub yang turun ke
+           * menu seluler agar bar tetap lega di 360px.
+           */}
+          <div className="flex items-center">
             {accountSlot ?? (
               // Fallback bila slot akun tidak diberikan. Ikon GitHub dipakai
               // agar konsisten dengan <AccountNav /> — satu-satunya cara masuk
@@ -57,7 +66,7 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 Masuk
               </Link>
             )}
-          </span>
+          </div>
           <details className="group/menu md:hidden">
             <summary
               className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md transition-colors hover:bg-surface [&::-webkit-details-marker]:hidden"
@@ -76,25 +85,14 @@ export function Navbar({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     {link.label}
                   </Link>
                 ))}
-                {/* Tautan akun dipindah ke sini di layar kecil agar bar tetap lega. */}
-                <div className="mt-1 border-t border-border pt-2 sm:hidden">
-                  {accountSlot ?? (
-                    <Link
-                      href="/login"
-                      className={buttonVariants({
-                        size: "sm",
-                        className: "w-full",
-                      })}
-                    >
-                      <GitHubIcon className="size-4" aria-hidden="true" />
-                      Masuk
-                    </Link>
-                  )}
-                </div>
-                {/* Tidak ada tautan repo: repo proyek bersifat privat. */}
-                <div className="mt-1 flex items-center gap-2 border-t border-border px-3 pt-3 text-sm font-medium text-muted-foreground sm:hidden">
-                  <GitHubIcon className="size-4" aria-hidden="true" />
-                  Proyek sumber terbuka
+                {/*
+                 * Tautan akun tidak lagi diduplikasi di sini: slot akun sudah
+                 * tampil langsung di bar untuk semua ukuran layar. Yang turun
+                 * ke sini hanya badge GitHub (disembunyikan di bar bawah
+                 * `sm` agar tidak berdesakan dengan logo + tombol akun).
+                 */}
+                <div className="mt-1 border-t border-border pt-3 sm:hidden">
+                  <GithubRepoButton />
                 </div>
               </nav>
             </div>

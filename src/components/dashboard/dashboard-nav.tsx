@@ -26,8 +26,31 @@ type NavItem = {
 };
 
 /**
- * Navigasi dasbor. Item staf hanya dirender bila role dimiliki — ini murni
- * UX; akses sebenarnya tetap ditegakkan di layout area staf + RPC.
+ * Kunci grup navigasi. Dulu grup dibedakan lewat `heading` (teks), sehingga
+ * dua grup yang judulnya sama akan bertabrakan di React.
+ */
+type NavGroup = { key: string; heading: string; items: NavItem[] };
+
+/**
+ * Navigasi dasbor.
+ *
+ * Item staf hanya dirender bila role dimiliki — ini murni UX; akses sebenarnya
+ * tetap ditegakkan di layout area staf + RPC.
+ *
+ * TATA LETAK MOBILE (diperbaiki):
+ * Sebelumnya semua item dirender sebagai satu baris yang bisa digeser
+ * horizontal. Akibatnya di ponsel hanya "Ringkasan / Kontribusi saya /
+ * Bagikan…" yang terlihat, sisanya — termasuk Laporan, Notifikasi, dan seluruh
+ * area staf — tersembunyi di luar layar tanpa petunjuk apa pun bahwa masih ada
+ * menu lagi. Pengguna harus menebak untuk menggeser.
+ *
+ * Sekarang:
+ * - Ponsel  : daftar vertikal penuh, dikelompokkan dengan judul, tanpa geser.
+ * - Tablet  : pita tab horizontal yang membungkus (wrap), jadi semua terlihat.
+ * - Desktop : sidebar tetap seperti sebelumnya.
+ *
+ * Grup "Staf" hanya muncul bila pengguna punya role, sehingga pengguna biasa
+ * tidak melihat blok kosong.
  */
 export function DashboardNav({
   canReview,
@@ -48,8 +71,9 @@ export function DashboardNav({
 }) {
   const pathname = usePathname();
 
-  const groups: Array<{ heading: string; items: NavItem[] }> = [
+  const groups: NavGroup[] = [
     {
+      key: "kontribusi",
       heading: "Kontribusi",
       items: [
         { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard, exact: true },
@@ -68,14 +92,14 @@ export function DashboardNav({
   if (canReview || canModerate || isAdmin) {
     const staff: NavItem[] = [];
     if (canReview) staff.push({ href: "/review", label: "Antrean review", icon: ShieldAlert });
-    if (canModerate) staff.push({ href: "/moderation/reports", label: "Laporan", icon: Flag });
+    if (canModerate) staff.push({ href: "/moderation/reports", label: "Laporan masuk", icon: Flag });
     if (isAdmin) {
-      staff.push({ href: "/admin", label: "Admin", icon: Gauge });
+      staff.push({ href: "/admin", label: "Panel admin", icon: Gauge });
       staff.push({ href: "/admin/pengguna", label: "Pengguna & role", icon: Users });
       staff.push({ href: "/admin/kategori", label: "Kategori", icon: Settings });
       staff.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });
     }
-    groups.push({ heading: "Staf", items: staff });
+    groups.push({ key: "staf", heading: "Staf", items: staff });
   }
 
   // Hanya item paling spesifik yang aktif (lihat resolveActiveHref) —
@@ -85,57 +109,75 @@ export function DashboardNav({
     groups.flatMap((group) => group.items),
   );
 
+  function badgeFor(href: string): number {
+    if (href === "/review") return pendingReview;
+    if (href === "/moderation/reports") return openReports;
+    if (href === "/dashboard/notifikasi") return unreadNotifications;
+    return 0;
+  }
+
   return (
-    <nav aria-label="Navigasi dasbor" className="lg:w-56 lg:shrink-0">
-      <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 lg:flex-col lg:gap-4 lg:overflow-visible lg:p-3">
-        {groups.map((group) => (
-          <div key={group.heading} className="flex gap-1 lg:flex-col lg:gap-1">
-            <p className="hidden px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground lg:block">
-              {group.heading}
-            </p>
+    <nav
+      aria-label="Navigasi dasbor"
+      className="rounded-xl border border-border bg-background lg:w-56 lg:shrink-0 lg:border-0 lg:bg-transparent"
+    >
+      {groups.map((group, index) => (
+        <div
+          key={group.key}
+          className={cn(
+            // Ponsel: blok bertumpuk dengan judul. Desktop: blok sidebar.
+            "p-2 lg:p-0",
+            index > 0 && "border-t border-border lg:mt-4 lg:border-0",
+          )}
+        >
+          <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground lg:px-2 lg:pb-1">
+            {group.heading}
+          </p>
+          <ul
+            className={cn(
+              // Mobile/tablet: grid two-up + wrap sehingga TIDAK ada geser
+              // horizontal. Desktop: tumpuk vertikal.
+              "grid grid-cols-2 gap-1 sm:grid-cols-3 lg:flex lg:flex-col lg:gap-1",
+            )}
+          >
             {group.items.map((item) => {
               const active = item.href === activeHref;
               const Icon = item.icon;
-              // Badge jumlah antrean: hanya untuk item yang relevan & > 0.
-              const badge =
-                item.href === "/review"
-                  ? pendingReview
-                  : item.href === "/moderation/reports"
-                    ? openReports
-                    : item.href === "/dashboard/notifikasi"
-                      ? unreadNotifications
-                      : 0;
+              const badge = badgeFor(item.href);
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex shrink-0 select-none items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150",
-                    // Fokus inset (bukan outline mengambang) agar tidak terlihat
-                    // "kotak dobel" di atas status aktif saat item diklik ulang.
-                    "outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-primary/40",
-                    active
-                      ? "bg-primary-soft text-primary shadow-[var(--shadow-card)]"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <Icon className="size-4 shrink-0" aria-hidden={true} />
-                  {item.label}
-                  {badge > 0 ? (
-                    <span
-                      aria-label={`${badge} menunggu tindakan`}
-                      className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground tabular-nums"
-                    >
-                      {badge}
-                    </span>
-                  ) : null}
-                </Link>
+                <li key={item.href} className="min-w-0">
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex h-full select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150",
+                      // Fokus inset (bukan outline mengambang) agar tidak
+                      // terlihat "kotak dobel" di atas status aktif.
+                      "outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-primary/40",
+                      active
+                        ? "bg-primary-soft text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" aria-hidden={true} />
+                    {/* `min-w-0` + `truncate` mencegah label panjang mendorong
+                        badge keluar sel pada kolom sempit. */}
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    {badge > 0 ? (
+                      <span
+                        aria-label={`${badge} menunggu tindakan`}
+                        className="shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground tabular-nums"
+                      >
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
               );
             })}
-          </div>
-        ))}
-      </div>
+          </ul>
+        </div>
+      ))}
     </nav>
   );
 }

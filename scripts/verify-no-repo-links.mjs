@@ -49,6 +49,18 @@ if (badgeTag && badgeTag !== "div") {
   problems.push(`badge bukan div melainkan <${badgeTag}>`);
 }
 
+// `aria-label` dan `title` JUGA diperiksa: keduanya tidak terlihat di layar
+// tetapi dibacakan pembaca layar dan tampil sebagai tooltip. Iterasi pertama
+// hanya memeriksa teks yang terlihat, sehingga "0 bintang" lolos ke production.
+const hiddenText = await badge
+  .evaluate((el) => [el.getAttribute("aria-label"), el.getAttribute("title"), el.getAttribute("data-tip")])
+  .catch(() => []);
+for (const value of hiddenText) {
+  if (value && /\b0\b/.test(value)) {
+    problems.push(`badge menyebut angka 0 pada atribut tersembunyi: "${value}"`);
+  }
+}
+
 // Teks klaim sumber terbuka + tautan repo di footer.
 const footerText = (await page.locator("footer").innerText()).toLowerCase();
 if (footerText.includes("berlisensi mit")) {

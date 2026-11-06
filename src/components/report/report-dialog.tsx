@@ -220,6 +220,10 @@ export function ReportDialog({
                 label="Alasan laporan"
                 value={reason}
                 onValueChange={setReason}
+                // Render di dalam <dialog>, bukan ke <body>: dialog modal berada
+                // di top layer sehingga apa pun di body (termasuk portal Radix)
+                // selalu tergambar DI BAWAH dialog dan tidak bisa diklik.
+                portal={false}
                 options={REPORT_REASONS.map((value) => ({
                   value,
                   label: REPORT_REASON_LABEL[value],

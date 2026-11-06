@@ -98,6 +98,12 @@
 
   /* Animasi */
   --animate-popover-in: popover-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  /*
+   * Varian TANPA transform. Elemen ber-`transform` dielevasi ke atas modal
+   * `<dialog>` (top layer) sehingga daftar opsi dropdown di dalam dialog
+   * menjadi tidak terlihat. Hanya opacity yang dianimasikan di sini.
+   */
+  --animate-popover-fade-in: popover-fade-in 120ms ease-out;
   --animate-fade-up: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-fade-in: fade-in 400ms ease-out both;
   --animate-page-in: page-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -138,6 +144,15 @@
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popover-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

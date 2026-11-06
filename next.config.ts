@@ -9,13 +9,21 @@ import type { NextConfig } from "next";
  * Compensating controls: tidak ada `dangerouslySetInnerHTML` untuk konten
  * pengguna dan `script-src` dibatasi ke 'self' + domain Turnstile.
  */
+const isDev = process.env.NODE_ENV !== "production";
+
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
       "img-src 'self' https://avatars.githubusercontent.com data: blob:",
-      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+      // `'unsafe-eval'` HANYA di development: React memakai `eval()` untuk
+      // merekonstruksi callstack (Fast Refresh & pesan error). Tanpa ini dev
+      // server mencetak peringatan berulang dan debugging jadi sulit.
+      // Production tetap tanpa `'unsafe-eval'`.
+      isDev
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com"
+        : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",

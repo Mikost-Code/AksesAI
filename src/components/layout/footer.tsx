@@ -61,12 +61,13 @@ export function Footer() {
         <div className="mx-auto max-w-[1200px] px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
           <p>{PLATFORM_DISCLAIMER_SHORT}</p>
           {/*
-           * Tidak ada tautan repo di sini. Repo proyek bersifat privat, jadi
-           * mengklaim "sumber terbuka" sekaligus menautkannya akan menghasilkan
-           * tautan mati. Kredit penulis dipertahankan tanpa janji akses.
+           * Kredit berupa teks biasa, bukan tautan: belum ada URL resmi
+           * organisasi MIKOS yang bisa dipastikan, dan menautkan ke tebakan
+           * akan menghasilkan tautan salah. Tambahkan tautan di sini setelah
+           * alamat resminya diketahui.
            */}
           <p className="mt-2">
-            © {new Date().getFullYear()} {APP_NAME}. Dibuat oleh zann06.
+            © {new Date().getFullYear()} {APP_NAME}. Dibuat oleh organisasi MIKOS.
           </p>
         </div>
       </div>

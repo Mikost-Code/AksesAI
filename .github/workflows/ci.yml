@@ -68,47 +68,73 @@ jobs:
     runs-on: ubuntu-latest
     # Uji ini menyalakan Supabase lokal di runner (butuh Docker, tersedia di
     # ubuntu-latest) sehingga ketergantungan eksternal tidak diperlukan.
+    #
+    # PENTING: folder supabase/ (config.toml + migrasi) sengaja TIDAK ada di
+    # repo publik — dikelola lokal oleh pemilik. Job ini hanya berjalan bila
+    # folder tersedia; bila tidak, job selesai sukses dengan catatan dan uji
+    # RLS/integration/E2E dijalankan lokal oleh pemilik (lihat README
+    # §Testing).
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cek ketersediaan folder supabase
+        id: guard
+        run: |
+          if [ -f supabase/config.toml ] && [ -d supabase/migrations ]; then
+            echo "tersedia=true" >> "$GITHUB_OUTPUT"
+            echo "Folder supabase/ ditemukan — menjalankan uji RLS/integration/E2E."
+          else
+            echo "tersedia=false" >> "$GITHUB_OUTPUT"
+            echo "Folder supabase/ tidak ada di repo publik — uji dilewati."
+          fi
+
       - name: Setup pnpm
+        if: steps.guard.outputs.tersedia == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 10.28.2
 
       - name: Setup Node.js
+        if: steps.guard.outputs.tersedia == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.guard.outputs.tersedia == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Start Supabase local
+        if: steps.guard.outputs.tersedia == 'true'
         run: npx supabase start
         timeout-minutes: 15
 
       - name: Apply migrations & seed
+        if: steps.guard.outputs.tersedia == 'true'
         run: npx supabase db reset
 
       - name: Export local Supabase env
+        if: steps.guard.outputs.tersedia == 'true'
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(npx supabase status -o env | grep -E '^ANON_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
           echo "SUPABASE_SERVICE_ROLE_KEY=$(npx supabase status -o env | grep -E '^SERVICE_ROLE_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
 
       - name: RLS & integration tests
+        if: steps.guard.outputs.tersedia == 'true'
         run: pnpm test:rls
         env:
           CRON_SECRET: ci-cron-secret-at-least-32-characters-long
           IP_HASH_SALT: ci-ip-hash-salt-at-least-16
 
       - name: Install Playwright browsers
+        if: steps.guard.outputs.tersedia == 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E tests
+        if: steps.guard.outputs.tersedia == 'true'
         run: pnpm test:e2e
         env:
           CI: "true"
@@ -127,3 +153,10 @@ jobs:
       - name: Stop Supabase
         if: always()
         run: npx supabase stop --no-backup || true
+
+      - name: Catatan lewati (folder supabase tidak tersedia)
+        if: steps.guard.outputs.tersedia != 'true'
+        run: |
+          echo "✅ Job dilewati dengan sengaja: folder supabase/ (migrasi + config)"
+          echo "   tidak ada di repo publik. Uji RLS/integration/E2E dijalankan"
+          echo "   lokal oleh pemilik proyek (Docker) — lihat README §Testing."

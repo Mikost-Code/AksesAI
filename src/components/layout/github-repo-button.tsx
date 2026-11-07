@@ -1,19 +1,15 @@
-﻿import { Star } from "lucide-react";
+import { Eye, GitFork, Star } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { cn } from "@/lib/utils";
 
 /**
- * Badge statistik repo GitHub (jumlah bintang) untuk navbar.
+ * Badge statistik repo GitHub untuk navbar: bintang, fork, dan watcher —
+ * diambil dari REST API publik GitHub saat render server, di-cache Data
+ * Cache Next.js (`revalidate` 3600 detik) agar tidak menyentuh rate limit.
  *
- * Repo proyek ini publik, jadi badge menjadi tautan ke repo — kecuali API
- * GitHub gagal (rate limit/offline). Dalam kondisi itu badge dirender sebagai
- * elemen statis: menautkan ke repo tetap boleh, tetapi menampilkan angka nol
- * lalu mengarahkan orang ke halaman yang mungkin tidak bisa dibuka lebih buruk
- * daripada sekadar tidak menampilkan angka.
- *
- * Angka diambil dari REST API publik GitHub saat render server dan di-cache
- * Data Cache Next.js (`revalidate` 3600 detik).
+ * Bila API gagal (rate limit/offline), badge dirender sebagai tautan polos
+ * tanpa angka — lebih jujur daripada menampilkan nol palsu.
  */
 
 const REPO_OWNER = "zann06";
@@ -22,6 +18,8 @@ const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 
 type GithubRepo = {
   stargazers_count?: number;
+  forks_count?: number;
+  subscribers_count?: number;
 };
 
 async function fetchRepoStats(): Promise<GithubRepo | null> {
@@ -45,53 +43,45 @@ function formatCount(n: number): string {
 export async function GithubRepoButton({ className = "" }: { className?: string }) {
   const repo = await fetchRepoStats();
 
-  // Angka 0 diperlakukan sama dengan "tidak tersedia". Repo baru yang benar-
-  // benar belum punya bintang tetap terwakili oleh tidak adanya angka —
-  // menampilkan "0" hanya menambah kebisingan tanpa memberi informasi.
-  const stars = repo?.stargazers_count;
-  const showStars = typeof stars === "number" && stars > 0;
+  const stats = repo
+    ? [
+        { icon: Star, label: "bintang", value: repo.stargazers_count ?? 0 },
+        { icon: GitFork, label: "fork", value: repo.forks_count ?? 0 },
+        { icon: Eye, label: "watcher", value: repo.subscribers_count ?? 0 },
+      ]
+    : null;
 
   const base =
     "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm font-medium text-muted-foreground";
 
-  const inner = (
-    <>
-      <GitHubIcon className="size-4 shrink-0" />
-      <span className="hidden lg:inline">GitHub</span>
-      {showStars ? (
-        <span className="flex items-center gap-1 border-l border-border pl-2 text-xs tabular-nums">
-          <Star className="size-3.5" aria-hidden="true" />
-          {formatCount(stars)}
+  const statsMarkup = stats ? (
+    <span className="flex items-center gap-2.5 border-l border-border pl-2.5 text-xs tabular-nums">
+      {stats.map(({ icon: Icon, label, value }) => (
+        <span key={label} className="flex items-center gap-1" title={`${value.toLocaleString("id-ID")} ${label}`}>
+          <Icon className="size-3.5" aria-hidden="true" />
+          {formatCount(value)}
+          <span className="sr-only">{label}</span>
         </span>
-      ) : null}
-    </>
-  );
+      ))}
+    </span>
+  ) : null;
 
-  if (!showStars) {
-    // API gagal: badge tetap boleh ditautkan, tetapi tanpa angka.
-    return (
-      <a
-        href={REPO_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Repo GitHub ${REPO_OWNER}/${REPO_NAME} (buka di tab baru)`}
-        className={cn(base, "hover:bg-surface hover:text-foreground", className)}
-      >
-        {inner}
-      </a>
-    );
-  }
+  const summary = repo
+    ? `${repo.stargazers_count ?? 0} bintang, ${repo.forks_count ?? 0} fork, ${repo.subscribers_count ?? 0} watcher`
+    : "buka di tab baru";
 
   return (
     <a
       href={REPO_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`Repo GitHub ${REPO_OWNER}/${REPO_NAME}, ${stars.toLocaleString("id-ID")} bintang (buka di tab baru)`}
-      title={`${stars.toLocaleString("id-ID")} bintang di GitHub — bantu tambah satu`}
-      className={cn(base, "hover:bg-surface hover:text-foreground", className)}
+      aria-label={`Repo GitHub ${REPO_OWNER}/${REPO_NAME} — ${summary}`}
+      title={`${summary} — buka di tab baru`}
+      className={cn(base, "transition-colors hover:bg-surface hover:text-foreground", className)}
     >
-      {inner}
+      <GitHubIcon className="size-4 shrink-0" />
+      <span className="hidden lg:inline">GitHub</span>
+      {statsMarkup}
     </a>
   );
 }

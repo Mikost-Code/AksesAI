@@ -1,5 +1,7 @@
 # AksesAI
 
+[![CI](https://github.com/zann06/AksesAI/actions/workflows/ci.yml/badge.svg)](https://github.com/zann06/AksesAI/actions/workflows/ci.yml)
+
 Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/token gratis dari provider, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis. Setiap info memiliki sumber yang dapat diperiksa, kontributor yang transparan, dan diverifikasi manual oleh manusia.
 
 > **AksesAI bukan afiliasi provider AI mana pun, tidak menjual token, dan tidak menjamin kuota gratis/harga masih tersedia.** Status _Verified_ berarti info telah diperiksa reviewer terhadap dokumentasi atau halaman resmi provider pada saat peninjauan — kuota, harga, dan promo dapat berubah sewaktu-waktu.
@@ -262,6 +264,8 @@ pnpm test:e2e
 ```
 
 **Catatan E2E:** login memakai GitHub OAuth yang tidak dapat diotomasi secara lokal. Uji E2E membuat pengguna sungguhan lewat `service_role` di sisi server, lalu menanamkan cookie sesi `@supabase/ssr` ke konteks browser Playwright. Lihat `e2e/helpers.ts`.
+
+**Catatan CI:** job CI *RLS, integration & E2E* menyalakan Supabase lokal di runner, yang membutuhkan `supabase/config.toml` + migrasi — folder yang sengaja tidak ada di repo publik. Karena itu job tersebut **dilewati dengan sengaja** pada CI (tetap hijau, dengan catatan di log) dan dijalankan **lokal oleh pemilik** (Docker) sebelum merge yang menyentuh skema/RPC. Job CI *Lint, typecheck, unit test, build* tetap berjalan penuh.
 
 Untuk menargetkan server yang sudah berjalan:
 

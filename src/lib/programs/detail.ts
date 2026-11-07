@@ -60,6 +60,7 @@ export type ProgramDetail = {
   rateLimitRpm: number | null;
   contextWindow: number | null;
   requirements: string | null;
+  integrationNotes: string | null;
   promoStart: string | null;
   promoEnd: string | null;
   status: ProgramStatus;
@@ -89,6 +90,7 @@ type RawDetail = {
   rate_limit_rpm: number | null;
   context_window: number | null;
   requirements: string | null;
+  integration_notes: string | null;
   promo_start: string | null;
   promo_end: string | null;
   status: ProgramStatus;
@@ -132,7 +134,7 @@ async function fetchProgramDetail(
     .select(
       `id, slug, title, description, access_type, provider, free_tier,
        free_tier_available, requires_card, price_input_per_mtok, price_output_per_mtok,
-       rate_limit_rpm, context_window, requirements, promo_start, promo_end,
+       rate_limit_rpm, context_window, requirements, integration_notes, promo_start, promo_end,
        status, verified_at,
        categories(name, slug),
        contributor:profiles!assistance_programs_contributor_id_fkey(github_username, github_avatar, github_url, bio),
@@ -178,6 +180,7 @@ async function fetchProgramDetail(
     rateLimitRpm: data.rate_limit_rpm,
     contextWindow: data.context_window,
     requirements: data.requirements,
+    integrationNotes: data.integration_notes,
     promoStart: data.promo_start,
     promoEnd: data.promo_end,
     status: data.status,

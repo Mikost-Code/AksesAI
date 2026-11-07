@@ -75,6 +75,15 @@ export default async function ReviewDetailPage({
             </section>
           ) : null}
 
+          {detail.integrationNotes ? (
+            <section className="rounded-lg border border-border bg-background p-5">
+              <h2 className="text-base font-semibold">Cara menghubungkan</h2>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-lg bg-surface p-3 font-mono text-xs leading-relaxed">
+                {detail.integrationNotes}
+              </pre>
+            </section>
+          ) : null}
+
           <section className="rounded-lg border border-border bg-background p-5">
             <h2 className="text-base font-semibold">Info penawaran</h2>
             <dl className="mt-2 grid gap-4 sm:grid-cols-2">

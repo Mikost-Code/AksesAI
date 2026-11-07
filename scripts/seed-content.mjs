@@ -600,6 +600,7 @@ for (const entry of ENTRIES) {
     // `region` adalah generated column — tidak boleh diisi manual.
     organizer: entry.provider,
     requirements: entry.requirements ?? null,
+    integration_notes: entry.integrationNotes ?? null,
     published_at: today,
     start_date: null,
     end_date: null,

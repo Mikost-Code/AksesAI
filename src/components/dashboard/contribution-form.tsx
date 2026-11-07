@@ -37,6 +37,7 @@ export type ContributionFormValues = {
   rateLimitRpm: string;
   contextWindow: string;
   requirements: string;
+  integrationNotes: string;
   promoStart: string;
   promoEnd: string;
   contributorNote: string;
@@ -64,6 +65,7 @@ export const EMPTY_CONTRIBUTION: ContributionFormValues = {
   rateLimitRpm: "",
   contextWindow: "",
   requirements: "",
+  integrationNotes: "",
   promoStart: "",
   promoEnd: "",
   contributorNote: "",
@@ -85,6 +87,7 @@ function toRaw(values: ContributionFormValues) {
     rateLimitRpm: values.rateLimitRpm || null,
     contextWindow: values.contextWindow || null,
     requirements: values.requirements || undefined,
+    integrationNotes: values.integrationNotes || undefined,
     promoStart: values.promoStart || null,
     promoEnd: values.promoEnd || null,
     contributorNote: values.contributorNote || undefined,
@@ -368,6 +371,29 @@ export function ContributionForm({
             Opsional. Maksimal {L.requirementsMax} karakter.
           </FieldHint>
           <FieldError id="requirements-error" message={fieldErrors.requirements} />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="integrationNotes">Catatan integrasi (untuk entri API)</Label>
+          <Textarea
+            id="integrationNotes"
+            value={values.integrationNotes}
+            onChange={(e) => set("integrationNotes", e.target.value)}
+            maxLength={L.integrationNotesMax}
+            rows={4}
+            className="font-mono text-xs"
+            aria-invalid={Boolean(fieldErrors.integrationNotes)}
+            aria-describedby="integration-notes-hint integration-notes-error"
+            placeholder={
+              "Mis.:\nBase URL: https://api.contoh.com/openai (OpenAI-compatible)\nModel: Contoh-2.5\nCatatan: rate limit 60 req/menit, key dibuat di dashboard"
+            }
+          />
+          <FieldHint id="integration-notes-hint">
+            Opsional — khusus entri berupa API/tool yang perlu cara koneksi:
+            base URL, model ID, dan protokol. JANGAN tempel API key asli di sini.
+            Maksimal {L.integrationNotesMax} karakter.
+          </FieldHint>
+          <FieldError id="integration-notes-error" message={fieldErrors.integrationNotes} />
         </div>
       </section>
 

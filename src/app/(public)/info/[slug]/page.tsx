@@ -321,6 +321,19 @@ export default async function ProgramDetailPage({ params }: PageProps) {
             </p>
           </section>
 
+          {program.integrationNotes?.trim() ? (
+            <section className="mt-8">
+              <h2 className="text-xl font-semibold tracking-tight">Cara menghubungkan</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Petunjuk koneksi dari kontributor untuk developer. Jangan pernah
+                menempelkan API key asli di tempat publik.
+              </p>
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap rounded-xl border border-border bg-surface p-4 font-mono text-xs leading-relaxed">
+                {program.integrationNotes}
+              </pre>
+            </section>
+          ) : null}
+
           <section className="mt-8">
             <h2 className="text-xl font-semibold tracking-tight">Sumber informasi</h2>
             <p className="mt-1 text-sm text-muted-foreground">

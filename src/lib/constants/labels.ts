@@ -201,6 +201,7 @@ export const CONTRIBUTION_LIMITS = {
   providerMax: 150,
   freeTierMax: 500,
   requirementsMax: 1500,
+  integrationNotesMax: 2000,
   noteMax: 1000,
   categoryNoteMax: 500,
   sourcesMin: 1,

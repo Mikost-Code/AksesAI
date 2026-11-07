@@ -102,6 +102,7 @@ export default async function EditContributionPage({
             rateLimitRpm: program.rateLimitRpm?.toString() ?? "",
             contextWindow: program.contextWindow?.toString() ?? "",
             requirements: program.requirements ?? "",
+            integrationNotes: program.integrationNotes ?? "",
             promoStart: program.promoStart ?? "",
             promoEnd: program.promoEnd ?? "",
             contributorNote: program.contributorNote ?? "",

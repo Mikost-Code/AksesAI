@@ -104,6 +104,7 @@ export type EditableProgram = {
   rateLimitRpm: number | null;
   contextWindow: number | null;
   requirements: string | null;
+  integrationNotes: string | null;
   promoStart: string | null;
   promoEnd: string | null;
   contributorNote: string | null;
@@ -133,6 +134,7 @@ type RawEditable = {
   rate_limit_rpm: number | null;
   context_window: number | null;
   requirements: string | null;
+  integration_notes: string | null;
   promo_start: string | null;
   promo_end: string | null;
   contributor_note: string | null;
@@ -159,7 +161,7 @@ export async function getEditableProgram(
       `id, slug, status, contributor_id, title, description, category_id,
        access_type, provider, free_tier, free_tier_available, requires_card,
        price_input_per_mtok, price_output_per_mtok, rate_limit_rpm, context_window,
-       requirements, promo_start, promo_end, contributor_note,
+       requirements, integration_notes, promo_start, promo_end, contributor_note,
        sources(source_url, source_title, source_type, is_primary)`,
     )
     .eq("id", id)
@@ -195,6 +197,7 @@ export async function getEditableProgram(
     rateLimitRpm: data.rate_limit_rpm,
     contextWindow: data.context_window,
     requirements: data.requirements,
+    integrationNotes: data.integration_notes,
     promoStart: data.promo_start,
     promoEnd: data.promo_end,
     contributorNote: data.contributor_note,

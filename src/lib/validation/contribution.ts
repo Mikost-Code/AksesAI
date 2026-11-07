@@ -161,6 +161,10 @@ export const contributionFormSchema = z
     rateLimitRpm: optionalNumber(1_000_000, "Rate limit (RPM)", { integer: true }),
     contextWindow: optionalNumber(100_000_000, "Ukuran konteks", { integer: true }),
     requirements: optionalMultiLine(L.requirementsMax, "Persyaratan"),
+    integrationNotes: optionalMultiLine(
+      L.integrationNotesMax,
+      "Catatan integrasi",
+    ),
     promoStart: isoDate,
     promoEnd: isoDate,
     contributorNote: optionalMultiLine(L.noteMax, "Catatan untuk reviewer"),
@@ -268,6 +272,7 @@ export function contributionScanFields(
     { name: "provider", value: value.provider },
     { name: "freeTier", value: value.freeTier },
     { name: "requirements", value: value.requirements },
+    { name: "integrationNotes", value: value.integrationNotes },
     { name: "contributorNote", value: value.contributorNote },
     ...value.sources.map((s, i) => ({
       name: `sources[${i}].title`,

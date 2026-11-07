@@ -118,6 +118,7 @@ export async function saveDraft(
     rate_limit_rpm: input.rateLimitRpm,
     context_window: input.contextWindow,
     requirements: input.requirements,
+    integration_notes: input.integrationNotes,
     promo_start: input.promoStart,
     promo_end: input.promoEnd,
     contributor_note: input.contributorNote,

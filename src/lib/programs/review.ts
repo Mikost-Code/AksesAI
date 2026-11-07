@@ -158,6 +158,7 @@ export type ReviewDetail = {
   rateLimitRpm: number | null;
   contextWindow: number | null;
   requirements: string | null;
+  integrationNotes: string | null;
   promoStart: string | null;
   promoEnd: string | null;
   contributorNote: string | null;
@@ -197,6 +198,7 @@ type RawDetail = {
   rate_limit_rpm: number | null;
   context_window: number | null;
   requirements: string | null;
+  integration_notes: string | null;
   promo_start: string | null;
   promo_end: string | null;
   contributor_note: string | null;
@@ -224,7 +226,7 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
     .select(
       `id, slug, title, description, provider, access_type, free_tier, free_tier_available,
        requires_card, price_input_per_mtok, price_output_per_mtok, rate_limit_rpm,
-       context_window, requirements, promo_start, promo_end, contributor_note, status,
+       context_window, requirements, integration_notes, promo_start, promo_end, contributor_note, status,
        review_note, contributor_id, created_at, claimed_by, claimed_at,
        categories(name), profiles!contributor_id(github_username),
        sources(source_url, source_title, source_type, is_primary)`,
@@ -264,6 +266,7 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
     rateLimitRpm: data.rate_limit_rpm,
     contextWindow: data.context_window,
     requirements: data.requirements,
+    integrationNotes: data.integration_notes,
     promoStart: data.promo_start,
     promoEnd: data.promo_end,
     contributorNote: data.contributor_note,

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { buttonVariants } from "@/components/ui/button";
-import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
+import { getCurrentUser, hasAnyRole, isSuperAdmin } from "@/lib/auth/session";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 
 /**
@@ -45,6 +45,7 @@ export async function AccountNav() {
       user={{
         githubUsername: user.githubUsername,
         avatarUrl: user.avatarUrl,
+        isSuperAdmin: isSuperAdmin(user),
         isAdmin: hasAnyRole(user, ["admin"]),
         isModerator: hasAnyRole(user, ["moderator"]),
         isReviewer: hasAnyRole(user, ["reviewer"]),

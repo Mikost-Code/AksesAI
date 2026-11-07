@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 export type AccountMenuUser = {
   githubUsername: string;
   avatarUrl: string | null;
+  isSuperAdmin: boolean;
   isAdmin: boolean;
   isModerator: boolean;
   isReviewer: boolean;
@@ -148,7 +149,11 @@ export function AccountMenu({
   // (Pengguna & role, Kategori, Audit log) diletakkan di sub-grup "Pengaturan"
   // agar mata langsung menemukan tiga aksi utama.
   const staf: MenuItem[] = [];
-  if (user.isReviewer) {
+  // Super admin selalu melihat antrean review, bahkan bila role `reviewer`
+  // tidak tercatat eksplisit — ia memang mewarisi semua akses staf. Tanpa ini
+  // menu akun pemilik tampak tidak punya jalan ke antrean padahal halamannya
+  // bisa dibuka.
+  if (user.isReviewer || user.isSuperAdmin) {
     staf.push({ href: "/review", label: "Antrean review", icon: ShieldAlert });
   }
   if (user.isModerator) {
@@ -165,13 +170,15 @@ export function AccountMenu({
     stafPengaturan.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });
   }
 
-  const roleLabel = user.isAdmin
-    ? "Admin"
-    : user.isModerator
-      ? "Moderator"
-      : user.isReviewer
-        ? "Reviewer"
-        : "Kontributor";
+  const roleLabel = user.isSuperAdmin
+    ? "Super Admin"
+    : user.isAdmin
+      ? "Admin"
+      : user.isModerator
+        ? "Moderator"
+        : user.isReviewer
+          ? "Reviewer"
+          : "Kontributor";
 
   const initial = user.githubUsername.slice(0, 1).toUpperCase();
 
@@ -269,7 +276,14 @@ export function AccountMenu({
             )}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user.githubUsername}</p>
-              <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                {roleLabel}
+                {user.isSuperAdmin ? (
+                  <span className="rounded-full bg-violet-soft px-1.5 py-0.5 text-[10px] font-semibold leading-none text-violet">
+                    Pemilik
+                  </span>
+                ) : null}
+              </p>
             </div>
           </div>
 

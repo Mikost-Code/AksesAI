@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { clientEnv, isSupabaseConfigured } from "@/lib/env";
-import { safeInternalPath } from "@/lib/security/safe-redirect";
+import { safeInternalPath, resolveAuthOrigin } from "@/lib/security/safe-redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -16,8 +16,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  * - mengembalikan pengguna ke tujuan semula.
  */
 export async function GET(request: NextRequest) {
-  const siteUrl = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   const url = new URL(request.url);
+  const siteUrl = resolveAuthOrigin(url, clientEnv().NEXT_PUBLIC_SITE_URL);
 
   if (!isSupabaseConfigured()) {
     return NextResponse.redirect(new URL("/login?reason=unconfigured", siteUrl));

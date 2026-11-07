@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   ChevronDown,
+  Compass,
   FilePlus2,
   Files,
   Flag,
@@ -36,7 +37,20 @@ type MenuItem = {
   label: string;
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   badge?: number;
+  /**
+   * `true` bila item ini harus dianggap aktif ketika path saat ini SAMA PERSIS
+   * atau merupakan turunannya (`/dashboard/kontribusi/abc` cocok dengan
+   * `/dashboard/kontribusi`). `false` untuk rute yang bersarang di rute lain
+   * tetapi bukan turunannya secara menu — lihat "Bagikan informasi".
+   */
+  nested?: boolean;
 };
+
+/** Apakah `href` adalah halaman yang sedang dibuka? */
+function isActivePath(pathname: string, href: string, nested = true) {
+  if (pathname === href) return true;
+  return nested && pathname.startsWith(`${href}/`);
+}
 
 /**
  * Menu akun (dropdown) untuk navbar.
@@ -64,6 +78,7 @@ export function AccountMenu({
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Tutup saat rute berubah — tanpa ini panel tetap terbuka menutupi halaman
   // baru setelah pengguna memilih salah satu tautan.
@@ -106,7 +121,14 @@ export function AccountMenu({
   const utama: MenuItem[] = [
     { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard },
     { href: "/dashboard/kontribusi", label: "Kontribusi saya", icon: Files },
-    { href: "/dashboard/kontribusi/baru", label: "Bagikan informasi", icon: FilePlus2 },
+    {
+      href: "/dashboard/kontribusi/baru",
+      label: "Bagikan informasi",
+      icon: FilePlus2,
+      // Berada di bawah /dashboard/kontribusi secara URL, tetapi secara menu
+      // adalah tujuan tersendiri — jangan ikut tersorot saat daftar dibuka.
+      nested: false,
+    },
     { href: "/dashboard/laporan", label: "Laporan saya", icon: Flag },
     {
       href: "/dashboard/notifikasi",
@@ -118,6 +140,13 @@ export function AccountMenu({
 
   // Item staf hanya dirender bila role dimiliki. Ini murni UX — penegakan
   // akses sebenarnya ada di layout area staf dan RPC masing-masing.
+  //
+  // Admin mendapat 4 item (Antrean review, Laporan masuk, Panel admin,
+  // Pengguna & role, Kategori, Audit log). Enam baris + 5 item utama + 3 item
+  // bawah = panel setinggi ~570px yang pada laptop 13" menutupi seluruh layar.
+  // Karena itu item yang jarang dipakai saat mengerjakan tugas harian
+  // (Pengguna & role, Kategori, Audit log) diletakkan di sub-grup "Pengaturan"
+  // agar mata langsung menemukan tiga aksi utama.
   const staf: MenuItem[] = [];
   if (user.isReviewer) {
     staf.push({ href: "/review", label: "Antrean review", icon: ShieldAlert });
@@ -127,9 +156,13 @@ export function AccountMenu({
   }
   if (user.isAdmin) {
     staf.push({ href: "/admin", label: "Panel admin", icon: Gauge });
-    staf.push({ href: "/admin/pengguna", label: "Pengguna & role", icon: Users });
-    staf.push({ href: "/admin/kategori", label: "Kategori", icon: Settings });
-    staf.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });
+  }
+
+  const stafPengaturan: MenuItem[] = [];
+  if (user.isAdmin) {
+    stafPengaturan.push({ href: "/admin/pengguna", label: "Pengguna & role", icon: Users });
+    stafPengaturan.push({ href: "/admin/kategori", label: "Kategori", icon: Settings });
+    stafPengaturan.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });
   }
 
   const roleLabel = user.isAdmin
@@ -144,13 +177,19 @@ export function AccountMenu({
 
   function renderItem(item: MenuItem) {
     const Icon = item.icon;
+    const active = isActivePath(pathname, item.href, item.nested ?? true);
     return (
       <Link
         key={item.href}
         href={item.href}
         role="menuitem"
         onClick={closeMenu}
-        className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm outline-none transition-colors",
+          "hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground",
+          active ? "bg-primary-soft font-medium text-primary" : "text-muted-foreground",
+        )}
       >
         <Icon className="size-4 shrink-0" aria-hidden={true} />
         <span className="flex-1 truncate">{item.label}</span>
@@ -210,7 +249,7 @@ export function AccountMenu({
           id="account-menu-panel"
           role="menu"
           aria-label="Menu akun"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 origin-top-right rounded-xl border border-border bg-background p-1.5 shadow-[var(--shadow-elevated)] animate-[var(--animate-menu-in)]"
+          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 max-h-[calc(100dvh-6rem)] w-64 origin-top-right overflow-y-auto overscroll-contain rounded-xl border border-border bg-background p-1.5 shadow-[var(--shadow-elevated)] animate-[var(--animate-menu-in)]"
         >
           {/* Identitas: nama + peran. Peran dibaca dari database, bukan klaim klien. */}
           <div className="flex items-center gap-2.5 border-b border-border px-2.5 pb-2.5 pt-1.5">
@@ -236,6 +275,26 @@ export function AccountMenu({
 
           <div className="py-1">{utama.map(renderItem)}</div>
 
+          {/* Jalan pulang. Tanpa ini pengguna yang sedang di dasbor atau area
+              staf tidak punya tautan eksplisit kembali ke direktori publik —
+              satu-satunya cara adalah menebak lewat logo. Diletakkan langsung
+              setelah menu utama, bukan di grup bawah bersama "Keluar", supaya
+              terbaca sebagai tujuan navigasi, bukan aksi keluar. */}
+          <div className="border-t border-border py-1">
+            <Link
+              href="/info"
+              role="menuitem"
+              onClick={closeMenu}
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
+            >
+              <Compass className="size-4 shrink-0" aria-hidden={true} />
+              <span className="flex-1 truncate">Jelajahi direktori</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                Publik
+              </span>
+            </Link>
+          </div>
+
           {staf.length > 0 ? (
             <>
               <div className="border-t border-border" />
@@ -243,6 +302,16 @@ export function AccountMenu({
                 Area staf
               </p>
               <div className="pb-1">{staf.map(renderItem)}</div>
+            </>
+          ) : null}
+
+          {stafPengaturan.length > 0 ? (
+            <>
+              <div className="border-t border-border" />
+              <p className="px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Pengaturan
+              </p>
+              <div className="pb-1">{stafPengaturan.map(renderItem)}</div>
             </>
           ) : null}
 

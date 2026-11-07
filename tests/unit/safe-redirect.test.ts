@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_AFTER_LOGIN, safeInternalPath } from "@/lib/security/safe-redirect";
+import {
+  DEFAULT_AFTER_LOGIN,
+  resolveAuthOrigin,
+  safeInternalPath,
+} from "@/lib/security/safe-redirect";
 
 describe("safeInternalPath", () => {
   it("meloloskan path internal biasa", () => {
@@ -56,5 +60,54 @@ describe("safeInternalPath", () => {
       expect(out.startsWith("/")).toBe(true);
       expect(out.startsWith("//")).toBe(false);
     }
+  });
+});
+
+describe("resolveAuthOrigin", () => {
+  // Kasus nyata yang memicu fungsi ini: `NEXT_PUBLIC_SITE_URL` menunjuk
+  // localhost:3000, sementara server uji berjalan di port 3117. Callback
+  // mengirim pengguna ke port yang tidak menjalankan apa pun sehingga login
+  // tampak gagal padahal sesinya sudah terbentuk.
+  it("memakai origin request saat host sama walau port berbeda", () => {
+    expect(
+      resolveAuthOrigin(
+        new URL("http://localhost:3117/auth/callback"),
+        "http://localhost:3000",
+      ),
+    ).toBe("http://localhost:3117");
+  });
+
+  it("menerima subdomain sebagai satu situs (domain pratinjau)", () => {
+    expect(
+      resolveAuthOrigin(
+        new URL("https://aksesai-id-git-fitur.vercel.app/auth/callback"),
+        "https://vercel.app",
+      ),
+    ).toBe("https://aksesai-id-git-fitur.vercel.app");
+  });
+
+  it("menolak Host palsu dan kembali ke SITE_URL", () => {
+    // Header Host dipalsukan ke domain penyerang: jangan pernah dipakai.
+    expect(
+      resolveAuthOrigin(
+        new URL("https://evil.example/auth/callback"),
+        "https://aksesai-id.vercel.app",
+      ),
+    ).toBe("https://aksesai-id.vercel.app");
+  });
+
+  it("tidak tertipu domain yang hanya berakhiran sama", () => {
+    expect(
+      resolveAuthOrigin(
+        new URL("https://evil-aksesai-id.vercel.app/auth/callback"),
+        "https://aksesai-id.vercel.app",
+      ),
+    ).toBe("https://aksesai-id.vercel.app");
+  });
+
+  it("jatuh ke origin request bila SITE_URL tidak valid", () => {
+    expect(
+      resolveAuthOrigin(new URL("http://localhost:3117/auth/callback"), "bukan-url"),
+    ).toBe("http://localhost:3117");
   });
 });

@@ -61,3 +61,40 @@ export function safeInternalPath(
     return DEFAULT_AFTER_LOGIN;
   }
 }
+
+/**
+ * Origin untuk redirect setelah login.
+ *
+ * `NEXT_PUBLIC_SITE_URL` adalah sumber utama. Tetapi memakainya secara buta
+ * punya satu cacat nyata: bila aplikasi diakses lewat host/port lain yang sah
+ * (pratinjau Vercel, `next start -p 3117`, alamat IP di jaringan lokal),
+ * pengguna dikirim ke origin yang ditulis di env — pada pengembangan itu
+ * `http://localhost:3000`, yang bisa saja tidak menjalankan apa pun. Hasilnya
+ * login tampak gagal padahal sesinya sudah terbentuk.
+ *
+ * Karena itu origin request dipakai HANYA bila masih satu domain dengan
+ * `SITE_URL` (host sama, atau host request adalah subdomainnya — pola domain
+ * pratinjau Vercel). Selain itu selalu jatuh ke `SITE_URL`, sehingga header
+ * `Host` palsu tidak bisa mengalihkan pengguna ke domain penyerang.
+ */
+export function resolveAuthOrigin(requestUrl: URL, configuredSiteUrl: string): string {
+  let siteUrl: URL;
+  try {
+    siteUrl = new URL(configuredSiteUrl);
+  } catch {
+    // Konfigurasi tidak valid → pakai origin request apa adanya; callback
+    // Supabase tetap hanya menerima cookie pada domain yang sedang dibuka.
+    return requestUrl.origin;
+  }
+
+  const requestHost = requestUrl.hostname.toLowerCase();
+  const siteHost = siteUrl.hostname.toLowerCase();
+
+  const sameSite =
+    requestHost === siteHost ||
+    requestHost === `www.${siteHost}` ||
+    requestHost.endsWith(`.${siteHost}`);
+
+  if (sameSite) return requestUrl.origin;
+  return siteUrl.origin;
+}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
+  CalendarClock,
   ChevronDown,
   Compass,
   FilePlus2,
@@ -160,7 +161,15 @@ export function AccountMenu({
     staf.push({ href: "/moderation/reports", label: "Laporan masuk", icon: Flag });
   }
   if (user.isAdmin) {
-    staf.push({ href: "/admin", label: "Panel admin", icon: Gauge });
+    // `nested: false`: halaman anak admin (pengguna, kategori, audit, program)
+    // punya item sendiri. Tanpa ini "Panel admin" ikut tersorot di semua
+    // halaman anak dan mata kehilangan penanda lokasi.
+    staf.push({ href: "/admin", label: "Panel admin", icon: Gauge, nested: false });
+    staf.push({
+      href: "/admin/program",
+      label: "Program & masa berlaku",
+      icon: CalendarClock,
+    });
   }
 
   const stafPengaturan: MenuItem[] = [];

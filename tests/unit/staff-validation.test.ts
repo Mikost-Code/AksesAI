@@ -4,8 +4,10 @@ import {
   adminUserSearchSchema,
   categoryInputSchema,
   grantRoleSchema,
+  managedProgramSearchSchema,
   markExpiredSchema,
   paginationSchema,
+  promoEndSchema,
   resolveReportSchema,
   reviewReasonSchema,
   setBannedSchema,
@@ -92,6 +94,54 @@ describe("markExpiredSchema", () => {
   });
   it("menolak UUID tidak valid", () => {
     expect(markExpiredSchema.safeParse({ programId: "x" }).success).toBe(false);
+  });
+});
+
+describe("promoEndSchema", () => {
+  it("menerima tanggal ISO yang benar", () => {
+    const r = promoEndSchema.safeParse({ programId: UUID, promoEnd: "2026-11-08" });
+    expect(r.success).toBe(true);
+  });
+  it("menerima string kosong = hapus batas waktu", () => {
+    const r = promoEndSchema.safeParse({ programId: UUID, promoEnd: "" });
+    expect(r.success).toBe(true);
+  });
+  it("menolak format selain YYYY-MM-DD", () => {
+    for (const value of ["08/11/2026", "2026-11-8", "besok", "2026-13-01"]) {
+      expect(promoEndSchema.safeParse({ programId: UUID, promoEnd: value }).success).toBe(
+        false,
+      );
+    }
+  });
+  it("menolak tanggal yang tidak ada di kalender", () => {
+    expect(
+      promoEndSchema.safeParse({ programId: UUID, promoEnd: "2026-02-31" }).success,
+    ).toBe(false);
+  });
+  it("menolak UUID tidak valid", () => {
+    expect(
+      promoEndSchema.safeParse({ programId: BAD_UUID, promoEnd: "2026-11-08" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("managedProgramSearchSchema", () => {
+  it("default: halaman 1, tanpa pencarian, status terverifikasi", () => {
+    expect(managedProgramSearchSchema.parse({})).toEqual({
+      page: 1,
+      search: "",
+      status: "verified",
+    });
+  });
+  it("menerima status yang dikenal", () => {
+    expect(managedProgramSearchSchema.parse({ status: "expired" }).status).toBe("expired");
+    expect(managedProgramSearchSchema.parse({ status: "semua" }).status).toBe("semua");
+  });
+  it("status tak dikenal jatuh ke verified (catch)", () => {
+    expect(managedProgramSearchSchema.parse({ status: "draft" }).status).toBe("verified");
+  });
+  it("membatasi panjang pencarian", () => {
+    expect(managedProgramSearchSchema.parse({ search: "x".repeat(500) }).search).toBe("");
   });
 });
 

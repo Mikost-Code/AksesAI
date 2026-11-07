@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  CalendarClock,
   FilePlus2,
   Files,
   Flag,
@@ -95,6 +96,7 @@ export function DashboardNav({
     if (canModerate) staff.push({ href: "/moderation/reports", label: "Laporan masuk", icon: Flag });
     if (isAdmin) {
       staff.push({ href: "/admin", label: "Panel admin", icon: Gauge });
+      staff.push({ href: "/admin/program", label: "Program & masa berlaku", icon: CalendarClock });
       staff.push({ href: "/admin/pengguna", label: "Pengguna & role", icon: Users });
       staff.push({ href: "/admin/kategori", label: "Kategori", icon: Settings });
       staff.push({ href: "/admin/audit", label: "Audit log", icon: ScrollText });

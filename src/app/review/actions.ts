@@ -19,6 +19,7 @@ import { REVIEW_REASON_MIN } from "@/lib/constants/labels";
 import {
   markExpiredSchema,
   programIdSchema,
+  promoEndSchema,
   reviewReasonSchema,
 } from "@/lib/validation/staff";
 
@@ -56,6 +57,16 @@ function mapReviewError(message: string): string {
   if (/hanya item pending|status/i.test(message)) {
     return "Status kontribusi sudah berubah. Muat ulang halaman.";
   }
+  // Pesan RPC kendali masa berlaku sudah ditulis dalam bahasa pengguna.
+  if (/tanggal berakhir tidak boleh/i.test(message)) {
+    return "Tanggal berakhir tidak boleh sebelum tanggal mulai.";
+  }
+  if (/masa berlaku hanya dapat diubah/i.test(message)) {
+    return "Masa berlaku hanya dapat diubah untuk program yang sudah dikirim.";
+  }
+  if (/berwenang mengubah masa berlaku/i.test(message)) {
+    return "Anda tidak berwenang mengubah masa berlaku program.";
+  }
   console.error("[review] RPC error:", message);
   return "Terjadi kesalahan saat memproses tinjauan. Silakan coba lagi.";
 }
@@ -63,6 +74,7 @@ function mapReviewError(message: string): string {
 function revalidateReview(id: string) {
   revalidatePath("/review");
   revalidatePath(`/review/${id}`);
+  revalidatePath("/admin/program");
   revalidatePath("/dashboard/kontribusi");
   revalidatePath("/info");
   // `revalidatePath` tidak menyentuh entri `unstable_cache`; tag wajib juga
@@ -181,4 +193,40 @@ export async function markExpired(
   revalidatePath("/info");
   revalidateDirectory();
   return { ok: true, message: "Program ditandai kedaluwarsa." };
+}
+
+/**
+ * Mengoreksi tanggal berakhir program (verified/expired/pending).
+ * String kosong menghapus batas waktu — program kembali tanpa kedaluwarsa
+ * otomatis. Otorisasi & validasi tanggal ditegakkan ulang di RPC.
+ */
+export async function setPromoEnd(
+  programId: string,
+  promoEnd: string,
+): Promise<ReviewActionResult> {
+  const auth = await requireReviewer();
+  if (!auth.ok) return auth;
+
+  const parsed = promoEndSchema.safeParse({ programId, promoEnd });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Tanggal berakhir tidak valid.",
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("reviewer_set_promo_end", {
+    p_program_id: parsed.data.programId,
+    p_promo_end: parsed.data.promoEnd || null,
+  });
+  if (error) return { ok: false, message: mapReviewError(error.message) };
+
+  revalidateReview(parsed.data.programId);
+  return {
+    ok: true,
+    message: parsed.data.promoEnd
+      ? "Tanggal berakhir diperbarui."
+      : "Batas waktu dihapus; program tidak akan kedaluwarsa otomatis.",
+  };
 }

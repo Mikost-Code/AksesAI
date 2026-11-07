@@ -34,6 +34,7 @@ const ACTION_LABEL: Record<string, string> = {
   "program.archive": "Program diarsipkan",
   "program.reopen": "Program dibuka kembali",
   "program.expire": "Program ditandai kedaluwarsa",
+  "program.set_promo_end": "Tanggal berakhir diperbarui",
   "report.dismiss": "Laporan diabaikan",
   "report.resolve": "Laporan diselesaikan",
   "report.in_review": "Laporan mulai ditangani",

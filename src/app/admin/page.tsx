@@ -120,6 +120,7 @@ export default async function AdminHomePage() {
           value={stats.totalPrograms}
           hint="Semua status"
           icon={<FileText className="size-4" aria-hidden="true" />}
+          href="/admin/program"
         />
         <StatCard
           label="Pengguna"

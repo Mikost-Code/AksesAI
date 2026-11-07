@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 
 import { ReviewActionPanel } from "@/components/review/review-action-panel";
+import { ProgramExpiryPanel } from "@/components/review/program-expiry-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getReviewDetail } from "@/lib/programs/review";
@@ -168,12 +169,25 @@ export default async function ReviewDetailPage({
         </div>
 
         <aside className="flex flex-col gap-3">
-          <ReviewActionPanel
-            programId={detail.id}
-            isOwnContribution={detail.contributorId === user.id}
-            claimedByMe={claimedByMe}
-            claimedByName={claimedActive && !claimedByMe ? "reviewer lain" : null}
-          />
+          {/* Panel keputusan hanya untuk item yang masih dalam tinjauan.
+              Tanpa penjagaan ini, membuka entri terverifikasi dari halaman
+              Program akan menampilkan tombol Verifikasi/Tolak yang tidak
+              berlaku — dan RPC-nya memang akan menolak. */}
+          {detail.status === "pending" || detail.status === "needs_changes" ? (
+            <ReviewActionPanel
+              programId={detail.id}
+              isOwnContribution={detail.contributorId === user.id}
+              claimedByMe={claimedByMe}
+              claimedByName={claimedActive && !claimedByMe ? "reviewer lain" : null}
+            />
+          ) : null}
+          {detail.status === "verified" || detail.status === "expired" ? (
+            <ProgramExpiryPanel
+              programId={detail.id}
+              status={detail.status}
+              promoEnd={detail.promoEnd}
+            />
+          ) : null}
           <div className="rounded-lg border border-border bg-background p-4 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">Checklist</p>
             <ul className="mt-2 list-disc space-y-1 pl-4">

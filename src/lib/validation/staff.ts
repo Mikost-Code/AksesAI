@@ -43,6 +43,29 @@ export const markExpiredSchema = z.object({
   reason: z.string().trim().max(REVIEW_REASON_MAX).optional(),
 });
 
+/**
+ * Tanggal ISO `YYYY-MM-DD`. Selain bentuknya, nilai harus benar-benar ada di
+ * kalender — `2026-02-31` ditolak, bukan digeser diam-diam ke Maret.
+ */
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD.")
+  .refine((value) => {
+    // `Date.parse` menormalkan tanggal mustahil (2026-02-31 → 3 Maret), jadi
+    // hasilnya harus dibandingkan balik dengan teks aslinya.
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return (
+      !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+    );
+  }, "Tanggal tidak valid.");
+
+/** Koreksi masa berlaku program. String kosong = hapus batas waktu. */
+export const promoEndSchema = z.object({
+  programId: uuid,
+  promoEnd: z.union([isoDate, z.literal("")]),
+});
+
 /** Moderator: selesaikan laporan. */
 export const moderationActionSchema = z.enum([
   "dismiss",
@@ -109,6 +132,12 @@ export const adminUserSearchSchema = paginationSchema.extend({
     .catch("semua"),
   /** "diblokir" = hanya pengguna terblokir. */
   blokir: z.enum(["semua", "diblokir"]).catch("semua"),
+});
+
+/** Halaman admin "Program & masa berlaku". */
+export const managedProgramSearchSchema = paginationSchema.extend({
+  search: z.string().trim().max(100).catch(""),
+  status: z.enum(["verified", "expired", "semua"]).catch("verified"),
 });
 
 export type StaffRoleInput = z.infer<typeof staffRoleSchema>;

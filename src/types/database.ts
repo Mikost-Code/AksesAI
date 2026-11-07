@@ -319,6 +319,9 @@ isOneToOne: false
 "reviewer_update_program":
 { Args: { "p_description": string,"p_organizer": string,"p_program_id": string,"p_requirements": string,"p_title": string }; Returns: undefined
                            },
+"reviewer_set_promo_end":
+{ Args: { "p_program_id": string,"p_promo_end": string | null }; Returns: undefined
+                           },
 "revoke_role":
 { Args: { "p_role": Database["public"]['Enums']["app_role"],"p_user_id": string }; Returns: undefined
                            },

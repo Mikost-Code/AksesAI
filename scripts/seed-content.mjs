@@ -119,6 +119,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     contextWindow: null,
+    integrationNotes: "Base URL : http://localhost:11434/v1 (OpenAI-compatible, lokal)\nModel    : sesuai yang di-pull, mis. llama3.1, qwen2.5\n9Router/OpenCode: arahkan ke localhost — tidak butuh API key.",
     sources: [
       { title: "Ollama — Library model", url: "https://ollama.com/library" },
       { title: "Ollama — GitHub", url: "https://github.com/ollama/ollama" },
@@ -138,6 +139,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     contextWindow: null,
+    integrationNotes: "Base URL : http://localhost:1234/v1 (OpenAI-compatible, lokal)\nModel    : model GGUF yang dimuat di tab Developer/Server\n9Router/OpenCode: arahkan ke localhost — tidak butuh API key.",
     sources: [
       { title: "LM Studio", url: "https://lmstudio.ai/" },
       { title: "LM Studio — Docs: Get started", url: "https://lmstudio.ai/docs/app/basics" },
@@ -157,6 +159,7 @@ const ENTRIES = [
     freeTierAvailable: false,
     requiresCard: false,
     contextWindow: null,
+    integrationNotes: "Base URL : https://router.huggingface.co/v1 (OpenAI-compatible)\nModel    : ID repo HF, mis. deepseek-ai/DeepSeek-V4.1-Flash\nAuth     : HF token (Bearer). Router meneruskan ke provider partner.",
     sources: [
       { title: "HF Inference Providers — Pricing", url: "https://huggingface.co/docs/inference-providers/en/pricing" },
       { title: "Hugging Face — Pricing", url: "https://huggingface.co/pricing" },
@@ -177,6 +180,7 @@ const ENTRIES = [
     requiresCard: false,
     rateLimit: 20,
     contextWindow: null,
+    integrationNotes: "Base URL : https://openrouter.ai/api/v1 (OpenAI-compatible)\nModel    : ID berakhiran :free — daftar di openrouter.ai/models?max_price=0\n9Router/OpenCode: tambah provider custom → Base URL + API key OpenRouter.",
     sources: [
       { title: "OpenRouter — API Rate Limits", url: "https://openrouter.ai/docs/api_reference/limits" },
       { title: "OpenRouter — Model gratis", url: "https://openrouter.ai/models?max_price=0" },
@@ -198,6 +202,7 @@ const ENTRIES = [
     requiresCard: false,
     rateLimit: 30,
     contextWindow: null,
+    integrationNotes: "Base URL : https://api.groq.com/openai/v1 (OpenAI-compatible)\nModel    : llama-3.1-8b-instant, llama-3.3-70b-versatile, dll.\n9Router/OpenCode: tambah provider custom → Base URL + API key Groq.",
     sources: [
       { title: "Groq — Rate Limits (tabel Free Plan)", url: "https://console.groq.com/docs/rate-limits" },
       { title: "Groq — Models", url: "https://console.groq.com/docs/models" },
@@ -217,6 +222,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     contextWindow: null,
+    integrationNotes: "Base URL : https://generativelanguage.googleapis.com/v1beta/openai/\nModel    : varian Flash-Lite untuk free tier (mis. gemini-2.5-flash-lite)\nCatatan  : auth pakai Bearer API key Gemini (bukan ?key=)\n9Router/OpenCode: tambah provider custom OpenAI-compatible.",
     sources: [
       { title: "Gemini API — Pricing (kolom Free Tier)", url: "https://aistudio.google.com/docs/pricing" },
       { title: "Gemini API — Rate Limits", url: "https://aistudio.google.com/docs/rate-limits" },
@@ -237,6 +243,7 @@ const ENTRIES = [
     requiresCard: true,
     rateLimit: 5,
     contextWindow: null,
+    integrationNotes: "Base URL : https://api.cerebras.ai/v1 (OpenAI-compatible)\nModel    : llama-4-scout-17b-16e-instruct, gpt-oss-120b, dll.\n9Router/OpenCode: tambah provider custom → Base URL + API key Cerebras.",
     sources: [
       { title: "Cerebras — Rate Limits & FAQ Free Trial", url: "https://inference-docs.cerebras.ai/support/rate-limits" },
       { title: "Cerebras — Pricing", url: "https://www.cerebras.ai/pricing" },
@@ -256,6 +263,7 @@ const ENTRIES = [
     freeTierAvailable: true,
     requiresCard: false,
     contextWindow: null,
+    integrationNotes: "Base URL : https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1\nModel    : @cf/meta/llama-3.1-8b-instruct, dll. (ID bertanda @cf/)\nAuth     : Cloudflare API token; ACCOUNT_ID ada di dashboard Workers AI.",
     sources: [
       { title: "Cloudflare Workers AI — Pricing", url: "https://developers.cloudflare.com/workers-ai/platform/pricing/" },
       { title: "Cloudflare Workers AI — Models", url: "https://developers.cloudflare.com/workers-ai/models/" },
@@ -275,6 +283,7 @@ const ENTRIES = [
     freeTierAvailable: false,
     requiresCard: true,
     contextWindow: null,
+    integrationNotes: "Base URL : https://api.mistral.ai/v1 (OpenAI-compatible)\nModel    : mistral-large-latest, mistral-small-latest, open-mistral-nemo\nCatatan  : nonaktifkan opt-in pelatihan data di pengaturan privacy.",
     sources: [
       { title: "Mistral — Usage limits (Free mode tanpa akses API)", url: "https://docs.mistral.ai/admin/billing-usage/usage-limits" },
       { title: "Mistral — Pricing", url: "https://mistral.ai/pricing" },
@@ -297,6 +306,7 @@ const ENTRIES = [
     contextWindow: 200000,
     requirements:
       "1) Pasang OpenCode: `curl -fsSL https://opencode.ai/install | bash`, atau `npm install -g opencode-ai`. 2) Jalankan `opencode` di folder proyek. 3) Ketik `/models`, pilih DeepSeek V4.1 Flash Free dari provider OpenCode. 4) Opsional, jadikan bawaan lewat `opencode.json`: { \"$schema\": \"https://opencode.ai/config.json\", \"model\": \"opencode/deepseek-v4.1-flash-free\" }. Tidak perlu login atau API key untuk model gratis ini.",
+    integrationNotes: "OpenCode adalah klien, bukan API: unduh CLI → login → pilih model\nDeepSeek V4.1 Flash di dalam aplikasi (gratis selama kampanye).\nTidak perlu Base URL tambahan.",
     sources: [
       { title: "OpenCode — Docs", url: "https://opencode.ai/docs" },
       { title: "OpenCode — Console & model", url: "https://opencode.ai/v2/docs/console/" },
@@ -317,6 +327,7 @@ const ENTRIES = [
     requiresCard: false,
     rateLimit: 60,
     contextWindow: null,
+    integrationNotes: "Base URL : https://tokenharbor.ai/v1 (OpenAI-compatible)\nModel    : lihat katalog di dashboard (GPT, Claude, Gemini, DeepSeek, dll.)\n9Router/OpenCode: tambah provider custom → tempel Base URL + API key.\nMigrasi dari OpenRouter: cukup ganti base URL, format sama.",
     sources: [
       { title: "Token Harbor — Pricing (Free allowance & model gratis)", url: "https://tokenharbor.ai/pricing" },
       { title: "Token Harbor — FAQ (batas API & kebijakan data)", url: "https://tokenharbor.ai/faq" },
@@ -338,6 +349,7 @@ const ENTRIES = [
     contextWindow: 1000000,
     priceInput: 0.15,
     priceOutput: 0.6,
+    integrationNotes: "Base URL : https://api.deepseek.com (OpenAI-compatible)\nhttps://api.deepseek.com/anthropic (protokol Anthropic)\nModel    : deepseek-chat\n9Router/OpenCode: tambah provider custom → Base URL + API key DeepSeek.",
     sources: [
       { title: "DeepSeek — Models & Pricing", url: "https://api-docs.deepseek.com/quick_start/pricing" },
       { title: "DeepSeek-V4.1-Flash di Hugging Face (MIT)", url: "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash" },
@@ -361,6 +373,7 @@ const ENTRIES = [
     contextWindow: 1000000,
     requirements:
       "1) Unduh/update ZCode dari zcode.z.ai, lalu masuk dengan akun Z.ai atau BigModel (gratis, tanpa kartu kredit). 2) Trial 5 hari: hubungkan akun BigModel/Z.ai di pengaturan ZCode. 3) Global Build: klaim kartu harian di dalam aplikasi mulai 18.00 WIB, lalu pilih channel Global Building dan model GLM-5.3-Flash pada 22.00–08.00 WIB. 4) Weekend Build: klaim kartu akhir pekan saat jendelanya dibuka; sisa token hangus pada Senin 08.00 WIB.",
+    integrationNotes: "ZCode adalah aplikasi desktop — koneksi dikelola aplikasi:\nunduh dari zcode.z.ai → hubungkan akun BigModel → model GLM-5.3\ndan GLM-5.3-Flash langsung tersedia (tanpa Base URL manual).",
     sources: [
       {
         title: "ZCode — Docs (welcome, trial & Global Build)",
@@ -402,6 +415,7 @@ const ENTRIES = [
     contextWindow: 1000000,
     requirements:
       "1) Unduh aplikasi CodeBuddy versi internasional dari codebuddy.ai — pakai domain .ai, bukan .cn, karena akun dan kuotanya berbeda. 2) Daftar/masuk lewat OAuth (Google, GitHub, atau X). 3) Buka pemilih model dan pilih DeepSeek V4.1 Flash. Catatan: bila memakai 9router sebagai perantara, masuk lewat OAuth CodeBuddy di dashboard 9router (provider 'codebuddy-intl', alias cbai) lalu pakai model deepseek-v4.1-flash; gateway mereka menolak permintaan tanpa header percakapan dan membalas 400 kode 11128.",
+    integrationNotes: "CodeBuddy adalah IDE/agent (bukan API): unduh dari codebuddy.ai → login →\nmodel DeepSeek V4.1 Flash tersedia di dalam IDE sesuai kampanye berjalan.",
     sources: [
       { title: "CodeBuddy — situs resmi (internasional)", url: "https://www.codebuddy.ai/" },
       { title: "9router — daftar provider codebuddy-intl (katalog model & OAuth)", url: "https://github.com/decolua/9router/blob/master/open-sse/providers/registry/codebuddy-intl.js" },
@@ -427,6 +441,7 @@ const ENTRIES = [
     contextWindow: null,
     requirements:
       "1) Daftar di z.ai (portal internasional — cukup email; jangan tertukar dengan open.bigmodel.cn yang butuh nomor telepon Tiongkok dan akunnya terpisah). 2) Buat API key di console. 3) Pakai salah satu model gratis: `glm-4.7-flash`, `glm-4.5-flash`, atau `glm-4.6v-flash`. 4) Endpoint kompatibel OpenAI: base URL https://api.z.ai/api/paas/v4. Cek harga di console sebelum pindah ke model GLM-5.x — semuanya berbayar.",
+    integrationNotes: "Base URL : https://api.z.ai/api/paas/v4 (OpenAI-compatible)\nModel    : varian GLM Flash — cek katalog model di docs.z.ai\n9Router/OpenCode: tambah provider custom → Base URL + API key Z.ai.",
     sources: [
       { title: "Z.AI — Pricing (model Flash bertanda Free)", url: "https://docs.z.ai/guides/overview/pricing" },
       { title: "Z.AI — Rate limits", url: "https://docs.z.ai/api-reference/rate-limit" },
@@ -449,6 +464,7 @@ const ENTRIES = [
     contextWindow: null,
     requirements:
       "1) Daftar di dashboard.cohere.com (tanpa kartu kredit). 2) Buka halaman API keys dan buat TRIAL key — bukan production key. 3) Pakai model seperti `command-a-03-2025`, `command-r-plus`, atau `command-r7b`. 4) Untuk RAG, endpoint Rerank hanya 10 req/menit di trial; tetap berguna untuk menguji kualitas sebelum berlangganan.",
+    integrationNotes: "Base URL : https://api.cohere.com/compatibility/v1 (OpenAI-compatible)\nModel    : command-a-03-2025, command-r-plus-08-2024, dll.\nCatatan  : compatibility layer — sebagian parameter dipetakan ke format Cohere.",
     sources: [
       { title: "Cohere — API keys & rate limits (tabel Trial)", url: "https://docs.cohere.com/docs/rate-limits" },
       { title: "Cohere — Pricing", url: "https://docs.cohere.com/v2/docs/how-does-cohere-pricing-work" },
@@ -471,6 +487,7 @@ const ENTRIES = [
     contextWindow: null,
     requirements:
       "1) Daftar di cloud.sambanova.ai. 2) Buat API key. 3) Base URL kompatibel OpenAI: https://api.sambanova.ai/v1. 4) Pilih `DeepSeek-V3.1`, `Meta-Llama-3.3-70B-Instruct`, atau `gpt-oss-120b`. 5) Buka halaman Limits untuk memastikan tier Anda benar-benar Free (tanpa metode pembayaran).",
+    integrationNotes: "Base URL : https://api.sambanova.ai/v1 (OpenAI-compatible)\nModel    : katalog model SambaNova di docs.sambanova.ai",
     sources: [
       { title: "SambaNova — Model rate limits (tabel Free Tier)", url: "https://docs.sambanova.ai/docs/en/models/rate-limits" },
       { title: "SambaNova — Plans", url: "https://cloud.sambanova.ai/plans" },
@@ -493,6 +510,7 @@ const ENTRIES = [
     contextWindow: null,
     requirements:
       "1) Daftar di siliconflow.com (situs internasional) atau siliconflow.cn. 2) Selesaikan verifikasi identitas — tanpa ini semua model gratis terkunci. 3) Buat API key. 4) Base URL: https://api.siliconflow.com/v1. 5) Pilih model yang di halaman harga HARI INI masih bertanda gratis; periksa per model, bukan per platform. Untuk embedding/RAG, `BAAI/bge-m3` adalah pilihan paling stabil.",
+    integrationNotes: "Base URL : https://api.siliconflow.com/v1 (global) atau .cn/v1 (China)\nModel    : katalog model SiliconFlow di docs.siliconflow.com\n9Router/OpenCode: tambah provider custom → Base URL + API key.",
     sources: [
       { title: "SiliconFlow — Rate limits (model gratis bersifat tetap)", url: "https://docs.siliconflow.com/en/userguide/rate-limits/rate-limit-and-upgradation" },
       { title: "SiliconFlow — FAQ rate limits", url: "https://docs.siliconflow.com/en/faqs/misc_rate" },
@@ -566,6 +584,18 @@ if (allError) {
 const stale = (allRows ?? []).filter((row) => !keepSlugs.has(row.slug));
 let deleted = 0;
 for (const row of stale) {
+  // Kontribusi manual (lewat form) memiliki riwayat kontribusi — JANGAN
+  // dihapus oleh sinkronisasi seed. Tabel history append-only juga akan
+  // menolak cascade-nya, tapi lebih jelas menolak secara eksplisit di sini.
+  const { data: hist } = await admin
+    .from("contribution_history")
+    .select("id")
+    .eq("program_id", row.id)
+    .limit(1);
+  if (hist && hist.length > 0) {
+    console.log(`  dipertahankan (kontribusi manual): ${row.slug}`);
+    continue;
+  }
   const { error } = await admin.from("assistance_programs").delete().eq("id", row.id);
   if (error) {
     console.warn(`  gagal hapus ${row.slug}: ${error.message}`);

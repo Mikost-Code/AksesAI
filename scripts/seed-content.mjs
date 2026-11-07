@@ -345,23 +345,45 @@ const ENTRIES = [
   },
   {
     slug: "zcode-glm-free-trial",
-    title: "ZCode (z.ai) — trial 5 hari: 5 juta token GLM per hari",
+    title:
+      "ZCode (z.ai) — 300 juta token GLM-5.3-Flash harian, 500 juta saat Weekend Build",
     category: "tool-ai-gratis",
     accessType: "tool",
     provider: "Z.ai (Zhipu)",
     summary:
-      "Pengguna baru ZCode mendapat kuota gratis 5 juta token per hari selama 5 hari — 3 juta GLM-5.3 + 2 juta GLM-5-turbo. KOREKSI: angka ini turun dari 8 juta (3M GLM-5.3 + 5M GLM-5.3-Flash) pada versi sebelumnya.",
+      "Global Build memberi 300 juta token GLM-5.3-Flash per hari (klaim mulai 18.00 WIB, pakai 22.00–08.00 WIB); Weekend Build menaikkan jatah menjadi 500 juta token untuk jendela Jumat–Senin. Trial 5 hari 5 juta token/hari tetap tersedia untuk pengguna baru.",
     description:
-      "ZCode adalah Agentic Development Environment desktop dari z.ai yang dituning khusus untuk GLM-5.3 (konteks 1 juta token). Pengguna PERTAMA KALI mendapat benefit gratis 5 hari: total 5 juta token per hari — 3 juta GLM-5.3 ditambah 2 juta GLM-5-turbo — yang aktif otomatis setelah menghubungkan akun BigModel atau Z.ai. PERUBAHAN PENTING dari versi sebelumnya: kuota ini tadinya 8 juta token/hari (3M GLM-5.3 + 5M GLM-5.3-Flash) dan sudah DIKURANGI. Model yang disertakan juga berubah: GLM-5.3-Flash diganti GLM-5-turbo. Dokumentasi resmi menegaskan kuota ini hanya berlaku selama 5 hari pertama dan TIDAK berlanjut sebagai jatah harian permanen: 'the daily quotas below are granted only during these 5 days — they expire afterwards and are not an ongoing daily allowance.' PENTING — soal angka 300 juta/hari & 500 juta/minggu yang beredar di medsos: itu bukan alokasi harian/mingguan tetap, melainkan kampanye flash terbatas (mis. Weekend Build 300M token Flash dan ZCode 1024 Dev Day 500M token dengan batas 50.000 pack) dan kuota plan Team BERBAYAR. GLM-5.3-Flash sendiri tidak gratis via API z.ai. Setelah trial 5 hari berakhir, lanjut dengan plan berbayar — atau pakai di jam off-peak (weekend dan di luar Senin–Jumat 14.00–18.00 waktu Singapura) saat konsumsi kredit hanya 50%. Subscriber juga punya 'idle-time tasks' yang mengantre tugas non-urgent dan menjalankannya gratis saat kapasitas longgar.",
-    freeTier: "5 hari: 5 juta token/hari (3M GLM-5.3 + 2M GLM-5-turbo)",
+      "ZCode adalah Agentic Development Environment desktop dari z.ai yang dituning khusus untuk GLM-5.3 (konteks 1 juta token). Ada dua jalur gratis yang berbeda. PERTAMA, trial pengguna baru: 5 hari, total 5 juta token per hari — 3 juta GLM-5.3 ditambah 2 juta GLM-5-turbo — yang aktif otomatis setelah menghubungkan akun BigModel atau Z.ai. Dokumentasi resmi menegaskan kuota ini hanya berlaku selama 5 hari dan bukan jatah permanen. KEDUA, kampanye Global Build yang berjalan saat ini: setiap akun ZCode, termasuk akun gratis, dapat mengklaim 300 juta token GLM-5.3-Flash per hari. Klaim dibuka 11.00 UTC (18.00 WIB); token dapat dipakai 15.00–01.00 UTC (22.00–08.00 WIB) dengan memilih channel Global Building dan model GLM-5.3-Flash. Pada akhir pekan, Weekend Build memberi kuota lebih besar: putaran 6–9 November 2026 menyediakan 500 juta token GLM-5.3-Flash per akun, aktif Jumat 22.00 WIB sampai Senin 08.00 WIB (23.00 Jumat–09.00 Senin waktu Tiongkok). Besaran, jumlah paket, dan jendela waktu tiap putaran bisa berubah tanpa pengumuman jauh hari; kartu klaim di dalam aplikasi adalah acuan terakhir, dan token yang tidak terpakai hangus saat jendela berakhir. GLM-5.3-Flash tetap berbayar lewat API z.ai — kuota ini hanya berlaku di dalam klien ZCode. Setelah trial atau kampanye berakhir, lanjut dengan plan berbayar atau manfaatkan jam off-peak.",
+    freeTier:
+      "300 juta token GLM-5.3-Flash/hari (Global Build) + 500 juta saat Weekend Build; trial 5 hari 5 juta token/hari untuk pengguna baru",
     freeTierAvailable: true,
     requiresCard: false,
     contextWindow: 1000000,
     requirements:
-      "1) Buat akun BigModel/z.ai (gratis, tanpa kartu kredit). 2) Unduh aplikasi ZCode dari zcode.z.ai (desktop). 3) Hubungkan akun BigModel di pengaturan ZCode — trial aktif otomatis selama 5 hari pertama. 4) Kuota reset setiap hari; habis 5 hari, perlu plan berbayar bila ingin lanjut.",
+      "1) Unduh/update ZCode dari zcode.z.ai, lalu masuk dengan akun Z.ai atau BigModel (gratis, tanpa kartu kredit). 2) Trial 5 hari: hubungkan akun BigModel/Z.ai di pengaturan ZCode. 3) Global Build: klaim kartu harian di dalam aplikasi mulai 18.00 WIB, lalu pilih channel Global Building dan model GLM-5.3-Flash pada 22.00–08.00 WIB. 4) Weekend Build: klaim kartu akhir pekan saat jendelanya dibuka; sisa token hangus pada Senin 08.00 WIB.",
     sources: [
-      { title: "ZCode — Docs (welcome & trial)", url: "https://zcode.z.ai/en/docs/welcome" },
-      { title: "Z.ai — Plan Update Notice", url: "https://docs.z.ai/devpack/notice/usage-revision" },
+      {
+        title: "ZCode — Docs (welcome, trial & Global Build)",
+        url: "https://zcode.z.ai/en/docs/welcome",
+        type: "dokumentasi_resmi",
+      },
+      {
+        title: "ZCode di X — 300 juta token GLM-5.3-Flash setiap hari",
+        url: "https://x.com/zcode_ai/status/2114762939421139426",
+        // Enum source_type_v2 tidak punya "media_sosial_resmi"; "lainnya"
+        // adalah kategori yang jujur untuk akun sosial resmi.
+        type: "lainnya",
+      },
+      {
+        title: "AI Promo Now — Weekend Build 500 juta token (6–9 November 2026)",
+        url: "https://www.aipromonow.com/en/promos/zcode-weekend-build-glm53-flash-5e8-nov9-2026",
+        type: "media_tepercaya",
+      },
+      {
+        title: "Z.ai — Plan Update Notice",
+        url: "https://docs.z.ai/devpack/notice/usage-revision",
+        type: "dokumentasi_resmi",
+      },
     ],
   },
   {
@@ -642,7 +664,7 @@ for (const entry of ENTRIES) {
       source_url_normalized: normalizeSourceUrl(s.url),
       source_title: s.title,
       is_primary: index === 0,
-      source_type: "dokumentasi_resmi",
+      source_type: s.type ?? "dokumentasi_resmi",
       link_status: "ok",
       last_checked_at: new Date().toISOString(),
     })),

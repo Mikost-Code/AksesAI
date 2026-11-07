@@ -62,6 +62,23 @@ Teks resmi: *"the daily quotas below are granted only during these 5 days —
 they expire afterwards and are not an ongoing daily allowance."* Durasi trial
 5 hari tetap benar.
 
+#### Pembaruan 7 November 2026 — Global Build & Weekend Build
+
+Koreksi lanjutan: klaim lama bahwa "300 juta/hari dan 500 juta/minggu bukan
+alokasi tetap" sudah **tidak berlaku**. Per 7 November 2026:
+
+| Klaim baru | Sumber |
+|---|---|
+| Global Build: **300 juta token GLM-5.3-Flash per hari**, klaim mulai 11.00 UTC (18.00 WIB), dipakai 15.00–01.00 UTC (22.00–08.00 WIB) | [@zcode_ai, 26 Oktober 2026](https://x.com/zcode_ai/status/2114762939421139426) |
+| Weekend Build putaran 6–9 November 2026: **500 juta token GLM-5.3-Flash per akun**, aktif 23.00 Jumat–09.00 Senin waktu Tiongkok (22.00 Jumat–08.00 WIB) | [AI Promo Now](https://www.aipromonow.com/en/promos/zcode-weekend-build-glm53-flash-5e8-nov9-2026) (pelacak penawaran; pengumuman resmi tampil di kartu dalam aplikasi) |
+| Trial pengguna baru: **5 hari, 5 juta token/hari** (3M GLM-5.3 + 2M GLM-5-turbo) | [ZCode Docs](https://zcode.z.ai/en/docs/welcome) |
+
+Catatan kejujuran data: Global Build belum mengumumkan tanggal berakhir, dan
+besaran/jendela Weekend Build dapat berubah setiap putaran. Karena itu
+`promo_end` entri ini **sengaja dibiarkan kosong** — tanggal 9 November adalah
+akhir putaran Weekend Build saat ini, bukan akhir seluruh penawaran. Kartu
+klaim di aplikasi tetap menjadi acuan terakhir.
+
 ### Mistral — tier Experiment gratis untuk API tidak ada lagi
 
 Kutipan dari docs.mistral.ai/admin/billing-usage/usage-limits:

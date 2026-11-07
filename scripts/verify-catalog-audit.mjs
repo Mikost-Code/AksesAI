@@ -33,7 +33,7 @@ const detailChecks = [
   ["/info/groq-api-free-tier", ["gpt-oss-120b", "200K"], ["14.400 request/hari untuk model kecil"]],
   ["/info/cerebras-free-trial", ["WAJIB kartu kredit", "TIDAK berjalan tanpa kartu"], []],
   ["/info/mistral-experiment-free-tier", ["tidak ada akses API", "pay-as-you-go"], ["tier Experiment gratis ~2.000"]],
-  ["/info/zcode-glm-free-trial", ["5 juta token per hari"], []],
+  ["/info/zcode-glm-free-trial", ["5 juta token per hari", "300 juta token", "500 juta token", "Weekend Build"], ["bukan alokasi harian/mingguan tetap"]],
   ["/info/opencode-deepseek-free", ["200.000 token", "403"], []],
   ["/info/zai-glm-flash-gratis", ["GLM-4.7-Flash", "$0"], []],
   ["/info/cohere-trial-key-gratis", ["20 request/menit", "1.000"], []],

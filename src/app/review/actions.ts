@@ -67,6 +67,9 @@ function mapReviewError(message: string): string {
   if (/berwenang mengubah masa berlaku/i.test(message)) {
     return "Anda tidak berwenang mengubah masa berlaku program.";
   }
+  if (/hanya entri berstatus verified/i.test(message)) {
+    return "Hanya entri berstatus Terverifikasi yang dapat dicek ulang.";
+  }
   console.error("[review] RPC error:", message);
   return "Terjadi kesalahan saat memproses tinjauan. Silakan coba lagi.";
 }
@@ -229,4 +232,22 @@ export async function setPromoEnd(
       ? "Tanggal berakhir diperbarui."
       : "Batas waktu dihapus; program tidak akan kedaluwarsa otomatis.",
   };
+}
+
+/** Reviewer menandai entri verified sudah dicek ulang (verified_at = now). */
+export async function reverifyProgram(programId: string): Promise<ReviewActionResult> {
+  const auth = await requireReviewer();
+  if (!auth.ok) return auth;
+
+  const parsed = programIdSchema.safeParse({ programId });
+  if (!parsed.success) return { ok: false, message: "ID kontribusi tidak valid." };
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("reverify_program", {
+    p_program_id: parsed.data.programId,
+  });
+  if (error) return { ok: false, message: mapReviewError(error.message) };
+
+  revalidateReview(parsed.data.programId);
+  return { ok: true, message: "Entri ditandai sudah dicek ulang — badge basi hilang." };
 }

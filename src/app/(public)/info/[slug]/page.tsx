@@ -9,6 +9,7 @@ import {
   Gauge,
   Gift,
   Layers,
+  RefreshCcw,
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
@@ -30,7 +31,7 @@ import {
   DEFAULT_DISCLAIMER_TEXT,
   PLATFORM_DISCLAIMER_SHORT,
 } from "@/lib/constants/labels";
-import { formatDateID, formatDateTimeID } from "@/lib/utils";
+import { daysSince, formatDateID, formatDateTimeID, isVerificationStale } from "@/lib/utils";
 import { clientEnv, isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
 
@@ -43,6 +44,7 @@ const HISTORY_LABEL: Record<string, string> = {
   withdraw: "Ditarik kembali ke draf",
   request_changes: "Diminta revisi oleh reviewer",
   verify: "Diverifikasi oleh reviewer",
+  reverify: "Dicek ulang oleh reviewer",
   reject: "Ditolak oleh reviewer",
   expire: "Ditandai kedaluwarsa",
   archive: "Diarsipkan",
@@ -188,6 +190,20 @@ export default async function ProgramDetailPage({ params }: PageProps) {
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={program.status} />
+            {program.status === "verified" &&
+            isVerificationStale(program.verifiedAt) ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning"
+                title={
+                  program.verifiedAt
+                    ? `Terakhir diverifikasi ${daysSince(program.verifiedAt)} hari lalu — kuota/harga bisa sudah berubah.`
+                    : "Belum ada catatan verifikasi."
+                }
+              >
+                <RefreshCcw className="size-3" aria-hidden="true" />
+                Perlu cek ulang
+              </span>
+            ) : null}
             <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
               {program.categoryName}
             </span>

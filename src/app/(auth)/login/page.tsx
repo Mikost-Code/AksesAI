@@ -69,7 +69,7 @@ export default async function LoginPage({
           <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           <p>
             Dengan masuk, Anda menyetujui{" "}
-            <Link href="/tentang" className="font-medium text-primary underline underline-offset-2">
+            <Link href="/ketentuan-penggunaan" className="font-medium text-primary underline underline-offset-2">
               ketentuan penggunaan
             </Link>{" "}
             dan{" "}

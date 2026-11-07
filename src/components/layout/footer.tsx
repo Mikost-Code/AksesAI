@@ -16,6 +16,7 @@ const FOOTER_LINKS = [
     links: [
       { href: "/tentang", label: "Tentang AksesAI" },
       { href: "/kebijakan-privasi", label: "Kebijakan privasi" },
+      { href: "/ketentuan-penggunaan", label: "Ketentuan penggunaan" },
     ],
   },
 ] as const;

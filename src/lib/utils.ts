@@ -43,3 +43,15 @@ export function daysSince(value: string | Date): number {
   const diff = Date.now() - date.getTime();
   return Math.max(0, Math.floor(diff / 86_400_000));
 }
+
+/** Batas verifikasi basi (hari) — lewat ini entri berbadge "Perlu cek ulang". */
+export const VERIFICATION_STALE_DAYS = 90;
+
+/**
+ * Apakah verifikasi terakhir entri sudah melewati batas berkala.
+ * verified_at kosong dianggap basi (harus dicek ulang).
+ */
+export function isVerificationStale(verifiedAt: string | null | undefined): boolean {
+  if (!verifiedAt) return true;
+  return daysSince(verifiedAt) >= VERIFICATION_STALE_DAYS;
+}

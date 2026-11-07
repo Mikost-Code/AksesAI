@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/info", priority: 0.9, freq: "weekly" },
     { path: "/panduan", priority: 0.6, freq: "monthly" },
     { path: "/tentang", priority: 0.5, freq: "monthly" },
+    { path: "/ketentuan-penggunaan", priority: 0.3, freq: "monthly" },
     { path: "/kebijakan-privasi", priority: 0.3, freq: "monthly" },
   ];
 

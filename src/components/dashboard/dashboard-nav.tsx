@@ -10,6 +10,7 @@ import {
   Flag,
   Gauge,
   LayoutDashboard,
+  RefreshCcw,
   ScrollText,
   Settings,
   ShieldAlert,
@@ -59,6 +60,7 @@ export function DashboardNav({
   isAdmin,
   pendingReview = 0,
   openReports = 0,
+  staleRecheck = 0,
   unreadNotifications = 0,
 }: {
   canReview: boolean;
@@ -67,6 +69,7 @@ export function DashboardNav({
   /** Jumlah antrean untuk badge (dihitung di layout server). */
   pendingReview?: number;
   openReports?: number;
+  staleRecheck?: number;
   /** Notifikasi belum dibaca (lonceng di item "Notifikasi"). */
   unreadNotifications?: number;
 }) {
@@ -92,7 +95,10 @@ export function DashboardNav({
 
   if (canReview || canModerate || isAdmin) {
     const staff: NavItem[] = [];
-    if (canReview) staff.push({ href: "/review", label: "Antrean review", icon: ShieldAlert });
+    if (canReview) {
+      staff.push({ href: "/review", label: "Antrean review", icon: ShieldAlert });
+      staff.push({ href: "/review/cek-ulang", label: "Cek ulang", icon: RefreshCcw });
+    }
     if (canModerate) staff.push({ href: "/moderation/reports", label: "Laporan masuk", icon: Flag });
     if (isAdmin) {
       staff.push({ href: "/admin", label: "Panel admin", icon: Gauge });
@@ -113,6 +119,7 @@ export function DashboardNav({
 
   function badgeFor(href: string): number {
     if (href === "/review") return pendingReview;
+    if (href === "/review/cek-ulang") return staleRecheck;
     if (href === "/moderation/reports") return openReports;
     if (href === "/dashboard/notifikasi") return unreadNotifications;
     return 0;

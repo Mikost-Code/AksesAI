@@ -8,6 +8,7 @@ import {
   type ReportReason,
   type ReportStatus,
 } from "@/lib/constants/labels";
+import { VERIFICATION_STALE_DAYS, daysSince } from "@/lib/utils";
 
 /**
  * Data layer untuk reviewer & moderator.
@@ -46,6 +47,7 @@ type RawQueueRow = {
   contributor_id: string;
   claimed_by: string | null;
   claimed_at: string | null;
+  verified_at?: string | null;
   categories: { name: string } | { name: string }[] | null;
   sources: Array<{ id: string }> | null;
   profiles: { github_username: string } | { github_username: string }[] | null;
@@ -163,6 +165,7 @@ export type ReviewDetail = {
   promoEnd: string | null;
   contributorNote: string | null;
   status: ProgramStatus;
+  verifiedAt: string | null;
   reviewNote: string | null;
   contributorId: string;
   contributorName: string;
@@ -203,6 +206,7 @@ type RawDetail = {
   promo_end: string | null;
   contributor_note: string | null;
   status: ProgramStatus;
+  verified_at: string | null;
   review_note: string | null;
   contributor_id: string;
   created_at: string;
@@ -227,7 +231,7 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
       `id, slug, title, description, provider, access_type, free_tier, free_tier_available,
        requires_card, price_input_per_mtok, price_output_per_mtok, rate_limit_rpm,
        context_window, requirements, integration_notes, promo_start, promo_end, contributor_note, status,
-       review_note, contributor_id, created_at, claimed_by, claimed_at,
+       review_note, contributor_id, created_at, claimed_by, claimed_at, verified_at,
        categories(name), profiles!contributor_id(github_username),
        sources(source_url, source_title, source_type, is_primary)`,
     )
@@ -272,6 +276,7 @@ export async function getReviewDetail(id: string): Promise<ReviewDetail | null> 
     contributorNote: data.contributor_note,
     status: data.status,
     reviewNote: data.review_note,
+    verifiedAt: data.verified_at,
     contributorId: data.contributor_id,
     contributorName: pickOne(data.profiles)?.github_username ?? "(tidak diketahui)",
     categoryName: pickOne(data.categories)?.name ?? "Lainnya",
@@ -428,6 +433,74 @@ export async function listOwnReports(
       programSlug: program?.slug ?? "",
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Daftar cek ulang berkala: entri verified yang verifikasinya basi
+// ---------------------------------------------------------------------------
+
+export type StaleRecheckItem = {
+  id: string;
+  slug: string;
+  title: string;
+  provider: string;
+  accessTypeLabel: string;
+  verifiedAt: string;
+  daysStale: number;
+  contributorName: string | null;
+  categoryName: string;
+  sourceCount: number;
+};
+
+const STALE_PAGE_SIZE = 20;
+
+/**
+ * Entri berstatus verified yang terakhir diverifikasi lebih dari
+ * VERIFICATION_STALE_DAYS hari — urut paling basi lebih dulu.
+ */
+export async function listStaleForRecheck(options: {
+  page?: number;
+}): Promise<{ items: StaleRecheckItem[]; total: number; pageSize: number }> {
+  const supabase = await createSupabaseServerClient();
+  const page = Math.min(500, Math.max(1, Math.trunc(options.page ?? 1)));
+  const from = (page - 1) * STALE_PAGE_SIZE;
+  const cutoff = new Date(
+    Date.now() - VERIFICATION_STALE_DAYS * 86_400_000,
+  ).toISOString();
+
+  const { data, error, count } = await supabase
+    .from("assistance_programs")
+    .select(
+      `id, slug, title, provider, access_type, verified_at,
+       categories(name), sources(id), profiles!contributor_id(github_username)`,
+      { count: "exact" },
+    )
+    .eq("status", "verified")
+    .lt("verified_at", cutoff)
+    .order("verified_at", { ascending: true })
+    .range(from, from + STALE_PAGE_SIZE - 1);
+
+  if (error) {
+    console.error("[review-stale] Query gagal:", error.message);
+    return { items: [], total: 0, pageSize: STALE_PAGE_SIZE };
+  }
+
+  const items = ((data ?? []) as unknown as RawQueueRow[]).map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    provider: row.provider ?? "—",
+    accessTypeLabel: ACCESS_TYPE_LABEL[row.access_type] ?? "Lainnya",
+    verifiedAt: row.verified_at ?? "",
+    daysStale: row.verified_at
+      ? daysSince(row.verified_at)
+      : VERIFICATION_STALE_DAYS,
+    contributorName: pickOne(row.profiles)?.github_username ?? null,
+    categoryName: pickOne(row.categories)?.name ?? "Lainnya",
+    sourceCount: (row.sources ?? []).length,
+  }));
+
+  return { items, total: count ?? 0, pageSize: STALE_PAGE_SIZE };
 }
 
 export { QUEUE_PAGE_SIZE };

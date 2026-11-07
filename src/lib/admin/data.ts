@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AppRole, ProgramStatus, ReportReason, ReportStatus } from "@/lib/constants/labels";
+import { VERIFICATION_STALE_DAYS } from "@/lib/utils";
 
 /**
  * Data layer admin (PHASE 6).
@@ -475,6 +476,8 @@ export async function listUserModerationHistory(
 export type StaffBadgeCounts = {
   pendingReview: number;
   openReports: number;
+  /** Entri verified yang verifikasinya basi (> 90 hari). */
+  staleRecheck: number;
 };
 
 /**
@@ -485,8 +488,11 @@ export async function getStaffBadgeCounts(
   withReports: boolean,
 ): Promise<StaffBadgeCounts> {
   const supabase = await createSupabaseServerClient();
+  const staleCutoff = new Date(
+    Date.now() - VERIFICATION_STALE_DAYS * 86_400_000,
+  ).toISOString();
 
-  const [pending, reports] = await Promise.all([
+  const [pending, reports, stale] = await Promise.all([
     supabase
       .from("assistance_programs")
       .select("id", { count: "exact", head: true })
@@ -505,9 +511,18 @@ export async function getStaffBadgeCounts(
             return count ?? 0;
           })
       : Promise.resolve(0),
+    supabase
+      .from("assistance_programs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "verified")
+      .lt("verified_at", staleCutoff)
+      .then(({ count, error }) => {
+        if (error) console.error("[staff-badge] stale:", error.message);
+        return count ?? 0;
+      }),
   ]);
 
-  return { pendingReview: pending, openReports: reports };
+  return { pendingReview: pending, openReports: reports, staleRecheck: stale };
 }
 
 // ---------------------------------------------------------------------------

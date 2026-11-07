@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 
 import { ReviewActionPanel } from "@/components/review/review-action-panel";
 import { ProgramExpiryPanel } from "@/components/review/program-expiry-panel";
+import { ReverifyPanel } from "@/components/review/reverify-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { getCurrentUser, hasAnyRole } from "@/lib/auth/session";
 import { getReviewDetail } from "@/lib/programs/review";
@@ -197,6 +198,11 @@ export default async function ReviewDetailPage({
               promoEnd={detail.promoEnd}
             />
           ) : null}
+          <ReverifyPanel
+            programId={detail.id}
+            verifiedAt={detail.verifiedAt}
+            status={detail.status}
+          />
           <div className="rounded-lg border border-border bg-background p-4 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">Checklist</p>
             <ul className="mt-2 list-disc space-y-1 pl-4">

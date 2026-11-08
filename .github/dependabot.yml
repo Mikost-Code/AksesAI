@@ -9,6 +9,15 @@ version: 2
 #  - Supabase CLI dipin pada versi tertentu (lihat README §Catatan versi CLI).
 #    Karena itu pembaruan `supabase` (devDependency) saya kecualikan: menaikkan
 #    CLI ke 3.x akan menolak konfigurasi `[local_smtp]` dan mematahkan CI.
+#
+# Catatan operasional:
+#  - Dependabot menjalankan pnpm dengan `--config.minimum-release-age=4320`
+#    (cooldown 3 hari bawaan GitHub, bukan setelan repo ini). Bila suatu run
+#    berakhir dengan `ERR_PNPM_NO_MATURE_MATCHING_VERSION`, itu BUKAN
+#    konfigurasi yang salah: paketnya memang terlalu baru dan akan lolos
+#    sendiri pada jadwal berikutnya. Jangan paksa merge atau melonggarkan
+#    jadwal hanya untuk membuat run itu hijau.
+#  - `@types/node` sengaja di-ignore untuk major & minor (lihat blok ignore).
 updates:
   # ── Dependensi npm ────────────────────────────────────────────────────────
   - package-ecosystem: "npm"

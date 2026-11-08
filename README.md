@@ -21,7 +21,7 @@ API/token gratis, free tier, harga per token, model open-weight, tool gratis, da
 
 > **AksesAI bukan afiliasi provider AI mana pun**, tidak menjual token, dan tidak menjamin kuota gratis atau harga masih tersedia. Status _Terverifikasi_ berarti info telah diperiksa reviewer terhadap dokumentasi resmi provider **pada saat peninjauan** — kuota, harga, dan promo dapat berubah sewaktu-waktu.
 
-> **Catatan relokasi.** Repo kanonis masih di `zann06/AksesAI`. Setelah fork organisasi [MIKOS](https://github.com/Mikost-Code) aktif, ganti `zann06` → `Mikost-Code` pada `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/config.yml`, dan badge CI.
+> **Repo kanonis: [`zann06/AksesAI`](https://github.com/zann06/AksesAI).** Ada salinan (fork) di [`Mikost-Code/AksesAI`](https://github.com/Mikost-Code/AksesAI) yang dikelola organisasi MIKOS. Salinan itu **bukan** tempat berkontribusi — semua issue, pull request, dan rilis mengarah ke repo kanonis.
 
 ---
 
@@ -418,6 +418,9 @@ Kami menerima kontribusi kode, perbaikan data katalog, dan laporan bug. Panduan 
 - Satu PR untuk satu tujuan; perubahan besar sebaiknya didiskusikan lewat issue dulu
 
 Proyek ini memakai [Contributor Covenant](CODE_OF_CONDUCT.md). Dengan berpartisipasi, Anda diharapkan mematuhinya.
+
+> [!NOTE]
+> Kalau Anda sedang membuka [`Mikost-Code/AksesAI`](https://github.com/Mikost-Code/AksesAI), itu **salinan (fork)**. Kirim pull request ke **[`zann06/AksesAI`](https://github.com/zann06/AksesAI/pulls)** — repo kanonis tempat semua perubahan di-merge.
 
 ---
 

@@ -101,8 +101,9 @@ export function UserActions({
 
       {isSelf ? (
         <p className="text-xs text-muted-foreground">
-          Ini akun Anda. Role dan blokir akun sendiri tidak dapat diubah dari sini untuk
-          mencegah terkunci.
+          {targetIsSuperAdmin
+            ? "Ini akun Anda (pemilik). Role Super Admin tidak dapat dicabut dan akun ini tidak dapat diblokir — akses pemulihan selalu tersedia."
+            : "Ini akun Anda. Role dan blokir akun sendiri tidak dapat diubah dari sini untuk mencegah terkunci."}
         </p>
       ) : null}
 
@@ -126,6 +127,9 @@ export function UserActions({
         ) : (
           <span className="text-xs text-muted-foreground">member saja</span>
         )}
+        {targetIsSuperAdmin ? (
+          <RoleBadge role="super_admin" className="shadow-[var(--shadow-card)]" />
+        ) : null}
       </div>
 
       {/* Beri role baru — hanya pemilik */}

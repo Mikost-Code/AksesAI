@@ -73,6 +73,11 @@ jobs:
     # benar-benar berjalan pada setiap PR — bukan dilewati. Penjagaan `guard`
     # dipertahankan hanya untuk berjaga bila folder itu tidak ada (mis. fork
     # yang menghapusnya); dalam kondisi normal job ini WAJIB jalan.
+    #
+    # PENTING: versi Supabase CLI DI-PIN (supabase@2.120.0). Tanpa pin, `npx`
+    # mengambil versi terbaru — CLI 3.x menolak section [inbucket] sehingga
+    # `supabase start` gagal sebelum satu tes pun berjalan. Naikkan versi ini
+    # secara sadar lewat PR tersendiri, bukan otomatis.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -107,19 +112,19 @@ jobs:
 
       - name: Start Supabase local
         if: steps.guard.outputs.tersedia == 'true'
-        run: npx supabase start
+        run: npx --yes supabase@2.120.0 start
         timeout-minutes: 15
 
       - name: Apply migrations & seed
         if: steps.guard.outputs.tersedia == 'true'
-        run: npx supabase db reset
+        run: npx --yes supabase@2.120.0 db reset
 
       - name: Export local Supabase env
         if: steps.guard.outputs.tersedia == 'true'
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(npx supabase status -o env | grep -E '^ANON_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=$(npx supabase status -o env | grep -E '^SERVICE_ROLE_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(npx --yes supabase@2.120.0 status -o env | grep -E '^ANON_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(npx --yes supabase@2.120.0 status -o env | grep -E '^SERVICE_ROLE_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
 
       - name: RLS & integration tests
         if: steps.guard.outputs.tersedia == 'true'
@@ -151,7 +156,7 @@ jobs:
 
       - name: Stop Supabase
         if: always()
-        run: npx supabase stop --no-backup || true
+        run: npx --yes supabase@2.120.0 stop --no-backup || true
 
       - name: Catatan lewati (folder supabase tidak tersedia)
         if: steps.guard.outputs.tersedia != 'true'

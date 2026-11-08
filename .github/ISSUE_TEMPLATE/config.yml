@@ -1,0 +1,14 @@
+# Konfigurasi pemilih template issue.
+# Dokumentasi: https://docs.github.com/communities/configuring-your-repository-for-healthy-contributions/configuring-issue-templates-for-your-repository
+blank_issues_enabled: false
+
+contact_links:
+  - name: Laporkan kerentanan keamanan (privat)
+    url: https://github.com/zann06/AksesAI/security/advisories/new
+    about: Jangan buka issue publik untuk masalah keamanan. Gunakan Security Advisory.
+  - name: Panduan kontribusi
+    url: https://github.com/zann06/AksesAI/blob/main/CONTRIBUTING.md
+    about: Baca dulu alur PR, konvensi commit, dan aturan entri katalog.
+  - name: Tanya jawab / diskusi terbuka
+    url: https://github.com/zann06/AksesAI/discussions
+    about: Untuk pertanyaan umum yang bukan bug atau usulan fitur.

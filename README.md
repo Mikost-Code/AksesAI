@@ -1,10 +1,15 @@
 # AksesAI
 
 [![CI](https://github.com/zann06/AksesAI/actions/workflows/ci.yml/badge.svg)](https://github.com/zann06/AksesAI/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> 📦 **Repo ini sedang dipindahkan ke organisasi [MIKOS](https://github.com/Mikost-Code).** Selama proses berlangsung, repo kanonis masih di `zann06/AksesAI` — semua tautan di dokumen ini menunjuk ke sana agar tidak ada tautan rusak. Setelah salinan organisasi aktif, ganti `zann06` → `Mikost-Code` pada `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/config.yml`, dan badge CI.
 
 Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/token gratis dari provider, free tier, harga per token, model open-weight, tool gratis, dan hosting gratis. Setiap info memiliki sumber yang dapat diperiksa, kontributor yang transparan, dan diverifikasi manual oleh manusia.
 
 > **AksesAI bukan afiliasi provider AI mana pun, tidak menjual token, dan tidak menjamin kuota gratis/harga masih tersedia.** Status _Verified_ berarti info telah diperiksa reviewer terhadap dokumentasi atau halaman resmi provider pada saat peninjauan — kuota, harga, dan promo dapat berubah sewaktu-waktu.
+
+Proyek ini **terbuka untuk kontribusi**. Setiap entri katalog **wajib** memiliki minimal satu sumber resmi, dan semua perubahan masuk lewat pull request yang harus lulus CI.
 
 ---
 
@@ -15,15 +20,17 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - [Prasyarat](#prasyarat)
 - [Memulai (Local Development)](#memulai-local-development)
 - [Environment Variables](#environment-variables)
-- [Setup Database](#setup-database)
+- [Database & Migrasi](#database--migrasi)
 - [Setup GitHub OAuth](#setup-github-oauth)
 - [Membuat Admin Pertama](#membuat-admin-pertama)
 - [Testing](#testing)
 - [Build & Menjalankan Produksi](#build--menjalankan-produksi)
 - [Deploy ke Vercel](#deploy-ke-vercel)
 - [Struktur Repo](#struktur-repo)
-- [Privasi & Data yang Tidak Dikumpulkan](#privasi--data-yang-tidak-dikumpulkan)
 - [Kontribusi](#kontribusi)
+- [Kebijakan Entri Katalog](#kebijakan-entri-katalog)
+- [Privasi & Data yang Tidak Dikumpulkan](#privasi--data-yang-tidak-dikumpulkan)
+- [Keamanan](#keamanan)
 - [Lisensi](#lisensi)
 
 ---
@@ -49,6 +56,7 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - Antrean tinjauan dengan sistem klaim (30 menit) agar tidak ada tinjauan ganda
 - Aksi: verifikasi & terbitkan, minta revisi (wajib alasan), tolak (wajib alasan), tandai kedaluwarsa
 - **Tidak dapat meninjau kontribusi sendiri** (ditegakkan di database)
+- **Re-verifikasi berkala 90 hari** — antrean entri yang perlu dicek ulang agar info tidak menua diam-diam
 
 **Moderator**
 - Manajemen laporan komunitas (dismiss, reopen, arsipkan program, blokir kontributor)
@@ -59,6 +67,7 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - Manajemen pengguna: pencarian, blokir/buka blokir (wajib alasan), pemberian/pencabutan role
 - **Riwayat moderasi per pengguna** (siapa memblokir/memberi role dan alasannya) agar keputusan dapat diaudit dalam konteks akun
 - Manajemen kategori: buat, ubah, aktifkan/nonaktifkan
+- **Kendali masa berlaku program** (`/admin/program`) — staf dapat menetapkan/mengakhiri promo secara manual
 
 **Keamanan & kepatuhan**
 - RLS (Row Level Security) aktif di **semua** tabel
@@ -96,8 +105,10 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 - **Node.js** `>=20.19.0 <26` (lihat `engines` di `package.json`)
 - **pnpm** 10+ (`npm i -g pnpm`)
 - **Docker** (untuk Supabase lokal) — [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- **Supabase CLI** (`npm i -g supabase`)
+- **Supabase CLI** 2.x — versi yang dipakai proyek ini: `2.120.0`
 - Akun **GitHub** (untuk membuat OAuth App)
+
+> **Versi Supabase CLI di-pin.** Gunakan `npx supabase@2.120.0 …` (atau `npm i -D supabase@2.120.0`) agar sama dengan CI. Supabase CLI 3.x belum didukung oleh konfigurasi di repo ini — lihat [Database & Migrasi](#database--migrasi).
 
 ---
 
@@ -105,7 +116,7 @@ Direktori info **gratis & murah seputar AI** berbasis kontribusi komunitas: API/
 
 ```bash
 # 1. Clone
-git clone https://github.com/<owner>/AksesAI.git
+git clone https://github.com/zann06/AksesAI.git
 cd AksesAI
 
 # 2. Install dependensi
@@ -115,10 +126,10 @@ pnpm install
 cp .env.example .env.local
 
 # 4. Jalankan Supabase lokal (Docker harus menyala)
-supabase start
+npx supabase@2.120.0 start
 
 # 5. Terapkan migrasi + seed data
-supabase db reset
+npx supabase@2.120.0 db reset
 
 # 6. Jalankan dev server
 pnpm dev
@@ -127,6 +138,8 @@ pnpm dev
 Buka <http://localhost:3000>.
 
 Setelah `supabase start`, CLI mencetak **API URL** (`http://127.0.0.1:54321`) dan **anon key**. Salin keduanya ke `.env.local` sebagai `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Salin juga **service_role key** ke `SUPABASE_SERVICE_ROLE_KEY` (server-only, jangan pernah diekspos ke browser).
+
+> Butuh data contoh yang lebih lengkap? `node scripts/seed-content.mjs` mengisi katalog dari sumber tunggal `scripts/seed-content.mjs` (dipakai juga untuk audit katalog).
 
 ---
 
@@ -167,36 +180,51 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 
 ---
 
-## Setup Database
+## Database & Migrasi
 
-> Folder `supabase/` (migrasi, seed, config) **sengaja tidak di-commit** ke repo publik — dikelola lokal oleh pemilik proyek lewat Supabase CLI yang ter-link. Skema tetap dapat direkonstruksi dari database yang berjalan (`supabase db pull`), atau hubungi pemilik untuk salinan migrasi.
+**Skema database dipublikasikan di repo ini.** Folder `supabase/` berisi `config.toml`, seluruh migrasi (`supabase/migrations/`), dan `seed.sql`. Ini disengaja:
+
+- tes RLS, integrasi, dan E2E dapat berjalan otomatis di setiap pull request;
+- siapa pun dapat mengaudit kebijakan RLS yang melindungi data tanpa meminta akses;
+- tidak ada skema tersembunyi yang membuat "berjalan di lokal" berbeda dari "berjalan di produksi".
+
+Yang **tidak** ikut di-commit (lihat `.gitignore`): `supabase/.temp` (berisi info proyek ter-link & connection URL), `supabase/.branches`, `supabase/.env`, `supabase/snippets/`, dan `supabase/backups/` (berisi **data produksi**).
+
+Tidak ada rahasia yang tersimpan di folder ini: `config.toml` membaca kredensial OAuth lewat `env(GITHUB_OAUTH_CLIENT_ID)` / `env(GITHUB_OAUTH_CLIENT_SECRET)`, dan `seed.sql` hanya berisi kategori serta pengaturan situs — tanpa akun admin maupun data pengguna.
 
 ### Supabase lokal
 
 ```bash
-supabase start      # menyalakan stack lokal (Postgres, Auth, Storage, Studio)
-supabase db reset   # menjalankan semua migrasi di supabase/migrations + seed
-supabase status     # menampilkan URL dan key lokal
+npx supabase@2.120.0 start      # menyalakan stack lokal (Postgres, Auth, Storage, Studio)
+npx supabase@2.120.0 db reset   # menjalankan semua migrasi + seed
+npx supabase@2.120.0 status     # menampilkan URL dan key lokal
 ```
 
-Studio tersedia di <http://127.0.0.1:54323>.
+Studio tersedia di <http://127.0.0.1:54323>. Penampung email lokal (Mailpit) ada di <http://127.0.0.1:54324>.
+
+> **Catatan versi CLI:** `config.toml` memakai section `[local_smtp]` (nama baru sejak Supabase CLI 2.108.0). CLI 2.x menerima nama ini; CLI 3.x **menolak** nama lama `[inbucket]`. Karena itu CI mem-pin `supabase@2.120.0` — jangan naikkan versi tanpa menyesuaikan konfigurasi.
 
 ### Migrasi ke proyek Supabase remote
 
 ```bash
-supabase link --project-ref <project-ref>
-supabase db push
+npx supabase@2.120.0 login
+npx supabase@2.120.0 link --project-ref <project-ref>
+npx supabase@2.120.0 db push
 ```
 
-### Regenerasi tipe TypeScript
+### Menambah migrasi baru
 
-Setelah mengubah skema, buat ulang tipe database:
+1. Buat file baru di `supabase/migrations/` dengan nama berurutan `YYYYMMDDHHMMSS_deskripsi.sql`.
+2. Tulis SQL yang **idempoten** bila memungkinkan (`if not exists`, `create or replace`), karena migrasi dijalankan ulang di CI.
+3. Jangan pernah menaruh kredensial, JWT, atau data pribadi di file migrasi atau `seed.sql`.
+4. Regenerasi tipe TypeScript: `pnpm gen:types` (menulis `src/types/database.ts`).
+5. Buka PR — CI akan menerapkan migrasi Anda ke database bersih dan menjalankan seluruh tes RLS.
+
+### Regenerasi tipe TypeScript
 
 ```bash
 pnpm gen:types
 ```
-
-Ini menulis `src/types/database.ts` dari skema lokal.
 
 ---
 
@@ -265,7 +293,12 @@ pnpm test:e2e
 
 **Catatan E2E:** login memakai GitHub OAuth yang tidak dapat diotomasi secara lokal. Uji E2E membuat pengguna sungguhan lewat `service_role` di sisi server, lalu menanamkan cookie sesi `@supabase/ssr` ke konteks browser Playwright. Lihat `e2e/helpers.ts`.
 
-**Catatan CI:** job CI *RLS, integration & E2E* menyalakan Supabase lokal di runner, yang membutuhkan `supabase/config.toml` + migrasi — folder yang sengaja tidak ada di repo publik. Karena itu job tersebut **dilewati dengan sengaja** pada CI (tetap hijau, dengan catatan di log) dan dijalankan **lokal oleh pemilik** (Docker) sebelum merge yang menyentuh skema/RPC. Job CI *Lint, typecheck, unit test, build* tetap berjalan penuh.
+**Apa yang dijalankan CI:** setiap push ke `main` dan setiap pull request menjalankan dua job:
+
+1. **Lint, typecheck, unit test, build** — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm audit --audit-level=high`, pemindaian secret, `pnpm build`, dan pemeriksaan agar `service_role` tidak bocor ke bundle klien.
+2. **RLS, integration & E2E (Supabase lokal)** — menyalakan Supabase lokal di runner, menerapkan **seluruh migrasi + seed** ke database bersih, lalu menjalankan `pnpm test:rls` dan `pnpm test:e2e`.
+
+Artinya: PR yang mengubah kebijakan RLS atau RPC akan diuji terhadap database sungguhan sebelum di-merge — bukan dilewati.
 
 Untuk menargetkan server yang sudah berjalan:
 
@@ -323,7 +356,7 @@ node scripts/build-probe.mjs && node scripts/check-client-bundle.mjs
    - `GET /api/cron/cleanup` — membersihkan data sementara
 
    Keduanya diamankan dengan header `Authorization: Bearer <CRON_SECRET>`. Vercel Cron mengirim header ini otomatis bila `CRON_SECRET` diset di environment.
-6. Terapkan migrasi ke Supabase produksi: `supabase db push`.
+6. Terapkan migrasi ke Supabase produksi: `npx supabase@2.120.0 db push`.
 7. Jalankan smoke test produksi: `node scripts/smoke-prod.mjs` (memerlukan `.env.local` menunjuk ke produksi).
 
 ### Analytics (opsional)
@@ -338,16 +371,14 @@ Bila variabel kosong, skrip analytics tidak dimuat sama sekali.
 
 ### Backup database
 
-Folder `supabase/` (migrasi & seed) hanya ada di komputer pemilik proyek —
-tidak ada di repo publik. Jadwalkan backup berkala:
+Migrasi tersimpan di repo, tetapi **data** tidak. Jadwalkan backup berkala dari lingkungan tepercaya:
 
 ```bash
 pnpm db:backup          # skema + data (butuh `supabase login` & `supabase link`)
 pnpm db:backup --schema # skema saja
 ```
 
-Hasilnya ditulis ke `supabase/backups/*.sql` (diabaikan git). Simpan salinan
-kedua ke penyimpanan lain — file itu satu-satunya cadangan di luar cluster.
+Hasilnya ditulis ke `supabase/backups/*.sql` dan **diabaikan git** — file itu berisi data produksi, jangan pernah di-commit. Simpan salinan kedua ke penyimpanan lain: file itu satu-satunya cadangan di luar cluster.
 
 ---
 
@@ -356,9 +387,10 @@ kedua ke penyimpanan lain — file itu satu-satunya cadangan di luar cluster.
 ```text
 AksesAI/
 ├── README.md  LICENSE  .env.example
+├── .github/workflows/ci.yml   # lint, typecheck, unit, build, RLS, integrasi, E2E
 ├── e2e/                   # uji end-to-end Playwright
-├── scripts/               # smoke test HTTP, secret scan, bundle check
-├── supabase/              # (lokal saja, tidak di repo) migrasi, seed, config
+├── scripts/               # smoke test HTTP, secret scan, bundle check, seed katalog
+├── supabase/              # config.toml, migrations/, seed.sql (dipublikasikan)
 ├── src/
 │   ├── app/               # rute App Router
 │   │   ├── (public)/      # beranda, direktori, detail, halaman statis
@@ -380,6 +412,36 @@ AksesAI/
 
 ---
 
+## Kontribusi
+
+Kami menerima kontribusi kode, perbaikan data katalog, dan pelaporan bug melalui issue & pull request. Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan lengkap; ringkasnya:
+
+- Branch: `feat/<topik>`, `fix/<topik>`, `chore/<topik>`, `docs/<topik>`
+- Commit mengikuti [Conventional Commits](https://www.conventionalcommits.org/id/v1.0.0/)
+- Sebelum membuka PR: `pnpm typecheck && pnpm lint && pnpm test` harus lulus
+- Semua perubahan masuk lewat **pull request**; `main` dilindungi dan CI wajib hijau
+- Satu PR untuk satu tujuan — perubahan besar sebaiknya didiskusikan lewat issue terlebih dahulu
+
+### Butuh perilaku komunitas
+
+Proyek ini memakai [Contributor Covenant](CODE_OF_CONDUCT.md). Dengan berpartisipasi, Anda diharapkan mematuhinya.
+
+---
+
+## Kebijakan Entri Katalog
+
+Aturan yang tidak boleh dilanggar saat menambah atau memperbarui entri:
+
+1. **Wajib ada minimal satu sumber resmi.** Sumber resmi = dokumentasi provider, halaman harga/kuota resmi, pengumuman di kanal resmi (blog/X/status page provider), atau dokumen hukumnya. Blog agregator, tautan afiliasi, dan video pihak ketiga bukan sumber resmi.
+2. **Jangan menyatakan tanggal berakhir yang belum diumumkan.** Bila provider tidak menyebut tanggal, biarkan kosong dan tulis ketidakpastiannya secara jujur (mis. "belum ada tanggal resmi"). Jangan menebak.
+3. **Angka `0` bukan informasi.** Jangan menampilkan atau mengisi angka `0` sebagai data; kosongkan bila memang tidak ada nilainya.
+4. **Kuota & harga mudah berubah.** Sertakan waktu pengecekan; reviewer akan memverifikasi ulang terhadap sumber pada saat peninjauan.
+5. **Satu entri = satu program.** Jangan menggabungkan beberapa penawaran berbeda dalam satu entri.
+
+Pelanggaran aturan di atas akan ditolak reviewer. Jangan ragu bertanya lewat issue bila ragu.
+
+---
+
 ## Privasi & Data yang Tidak Dikumpulkan
 
 AksesAI **secara sengaja tidak mengumpulkan**:
@@ -398,18 +460,18 @@ Lihat halaman `/kebijakan-privasi` untuk rincian.
 
 ---
 
-## Kontribusi
+## Keamanan
 
-Kami menerima kontribusi kode dan pelaporan bug melalui issue & pull request di repo ini. Konvensi ringkas:
+Laporkan kerentanan **secara privat** lewat [GitHub Security Advisory](https://github.com/zann06/AksesAI/security/advisories/new) — jangan buka issue publik. Detail cakupan dan ekspektasi waktu respons ada di [SECURITY.md](SECURITY.md).
 
-- Branch: `feat/<topik>`, `fix/<topik>`, `chore/<topik>`
-- Commit mengikuti [Conventional Commits](https://www.conventionalcommits.org/id/v1.0.0/)
-- Sebelum membuka PR: `pnpm typecheck && pnpm lint && pnpm test` harus lulus
-
-Untuk melaporkan **kerentanan keamanan**, gunakan [GitHub Security Advisory](https://github.com/zann06/AksesAI/security/advisories/new) — jangan buka issue publik.
+Untuk kontributor: repo ini menyertakan pemindaian secret otomatis di CI (`scripts/secret-scan.mjs`). Jangan pernah commit `.env.local`, `supabase/.temp/`, atau `supabase/backups/`.
 
 ---
 
 ## Lisensi
 
 Dirilis di bawah [MIT License](LICENSE).
+
+---
+
+© 2026 AksesAI. Dibuat oleh organisasi MIKOS.

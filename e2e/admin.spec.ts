@@ -69,8 +69,10 @@ test.describe("Alur admin", () => {
     await authenticate(context, BASE, admin);
     await page.goto(`/admin/pengguna?q=${encodeURIComponent(target.username)}`);
     await expect(page.getByText(target.username, { exact: false }).first()).toBeVisible();
-    // Penjelasan pengganti tombol harus muncul.
-    await expect(page.getByText(/hanya oleh pemilik \(Super Admin\)/i)).toBeVisible();
+    // Penjelasan pengganti tombol harus muncul (bisa lebih dari satu kartu).
+    await expect(
+      page.getByText(/hanya oleh pemilik \(Super Admin\)/i).first(),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: /^reviewer$/i })).toHaveCount(0);
   });
 

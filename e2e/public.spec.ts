@@ -58,7 +58,9 @@ test.describe("Halaman publik", () => {
       page.getByRole("heading", { name: /halaman tidak ditemukan/i }),
     ).toBeVisible();
     // generateMetadata menandai noindex untuk slug yang tidak ada.
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    // Next dapat merender lebih dari satu tag robots (mis. dari layout), jadi
+    // periksa yang pertama alih-alih menuntut tepat satu elemen.
+    await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
       "content",
       /noindex/i,
     );

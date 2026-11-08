@@ -2,9 +2,10 @@
 
 [![CI](https://github.com/zann06/AksesAI/actions/workflows/ci.yml/badge.svg)](https://github.com/zann06/AksesAI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Supabase](https://img.shields.io/badge/Supabase-RLS%20aktif-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e)](https://supabase.com)
+[![RLS](https://img.shields.io/badge/RLS-aktif-brightgreen)](supabase/migrations)
 
 **Direktori info gratis & murah seputar AI, dari komunitas, dengan sumber yang bisa diperiksa.**
 

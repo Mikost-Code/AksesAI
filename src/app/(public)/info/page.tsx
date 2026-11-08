@@ -7,6 +7,7 @@ import { Pagination } from "@/components/pagination";
 import { ProgramCard } from "@/components/program-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { clientEnv } from "@/lib/env";
+import { serializeJsonLd } from "@/lib/security/json-ld";
 import { PAGE_SIZE, PLATFORM_DISCLAIMER_SHORT } from "@/lib/constants/labels";
 import { getCategories } from "@/lib/programs/categories";
 import { getDirectory } from "@/lib/programs/queries";
@@ -50,7 +51,7 @@ export default async function DirectoryPage({
     <div className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListJsonLd) }}
       />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">

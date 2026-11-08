@@ -33,6 +33,7 @@ import {
 } from "@/lib/constants/labels";
 import { daysSince, formatDateID, formatDateTimeID, isVerificationStale } from "@/lib/utils";
 import { clientEnv, isSupabaseConfigured } from "@/lib/env";
+import { serializeJsonLd } from "@/lib/security/json-ld";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -158,7 +159,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">

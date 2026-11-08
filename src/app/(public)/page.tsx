@@ -14,6 +14,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { DirectoryStatsBar } from "@/components/layout/directory-stats-bar";
 import { Input } from "@/components/ui/input";
 import { clientEnv } from "@/lib/env";
+import { serializeJsonLd } from "@/lib/security/json-ld";
 import { APP_NAME, DEFAULT_DISCLAIMER_TEXT } from "@/lib/constants/labels";
 import { getDirectoryStats, getTopContributors } from "@/lib/programs/seo";
 import Image from "next/image";
@@ -99,7 +100,7 @@ export default async function HomePage() {
     <div className="flex flex-col">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       {/* ── Hero — band hijau hutan bertekstur (Forest Green + Sand) ────── */}
       <section className="hero-forest relative overflow-hidden">

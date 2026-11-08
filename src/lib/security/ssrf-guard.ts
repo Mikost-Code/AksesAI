@@ -96,20 +96,25 @@ export function checkSourceUrl(raw: string): UrlCheckResult {
 
   const hostname = parsed.hostname.toLowerCase();
 
-  if (BLOCKED_HOSTNAMES.has(hostname) || hostname.endsWith(".localhost")) {
+  // Host berakhiran titik sah secara DNS (`localhost.` = FQDN dari `localhost`)
+  // dan diresolusi sama oleh browser. Tanpa normalisasi ini `localhost.`
+  // lolos dari daftar blokir karena tidak sama persis dengan "localhost".
+  const bareHostname = hostname.endsWith(".") ? hostname.slice(0, -1) : hostname;
+
+  if (BLOCKED_HOSTNAMES.has(bareHostname) || bareHostname.endsWith(".localhost")) {
     return { ok: false, reason: "Tautan ke alamat lokal tidak diizinkan." };
   }
-  if (hostname.includes(":")) {
-    if (isPrivateIpv6(hostname)) {
+  if (bareHostname.includes(":")) {
+    if (isPrivateIpv6(bareHostname)) {
       return { ok: false, reason: "Tautan ke alamat jaringan privat tidak diizinkan." };
     }
-  } else if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
-    if (isPrivateIpv4(hostname)) {
+  } else if (/^\d{1,3}(\.\d{1,3}){3}$/.test(bareHostname)) {
+    if (isPrivateIpv4(bareHostname)) {
       return { ok: false, reason: "Tautan ke alamat jaringan privat tidak diizinkan." };
     }
   }
   // Host tanpa titik (mis. "intranet") tidak dapat dipublikasikan.
-  if (!hostname.includes(".")) {
+  if (!bareHostname.includes(".")) {
     return { ok: false, reason: "Tautan harus menggunakan domain publik." };
   }
 

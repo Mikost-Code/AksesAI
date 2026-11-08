@@ -43,15 +43,31 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- Bootstrap: jadikan pemilik super_admin bila profilnya sudah ada.
--- Untuk instance baru: jalankan SQL serupa SETELAH login pertama, atau
--- sisipkan baris user_roles secara manual dengan service_role.
+-- Bootstrap pemilik super_admin — SENGAJA TIDAK OTOMATIS.
+--
+-- Dulu bagian ini menjalankan INSERT dengan `github_username = 'zann06'`
+-- (akun pemilik repo asal). Baris itu dihapus karena dua alasan:
+--
+--  1. Portabilitas: siapa pun yang meng-clone repo ini mendapat instance
+--     sendiri, dan instance itu semestinya dimiliki akun mereka — bukan
+--     akun pemilik repo asal.
+--  2. Kejelasan: kepemilikan platform sebaiknya lahir dari tindakan sadar
+--     operator, bukan efek samping migrasi.
+--
+-- Catatan penting: menghapus baris ini TIDAK mencabut super_admin yang sudah
+-- ada. Migrasi ini hanya berjalan sekali per database; baris di
+-- `public.user_roles` yang sudah terlanjur dibuat tetap utuh.
+--
+-- Untuk instance baru, jalankan SEKALI setelah akun pemilik login pertama
+-- (sehingga baris `profiles` sudah ada), ganti <username-pemilik>:
+--
+--   insert into public.user_roles (user_id, role, assigned_by)
+--   select id, 'super_admin', id from public.profiles
+--   where github_username = '<username-pemilik>'
+--   on conflict (user_id, role) do nothing;
+--
+-- Langkah yang sama didokumentasikan di README §Membuat Admin Pertama.
 -- ---------------------------------------------------------------------------
-insert into public.user_roles (user_id, role, assigned_by)
-select p.id, 'super_admin', p.id
-from public.profiles p
-where p.github_username = 'zann06'
-on conflict (user_id, role) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- grant_role — hanya super_admin; super_admin tak dapat diberikan via RPC

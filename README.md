@@ -201,6 +201,18 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"   # IP_
 
 Tidak ada rahasia di folder ini: `config.toml` membaca kredensial OAuth lewat `env(...)`, dan `seed.sql` hanya berisi kategori serta pengaturan situs — tanpa akun admin maupun data pengguna.
 
+### Transparansi isi migrasi
+
+Seluruh migrasi di-commit apa adanya, termasuk yang mencerminkan proses pengembangan. Berikut penjelasan bagian yang mungkin terlihat janggal saat dibaca:
+
+| Migrasi | Isi | Catatan |
+|---|---|---|
+| `...0004`, `...0010` | Tidak lagi membuat `super_admin` otomatis | Kepemilikan platform sengaja dibuat **manual** (lihat [Membuat Admin Pertama](#membuat-admin-pertama)); menghapus baris lama tidak mencabut super_admin yang sudah ada |
+| `...0022`, `...0027`, `...0028`, `...0030` | `bersihkan_*` — menghapus **data uji** sendiri | Menonaktifkan trigger append-only **hanya di dalam transaksi** lalu menyalakannya kembali; tidak menyentuh data pengguna asli |
+| `...0009`, `...0012` | Penambahan role & hardening | Perubahan otorisasi yang disengaja |
+
+Migrasi bersifat **append-only**: file lama tidak diubah setelah diterapkan ke database. Karena itu "sampah" pengembangan tetap terlihat — itu harga dari riwayat yang dapat diaudit penuh.
+
 **Tidak ikut di-commit** (lihat `.gitignore`): `supabase/.temp` (info proyek ter-link & connection URL), `supabase/.branches`, `supabase/.env`, `supabase/snippets/`, dan `supabase/backups/` (berisi **data produksi**).
 
 ```bash
@@ -252,7 +264,7 @@ npx supabase@2.120.0 db push
 
 ---
 
-## 👑 Membuat Admin Pertama
+## Membuat Admin Pertama
 
 Login GitHub hanya memberi role `member`. Role staf **tidak pernah** dibuat otomatis dari data publik.
 

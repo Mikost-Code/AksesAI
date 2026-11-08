@@ -45,14 +45,30 @@ test.describe("Halaman publik", () => {
     await expect(page.getByRole("button", { name: /github/i })).toBeVisible();
   });
 
-  test("slug info tak dikenal → 404", async ({ page }) => {
-    const res = await page.goto("/info/tidak-ada-info-ini-xyz");
-    expect(res?.status()).toBe(404);
+  /**
+   * Next.js 16 mengalirkan kerangka halaman (status 200) sebelum komponen async
+   * selesai, jadi memastikan lewat status HTTP tidak dapat diandalkan untuk
+   * `notFound()` di dalam halaman yang melakukan fetch. Yang benar-benar
+   * penting bagi pengguna adalah UI 404 yang tampil dan halaman tidak
+   * diindeks mesin pencari.
+   */
+  test("slug info tak dikenal → UI 404 & noindex", async ({ page }) => {
+    await page.goto("/info/tidak-ada-info-ini-xyz");
+    await expect(
+      page.getByRole("heading", { name: /halaman tidak ditemukan/i }),
+    ).toBeVisible();
+    // generateMetadata menandai noindex untuk slug yang tidak ada.
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      /noindex/i,
+    );
   });
 
-  test("kategori tak dikenal → 404", async ({ page }) => {
-    const res = await page.goto("/kategori/tidak-ada-kategori-xyz");
-    expect(res?.status()).toBe(404);
+  test("kategori tak dikenal → UI 404", async ({ page }) => {
+    await page.goto("/kategori/tidak-ada-kategori-xyz");
+    await expect(
+      page.getByRole("heading", { name: /halaman tidak ditemukan/i }),
+    ).toBeVisible();
   });
 
   test("header keamanan terkirim pada respons HTML", async ({ page }) => {

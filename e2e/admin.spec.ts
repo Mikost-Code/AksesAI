@@ -10,18 +10,23 @@ import { authenticate, createUser, deleteUser, type E2EUser } from "./helpers";
 const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
 
 test.describe("Alur admin", () => {
+  let owner: E2EUser;
   let admin: E2EUser;
   let target: E2EUser;
   let member: E2EUser;
 
   test.beforeAll(async () => {
+    // Memberi/mencabut role adalah kewenangan PEMILIK (super_admin), bukan
+    // admin biasa — lihat `canManageRoles` di user-actions.tsx. Karena itu uji
+    // "beri role lewat UI" memakai akun super_admin.
+    owner = await createUser("e2eowner", ["super_admin"]);
     admin = await createUser("e2eadmin", ["admin"]);
     target = await createUser("e2etarget");
     member = await createUser("e2emember");
   });
 
   test.afterAll(async () => {
-    for (const u of [admin, target, member]) {
+    for (const u of [owner, admin, target, member]) {
       if (u) await deleteUser(u.id);
     }
   });
@@ -42,12 +47,12 @@ test.describe("Alur admin", () => {
     await expect(page.getByRole("heading", { name: /^kategori$/i })).toBeVisible();
   });
 
-  test("admin memberi role reviewer ke pengguna lain lewat UI", async ({ context, page }) => {
-    await authenticate(context, BASE, admin);
+  test("pemilik memberi role reviewer ke pengguna lain lewat UI", async ({ context, page }) => {
+    await authenticate(context, BASE, owner);
     await page.goto(`/admin/pengguna?q=${encodeURIComponent(target.username)}`);
     await expect(page.getByText(target.username, { exact: false }).first()).toBeVisible();
 
-    // Klik tombol "Beri: Reviewer" pada kartu pengguna target.
+    // Tombol "Reviewer" pada baris "Beri:" di kartu pengguna target.
     await page
       .getByRole("button", { name: /^reviewer$/i })
       .first()
@@ -55,6 +60,18 @@ test.describe("Alur admin", () => {
     await expect(page.getByRole("status")).toContainText(/role reviewer diberikan/i, {
       timeout: 15_000,
     });
+  });
+
+  test("admin biasa tidak melihat tombol beri role (khusus pemilik)", async ({
+    context,
+    page,
+  }) => {
+    await authenticate(context, BASE, admin);
+    await page.goto(`/admin/pengguna?q=${encodeURIComponent(target.username)}`);
+    await expect(page.getByText(target.username, { exact: false }).first()).toBeVisible();
+    // Penjelasan pengganti tombol harus muncul.
+    await expect(page.getByText(/hanya oleh pemilik \(Super Admin\)/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /^reviewer$/i })).toHaveCount(0);
   });
 
   test("member biasa tidak dapat membuka /admin (redirect)", async ({ context, page }) => {

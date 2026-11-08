@@ -50,10 +50,13 @@ test.describe("Alur kontributor", () => {
       );
 
     // Pilih kategori pertama yang tersedia (bukan placeholder kosong).
-    const categorySelect = page.locator("#category");
-    const firstCategory = await categorySelect.locator("option").nth(1).getAttribute("value");
-    expect(firstCategory).toBeTruthy();
-    await categorySelect.selectOption(firstCategory!);
+    // Kategori memakai Radix Select (bukan <select> native): klik trigger
+    // `#category`, lalu klik opsi pertama di listbox yang muncul.
+    const categoryTrigger = page.locator("#category");
+    await categoryTrigger.click();
+    const firstOption = page.getByRole("option").first();
+    await expect(firstOption).toBeVisible({ timeout: 15_000 });
+    await firstOption.click();
 
     await page.locator("#provider").fill("Provider E2E");
 

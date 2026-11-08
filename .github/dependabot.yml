@@ -28,6 +28,15 @@ updates:
       # Pin Supabase CLI: 3.x menolak section [local_smtp] di config.toml.
       - dependency-name: "supabase"
         update-types: ["version-update:semver-major"]
+      # `@types/node` harus mengikuti versi Node yang benar-benar dipakai
+      # (engines: >=20.19.0 <26, CI memakai Node 22). Menaikkan tipe ke major
+      # yang lebih baru membuat TypeScript "mengenal" API Node yang tidak ada
+      # saat runtime — typecheck tetap lolos sehingga bug ini tidak terdeteksi
+      # CI. Naikkan manual saat engines/CI ikut naik.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
     groups:
       # Semua yang minor/patch digabung agar review-nya sekali jalan.
       npm-minor-patch:
@@ -46,7 +55,6 @@ updates:
           - "vitest*"
           - "@vitest/*"
           - "@playwright/*"
-          - "@types/*"
 
   # ── GitHub Actions ────────────────────────────────────────────────────────
   - package-ecosystem: "github-actions"

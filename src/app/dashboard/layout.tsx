@@ -34,7 +34,7 @@ export default async function DashboardLayout({
   const [badgeCounts, unreadNotifications] = await Promise.all([
     canReview || canModerate
       ? getStaffBadgeCounts(canModerate)
-      : Promise.resolve({ pendingReview: 0, openReports: 0 }),
+      : Promise.resolve({ pendingReview: 0, openReports: 0, staleRecheck: 0 }),
     getUnreadNotificationCount(user.id),
   ]);
 
@@ -54,7 +54,7 @@ export default async function DashboardLayout({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-8">
-        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} pendingReview={badgeCounts.pendingReview} openReports={badgeCounts.openReports} unreadNotifications={unreadNotifications} />
+        <DashboardNav canReview={canReview} canModerate={canModerate} isAdmin={isAdmin} pendingReview={badgeCounts.pendingReview} openReports={badgeCounts.openReports} staleRecheck={badgeCounts.staleRecheck} unreadNotifications={unreadNotifications} />
         <main id="main-content" className="min-w-0 flex-1">
           {user.isBanned ? (
             <div

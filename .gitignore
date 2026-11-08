@@ -21,6 +21,10 @@ next-env.d.ts
 supabase/.branches
 supabase/.temp
 supabase/.env
+# backup database — berisi DATA produksi, jangan pernah di-commit
+supabase/backups/
+# potongan SQL pribadi/draf (bukan migrasi)
+supabase/snippets/
 
 # env files — JANGAN pernah commit nilai asli
 .env
@@ -55,9 +59,11 @@ opencode.json
 # file bantuan agen yang dibuat otomatis oleh `next dev`
 AGENTS.md
 
-# skema & migrasi database — hanya lokal, tidak dipublikasikan di repo
-# (dikelola lewat Supabase CLI ter-link; simpan cadangan sendiri)
-/supabase/
+# skema & migrasi database — DIPUBLIKASIKAN agar tes RLS/integration/E2E
+# dapat berjalan di CI dan skema dapat diaudit siapa pun. Hanya state lokal
+# (volume, cache, backup, env) yang diabaikan — lihat blok supabase di atas.
+# Rahasia TIDAK boleh masuk ke sini: connection string dan key dibaca dari
+# environment (lihat supabase/config.toml → env(GITHUB_OAUTH_CLIENT_ID)).
 
 # hasil screenshot review UI lokal
 ui-shots/

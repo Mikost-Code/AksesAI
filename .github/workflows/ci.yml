@@ -69,11 +69,10 @@ jobs:
     # Uji ini menyalakan Supabase lokal di runner (butuh Docker, tersedia di
     # ubuntu-latest) sehingga ketergantungan eksternal tidak diperlukan.
     #
-    # PENTING: folder supabase/ (config.toml + migrasi) sengaja TIDAK ada di
-    # repo publik — dikelola lokal oleh pemilik. Job ini hanya berjalan bila
-    # folder tersedia; bila tidak, job selesai sukses dengan catatan dan uji
-    # RLS/integration/E2E dijalankan lokal oleh pemilik (lihat README
-    # §Testing).
+    # Skema (supabase/config.toml + migrasi + seed) ikut di-commit agar tes RLS
+    # benar-benar berjalan pada setiap PR — bukan dilewati. Penjagaan `guard`
+    # dipertahankan hanya untuk berjaga bila folder itu tidak ada (mis. fork
+    # yang menghapusnya); dalam kondisi normal job ini WAJIB jalan.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,7 +85,7 @@ jobs:
             echo "Folder supabase/ ditemukan — menjalankan uji RLS/integration/E2E."
           else
             echo "tersedia=false" >> "$GITHUB_OUTPUT"
-            echo "Folder supabase/ tidak ada di repo publik — uji dilewati."
+            echo "Folder supabase/ tidak ada — uji dilewati."
           fi
 
       - name: Setup pnpm
@@ -157,6 +156,5 @@ jobs:
       - name: Catatan lewati (folder supabase tidak tersedia)
         if: steps.guard.outputs.tersedia != 'true'
         run: |
-          echo "✅ Job dilewati dengan sengaja: folder supabase/ (migrasi + config)"
-          echo "   tidak ada di repo publik. Uji RLS/integration/E2E dijalankan"
-          echo "   lokal oleh pemilik proyek (Docker) — lihat README §Testing."
+          echo "::warning::Folder supabase/ tidak ditemukan — uji RLS/integration/E2E dilewati."
+          echo "Di repo asal folder ini selalu ada; bila hilang, kembalikan lewat git checkout."

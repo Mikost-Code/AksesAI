@@ -1,0 +1,71 @@
+version: 2
+
+# Dependabot: pembaruan dependensi otomatis lewat pull request.
+#
+# Prinsip yang dipakai di repo ini:
+#  - Kelompokkan pembaruan minor/patch agar tidak membanjiri halaman PR.
+#  - Pembaruan MAJOR sengaja TIDAK dikelompokkan: setiap major butuh dibaca
+#    manual, terutama `next` dan `@supabase/*` yang sering mengubah perilaku.
+#  - Supabase CLI dipin pada versi tertentu (lihat README §Catatan versi CLI).
+#    Karena itu pembaruan `supabase` (devDependency) saya kecualikan: menaikkan
+#    CLI ke 3.x akan menolak konfigurasi `[local_smtp]` dan mematahkan CI.
+updates:
+  # ── Dependensi npm ────────────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+    ignore:
+      # Pin Supabase CLI: 3.x menolak section [local_smtp] di config.toml.
+      - dependency-name: "supabase"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Semua yang minor/patch digabung agar review-nya sekali jalan.
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+      # Perkakas pengembangan tidak memengaruhi runtime produksi.
+      dev-tooling:
+        applies-to: version-updates
+        dependency-type: "development"
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "typescript*"
+          - "vitest*"
+          - "@vitest/*"
+          - "@playwright/*"
+          - "@types/*"
+
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"

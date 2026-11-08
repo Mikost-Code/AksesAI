@@ -234,13 +234,16 @@ describe("Integrasi — admin RPC", () => {
     expect(unbanErr).toBeNull();
 
     // Pemilik kebal blokir — bahkan oleh dirinya sendiri lewat RPC.
+    // Blokir-diri ditolak lebih dulu (pesan "akun sendiri"); blokir oleh
+    // pihak lain ditolak oleh penjagaan super_admin ("Pemilik ... diblokir").
     const { error: selfBanErr } = await owner.client.rpc("set_user_banned", {
       p_user_id: owner.id,
       p_banned: true,
       p_reason: "Uji proteksi pemilik terhadap blokir.",
     });
     expect(selfBanErr).not.toBeNull();
-    expect(selfBanErr!.message.toLowerCase()).toContain("pemilik");
+    expect(selfBanErr!.code).toBe("42501");
+    expect(selfBanErr!.message.toLowerCase()).toContain("sendiri");
   });
 
   it("member tidak dapat membuat kategori", async () => {

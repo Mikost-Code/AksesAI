@@ -171,15 +171,17 @@ describe("Integrasi — reviewer workflow", () => {
     expect(data!.verified_at).not.toBeNull();
   });
 
-  it("expire_due_programs menandai program terverifikasi yang lewat end_date", async () => {
+  it("expire_due_programs menandai program terverifikasi yang lewat promo_end", async () => {
     if (!up) return;
     const admin = serviceClient();
     const id = await makePending(null, "expire");
-    // Verifikasi lalu paksa end_date ke masa lalu (service_role).
+    // Verifikasi lalu paksa promo_end ke masa lalu (service_role).
+    // CATATAN: cron membaca promo_end, BUKAN end_date legacy — lihat migrasi
+    // 0008 yang mengganti kolom yang dibaca (0007 masih memakai end_date).
     await reviewer.client.rpc("verify_program", { p_program_id: id });
     await admin
       .from("assistance_programs")
-      .update({ end_date: "2020-01-01" })
+      .update({ promo_end: "2020-01-01" })
       .eq("id", id);
 
     const { error } = await admin.rpc("expire_due_programs");

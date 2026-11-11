@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons/github-icon";
+import { resolveActiveHref } from "@/lib/nav";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -40,19 +41,15 @@ type MenuItem = {
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   badge?: number;
   /**
-   * `true` bila item ini harus dianggap aktif ketika path saat ini SAMA PERSIS
-   * atau merupakan turunannya (`/dashboard/kontribusi/abc` cocok dengan
-   * `/dashboard/kontribusi`). `false` untuk rute yang bersarang di rute lain
-   * tetapi bukan turunannya secara menu — lihat "Bagikan informasi".
+   * `true` bila item ini HANYA boleh aktif saat path sama persis.
+   *
+   * Dulu properti ini bernama `nested` dan semantiknya kebalik: ia hanya
+   * mematikan pencocokan turunan, sehingga induk (mis. `/dashboard`) tetap
+   * ikut menyala di seluruh sub-halaman. Bersama `resolveActiveHref`,
+   * `exact` kini berarti "jangan pernah cocok lewat prefix".
    */
-  nested?: boolean;
+  exact?: boolean;
 };
-
-/** Apakah `href` adalah halaman yang sedang dibuka? */
-function isActivePath(pathname: string, href: string, nested = true) {
-  if (pathname === href) return true;
-  return nested && pathname.startsWith(`${href}/`);
-}
 
 /**
  * Menu akun (dropdown) untuk navbar.
@@ -121,15 +118,20 @@ export function AccountMenu({
 
   // Item yang selalu ada bagi pengguna login.
   const utama: MenuItem[] = [
-    { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard },
+    // `exact`: tanpa ini "Ringkasan" menyala di SEMUA halaman dasbor
+    // (termasuk /dashboard/kontribusi/baru) karena `/dashboard` adalah prefix
+    // dari semuanya.
+    { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard, exact: true },
     { href: "/dashboard/kontribusi", label: "Kontribusi saya", icon: Files },
     {
       href: "/dashboard/kontribusi/baru",
       label: "Bagikan informasi",
       icon: FilePlus2,
       // Berada di bawah /dashboard/kontribusi secara URL, tetapi secara menu
-      // adalah tujuan tersendiri — jangan ikut tersorot saat daftar dibuka.
-      nested: false,
+      // adalah tujuan tersendiri. `exact` membuatnya tidak menyerap
+      // /dashboard/kontribusi/abc-123, dan (lewat longest-prefix) membuatnya
+      // menang atas induknya saat halaman ini dibuka.
+      exact: true,
     },
     { href: "/dashboard/laporan", label: "Laporan saya", icon: Flag },
     {
@@ -161,10 +163,9 @@ export function AccountMenu({
     staf.push({ href: "/moderation/reports", label: "Laporan masuk", icon: Flag });
   }
   if (user.isAdmin) {
-    // `nested: false`: halaman anak admin (pengguna, kategori, audit, program)
-    // punya item sendiri. Tanpa ini "Panel admin" ikut tersorot di semua
-    // halaman anak dan mata kehilangan penanda lokasi.
-    staf.push({ href: "/admin", label: "Panel admin", icon: Gauge, nested: false });
+    // `exact`: halaman anak admin (pengguna, kategori, audit, program) punya
+    // item sendiri. Tanpa ini "Panel admin" ikut tersorot di semua halaman anak.
+    staf.push({ href: "/admin", label: "Panel admin", icon: Gauge, exact: true });
     staf.push({
       href: "/admin/program",
       label: "Program & masa berlaku",
@@ -191,9 +192,24 @@ export function AccountMenu({
 
   const initial = user.githubUsername.slice(0, 1).toUpperCase();
 
+  /**
+   * Satu-satunya item yang dianggap aktif, dihitung dari SELURUH item menu.
+   *
+   * Dulu tiap item diuji sendiri-sendiri dengan `startsWith`, sehingga di
+   * `/dashboard/kontribusi/baru` tiga item menyala sekaligus (Ringkasan,
+   * Kontribusi saya, Bagikan informasi). `resolveActiveHref` memilih prefix
+   * terpanjang sehingga tepat satu item menang — aturan yang sama dengan
+   * navigasi utama dan sidebar dasbor.
+   */
+  const activeHref = resolveActiveHref(pathname, [
+    ...utama,
+    ...staf,
+    ...stafPengaturan,
+  ]);
+
   function renderItem(item: MenuItem) {
     const Icon = item.icon;
-    const active = isActivePath(pathname, item.href, item.nested ?? true);
+    const active = item.href === activeHref;
     return (
       <Link
         key={item.href}

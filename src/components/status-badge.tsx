@@ -35,14 +35,19 @@ const STATUS_CONFIG: Record<
 export function StatusBadge({
   status,
   className,
+  ...props
 }: {
   status: ProgramStatus;
   className?: string;
-}) {
+} & Omit<React.ComponentProps<typeof Badge>, "variant" | "children">) {
   const config = STATUS_CONFIG[status];
   const Icon = config.icon ?? FileText;
   return (
-    <Badge variant={config.variant} className={cn("whitespace-nowrap", className)}>
+    <Badge
+      variant={config.variant}
+      className={cn("whitespace-nowrap", className)}
+      {...props}
+    >
       <Icon className="size-3.5" aria-hidden="true" />
       {PROGRAM_STATUS_LABEL[status]}
     </Badge>

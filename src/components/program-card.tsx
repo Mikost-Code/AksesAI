@@ -5,7 +5,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui/card";
 import type { AccessType, ProgramStatus } from "@/lib/constants/labels";
-import { formatDateID } from "@/lib/utils";
+import { cn, formatDateID } from "@/lib/utils";
 
 export type ProgramCardData = {
   id: string;
@@ -40,14 +40,32 @@ function priceLabel(input: number | null, output: number | null): string | null 
 export function ProgramCard({ program }: { program: ProgramCardData }) {
   const promoEnd = formatDateID(program.promoEnd);
   const pricing = priceLabel(program.priceInput, program.priceOutput);
+  /**
+   * Entri kedaluwarsa tetap tampil (arsip berguna), tapi diredupkan supaya
+   * pengunjung langsung bisa membedakan mana yang masih terverifikasi.
+   * `aria` tetap utuh agar pembaca layar tidak kehilangan konteks.
+   */
+  const isExpired = program.status === "expired";
 
   return (
-    <Card className="card-accent group relative flex h-full flex-col overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] focus-within:border-primary/30 focus-within:shadow-[var(--shadow-elevated)]">
+    <Card
+      className={cn(
+        "card-accent group relative flex h-full flex-col overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] focus-within:border-primary/30 focus-within:shadow-[var(--shadow-elevated)]",
+        isExpired && "card-expired",
+      )}
+    >
       <div className="flex items-start justify-between gap-3 p-5 pb-3">
-        <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
+        <span
+          className={cn(
+            "rounded-full px-2.5 py-0.5 text-xs font-medium",
+            isExpired
+              ? "bg-border/60 text-muted-foreground"
+              : "bg-primary-soft text-primary",
+          )}
+        >
           {program.categoryName}
         </span>
-        <StatusBadge status={program.status} />
+        <StatusBadge status={program.status} data-status-badge />
       </div>
 
       <div className="flex flex-1 flex-col gap-3 px-5">
@@ -56,7 +74,14 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
             {program.accessTypeLabel}
           </span>
           {program.freeTierAvailable ? (
-            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                isExpired
+                  ? "bg-border/60 text-muted-foreground"
+                  : "bg-accent-soft text-accent",
+              )}
+            >
               Ada free tier
             </span>
           ) : (
@@ -65,7 +90,14 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
             </span>
           )}
           {program.requiresCard ? (
-            <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] text-warning">
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px]",
+                isExpired
+                  ? "bg-border/60 text-muted-foreground"
+                  : "bg-warning-soft text-warning",
+              )}
+            >
               Perlu kartu
             </span>
           ) : null}
@@ -85,13 +117,22 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
 
         <dl className="mt-auto flex flex-col gap-1.5 rounded-lg bg-surface p-3 text-sm text-muted-foreground transition-colors duration-200 group-hover:bg-primary-soft/40">
           <div className="flex items-center gap-1.5">
-            <Sparkles className="size-4 shrink-0 text-primary/70" aria-hidden="true" />
+            <Sparkles
+              className={cn(
+                "size-4 shrink-0",
+                !isExpired && "text-primary/70",
+              )}
+              aria-hidden="true"
+            />
             <dt className="sr-only">Provider</dt>
             <dd className="line-clamp-1">{program.provider}</dd>
           </div>
           {program.freeTierAvailable && program.freeTier ? (
             <div className="flex items-center gap-1.5">
-              <Gift className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              <Gift
+                className={cn("size-4 shrink-0", !isExpired && "text-accent")}
+                aria-hidden="true"
+              />
               <dt className="sr-only">Kuota gratis</dt>
               <dd className="line-clamp-1">{program.freeTier}</dd>
             </div>
@@ -113,7 +154,12 @@ export function ProgramCard({ program }: { program: ProgramCardData }) {
         </dl>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground">
+      <div
+        className={cn(
+          "mt-4 flex items-center gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground",
+          isExpired && "card-expired-footer",
+        )}
+      >
         {program.contributorAvatar ? (
           <Image
             src={program.contributorAvatar}

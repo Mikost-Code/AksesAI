@@ -12,14 +12,11 @@ import {
   Files,
   Flag,
   Gauge,
-  Globe,
   LayoutDashboard,
   LogOut,
   ScrollText,
   Settings,
   ShieldAlert,
-  SlidersHorizontal,
-  ShieldUser,
   Users,
 } from "lucide-react";
 
@@ -263,19 +260,18 @@ export function AccountMenu({
   }
 
   /**
-   * Judul grup. Memakai ikon yang sama ukurannya dengan ikon item agar
-   * deretan kiri panel tetap lurus — sebelumnya tiga judul grup tampil tanpa
-   * ikon di antara 12+ baris berikon, dan mata membacanya sebagai "bolong".
+   * Judul grup: teks kecil kapital tanpa ikon, di atas garis pemisah.
+   *
+   * Urutan visual tiap grup:  ──────  JUDUL  item  item
+   * sehingga pembaca langsung tahu batas antar kelompok.
    */
-  function renderGroupHeading(
-    label: string,
-    Icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>,
-  ) {
+  function renderGroupHeading(label: string) {
     return (
-      <p className="flex items-center gap-2.5 px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
-        {label}
-      </p>
+      <div className="mt-1 border-t border-border pt-2">
+        <p className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+      </div>
     );
   }
 
@@ -377,49 +373,34 @@ export function AccountMenu({
             staf tidak punya tautan eksplisit kembali ke direktori publik —
             satu-satunya cara adalah menebak lewat logo.
 
-            Dulu blok ini diberi `border-t` SENDIRI sementara grup berikutnya
-            juga memberi `border-t`, sehingga muncul dua garis yang mengapit
-            satu item dan membuatnya tampak seperti kotak terkurung.
-
-            Lalu label "PUBLIK" di kanan item dihapus karena membingungkan.
-            Ternyata itu menimbulkan masalah baru: tanpa pemisah, "Jelajahi
-            direktori" menempel langsung ke judul "Area staf" sehingga terbaca
-            seolah bagian dari area staf.
-
-            Penyelesaiannya: jadikan ia grup tersendiri dengan judul
-            "Halaman publik" — sejajar dengan "Area staf" dan "Pengaturan".
-            Struktur jadi konsisten (judul grup + satu item), dan garis
-            pemisah muncul otomatis lewat `border-t` milik grup ini.
+            Dimiliki sebagai grup "Direktori" agar jelas terpisah dari menu
+            akun di atasnya dan dari area manajemen di bawahnya.
           */}
-          <div className="border-t border-border pt-1">
-            {renderGroupHeading("Halaman publik", Globe)}
-            <div className="pb-1">
-              <Link
-                href="/info"
-                role="menuitem"
-                onClick={closeMenu}
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
-              >
-                <Compass className="size-4 shrink-0" aria-hidden={true} />
-                <span className="flex-1 truncate">Jelajahi direktori</span>
-              </Link>
-            </div>
+          <div className="pb-1">
+            {renderGroupHeading("Direktori")}
+            <Link
+              href="/info"
+              role="menuitem"
+              onClick={closeMenu}
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
+            >
+              <Compass className="size-4 shrink-0" aria-hidden={true} />
+              <span className="flex-1 truncate">Jelajahi direktori</span>
+            </Link>
           </div>
 
           {staf.length > 0 ? (
-            <>
-              <div className="border-t border-border" />
-              {renderGroupHeading("Area staf", ShieldUser)}
-              <div className="pb-1">{staf.map(renderItem)}</div>
-            </>
+            <div className="pb-1">
+              {renderGroupHeading("Manajemen")}
+              {staf.map(renderItem)}
+            </div>
           ) : null}
 
           {stafPengaturan.length > 0 ? (
-            <>
-              <div className="border-t border-border" />
-              {renderGroupHeading("Pengaturan", SlidersHorizontal)}
-              <div className="pb-1">{stafPengaturan.map(renderItem)}</div>
-            </>
+            <div className="pb-1">
+              {renderGroupHeading("Pengaturan")}
+              {stafPengaturan.map(renderItem)}
+            </div>
           ) : null}
 
           <div className="border-t border-border pt-1">

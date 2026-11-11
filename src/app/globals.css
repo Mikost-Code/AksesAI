@@ -445,6 +445,41 @@
     border-color: transparent;
   }
 
+  /*
+   * Panel menu akun bisa lebih tinggi dari layar (13 baris untuk super admin)
+   * sehingga perlu di-scroll. Tanpa penanda, pengguna tidak tahu masih ada
+   * isi di bawah — "Audit log" dan "Keluar" bisa terlewat sama sekali.
+   *
+   * Bayangan menempel pada tepi panel (bukan ikut ter-scroll) dan hanya
+   * muncul saat masih ada isi tersembunyi di sisi itu. `scroll-timeline`
+   * belum dipakai karena dukungannya belum merata; sebagai gantinya
+   * dipakai trik `background-attachment: local` pada dua gradient —
+   * gradient "penutup" akan ikut tergulir sehingga hilang dengan sendirinya
+   * ketika sudah sampai ujung.
+   */
+  .account-menu-shell {
+    --menu-fade: color-mix(in srgb, var(--color-background) 92%, transparent);
+  }
+  .account-menu-shell > div {
+    background-image:
+      linear-gradient(to bottom, var(--color-background), transparent),
+      linear-gradient(to top, var(--color-background), transparent),
+      radial-gradient(farthest-side at 50% 0, rgba(11, 22, 35, 0.14), transparent),
+      radial-gradient(farthest-side at 50% 100%, rgba(11, 22, 35, 0.14), transparent);
+    background-position:
+      0 0,
+      0 100%,
+      0 0,
+      0 100%;
+    background-size:
+      100% 14px,
+      100% 14px,
+      100% 6px,
+      100% 6px;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+
   /* Gradien teks untuk judul sorotan */
   .text-gradient-brand {
     background-image: linear-gradient(

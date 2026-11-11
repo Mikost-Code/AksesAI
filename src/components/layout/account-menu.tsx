@@ -17,11 +17,14 @@ import {
   ScrollText,
   Settings,
   ShieldAlert,
+  SlidersHorizontal,
+  ShieldUser,
   Users,
 } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { resolveActiveHref } from "@/lib/nav";
+import { formatBadgeCount } from "@/lib/nav-badge";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +52,8 @@ type MenuItem = {
    * `exact` kini berarti "jangan pernah cocok lewat prefix".
    */
   exact?: boolean;
+  /** `true` untuk aksi utama yang ingin ditonjolkan (mis. "Bagikan informasi"). */
+  emphasize?: boolean;
 };
 
 /**
@@ -132,6 +137,8 @@ export function AccountMenu({
       // /dashboard/kontribusi/abc-123, dan (lewat longest-prefix) membuatnya
       // menang atas induknya saat halaman ini dibuka.
       exact: true,
+      // Aksi utama yang kita harapkan dilakukan pengguna login.
+      emphasize: true,
     },
     { href: "/dashboard/laporan", label: "Laporan saya", icon: Flag },
     {
@@ -216,21 +223,58 @@ export function AccountMenu({
         href={item.href}
         role="menuitem"
         onClick={closeMenu}
-        aria-current={active ? "page" : undefined}
+        aria-current={
+          active
+            ? // `page` hanya bila path persis sama; untuk turunan (mis. halaman
+              // detail kontribusi) nilai yang benar adalah `true` — pembaca
+              // layar akan membacanya sebagai "lokasi saat ini", bukan "halaman
+              // ini". Sebelumnya selalu `page`, yang kurang tepat untuk
+              // /dashboard/kontribusi/abc-123 yang mengaktifkan /dashboard/kontribusi.
+              pathname === item.href
+              ? "page"
+              : "true"
+            : undefined
+        }
         className={cn(
-          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm outline-none transition-colors",
+          "group/item flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm outline-none transition-colors",
           "hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground",
-          active ? "bg-primary-soft font-medium text-primary" : "text-muted-foreground",
+          active
+            ? "bg-primary-soft font-medium text-primary"
+            : item.emphasize
+              ? // Aksi utama (Bagikan informasi): tegas lewat warna, tanpa
+                // latar penuh agar tidak bersaing dengan item yang sedang aktif.
+                "font-medium text-primary hover:bg-primary-soft/60"
+              : "text-muted-foreground",
         )}
       >
-        <Icon className="size-4 shrink-0" aria-hidden={true} />
+        <Icon
+          className={cn("size-4 shrink-0", item.emphasize && !active && "text-primary")}
+          aria-hidden={true}
+        />
         <span className="flex-1 truncate">{item.label}</span>
-        {item.badge && item.badge > 0 ? (
+        {formatBadgeCount(item.badge) !== null ? (
           <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground tabular-nums">
-            {item.badge > 99 ? "99+" : item.badge}
+            {formatBadgeCount(item.badge)}
           </span>
         ) : null}
       </Link>
+    );
+  }
+
+  /**
+   * Judul grup. Memakai ikon yang sama ukurannya dengan ikon item agar
+   * deretan kiri panel tetap lurus — sebelumnya tiga judul grup tampil tanpa
+   * ikon di antara 12+ baris berikon, dan mata membacanya sebagai "bolong".
+   */
+  function renderGroupHeading(
+    label: string,
+    Icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>,
+  ) {
+    return (
+      <p className="flex items-center gap-2.5 px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
+        {label}
+      </p>
     );
   }
 
@@ -277,12 +321,25 @@ export function AccountMenu({
       </button>
 
       {open ? (
+        /*
+         * Panel bisa lebih tinggi dari layar (13 item untuk super admin), jadi
+         * ia perlu di-scroll. Masalahnya: tanpa penanda, pengguna tidak tahu
+         * masih ada isi di bawah ("Audit log", "Keluar").
+         *
+         * Solusi: pembungkus `relative` + bayangan atas/bawah yang menempel
+         * pada tepi panel (bukan ikut ter-scroll) dan HANYA muncul saat masih
+         * ada isi tersembunyi. `overflow-y-auto` tetap di elemen dalam karena
+         * `position: sticky` pada pseudo-elemen akan terpotong oleh container
+         * yang sama. Karena itu dipakai dua lapisan: pembungkus (posisi) dan
+         * panel (scroll).
+         */
         <div
           id="account-menu-panel"
           role="menu"
           aria-label="Menu akun"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 max-h-[calc(100dvh-6rem)] w-64 origin-top-right overflow-y-auto overscroll-contain rounded-xl border border-border bg-background p-1.5 shadow-[var(--shadow-elevated)] animate-[var(--animate-menu-in)]"
+          className="account-menu-shell absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 origin-top-right rounded-xl border border-border bg-background p-1.5 shadow-[var(--shadow-elevated)] animate-[var(--animate-menu-in)]"
         >
+          <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain">
           {/* Identitas: nama + peran. Peran dibaca dari database, bukan klaim klien. */}
           <div className="flex items-center gap-2.5 border-b border-border px-2.5 pb-2.5 pt-1.5">
             {user.avatarUrl ? (
@@ -314,11 +371,21 @@ export function AccountMenu({
 
           <div className="py-1">{utama.map(renderItem)}</div>
 
-          {/* Jalan pulang. Tanpa ini pengguna yang sedang di dasbor atau area
-              staf tidak punya tautan eksplisit kembali ke direktori publik —
-              satu-satunya cara adalah menebak lewat logo. Diletakkan langsung
-              setelah menu utama, bukan di grup bawah bersama "Keluar", supaya
-              terbaca sebagai tujuan navigasi, bukan aksi keluar. */}
+          {/*
+            Jalan pulang. Tanpa ini pengguna yang sedang di dasbor atau area
+            staf tidak punya tautan eksplisit kembali ke direktori publik —
+            satu-satunya cara adalah menebak lewat logo.
+
+            Dulu blok ini diberi `border-t` SENDIRI sementara grup berikutnya
+            juga memberi `border-t`, sehingga muncul dua garis yang mengapit
+            satu item dan membuatnya tampak seperti kotak terkurung. Sekarang
+            hanya ada SATU garis, dimiliki oleh blok ini, dan grup di bawahnya
+            memakai `border-t` hanya bila tidak didahului blok ini.
+
+            Label "Publik" di kanan juga dihapus: semua item di menu ini hanya
+            terlihat setelah login, sehingga label itu menimbulkan pertanyaan
+            ("lalu yang lain apa?") tanpa menjawab apa pun.
+          */}
           <div className="border-t border-border py-1">
             <Link
               href="/info"
@@ -328,18 +395,12 @@ export function AccountMenu({
             >
               <Compass className="size-4 shrink-0" aria-hidden={true} />
               <span className="flex-1 truncate">Jelajahi direktori</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
-                Publik
-              </span>
             </Link>
           </div>
 
           {staf.length > 0 ? (
             <>
-              <div className="border-t border-border" />
-              <p className="px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Area staf
-              </p>
+              {renderGroupHeading("Area staf", ShieldUser)}
               <div className="pb-1">{staf.map(renderItem)}</div>
             </>
           ) : null}
@@ -347,9 +408,7 @@ export function AccountMenu({
           {stafPengaturan.length > 0 ? (
             <>
               <div className="border-t border-border" />
-              <p className="px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Pengaturan
-              </p>
+              {renderGroupHeading("Pengaturan", SlidersHorizontal)}
               <div className="pb-1">{stafPengaturan.map(renderItem)}</div>
             </>
           ) : null}
@@ -375,6 +434,7 @@ export function AccountMenu({
               <LogOut className="size-4 shrink-0" aria-hidden="true" />
               {pending ? "Keluar…" : "Keluar"}
             </button>
+          </div>
           </div>
         </div>
       ) : null}

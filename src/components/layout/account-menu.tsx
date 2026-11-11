@@ -12,6 +12,7 @@ import {
   Files,
   Flag,
   Gauge,
+  Globe,
   LayoutDashboard,
   LogOut,
   ScrollText,
@@ -378,28 +379,36 @@ export function AccountMenu({
 
             Dulu blok ini diberi `border-t` SENDIRI sementara grup berikutnya
             juga memberi `border-t`, sehingga muncul dua garis yang mengapit
-            satu item dan membuatnya tampak seperti kotak terkurung. Sekarang
-            hanya ada SATU garis, dimiliki oleh blok ini, dan grup di bawahnya
-            memakai `border-t` hanya bila tidak didahului blok ini.
+            satu item dan membuatnya tampak seperti kotak terkurung.
 
-            Label "Publik" di kanan juga dihapus: semua item di menu ini hanya
-            terlihat setelah login, sehingga label itu menimbulkan pertanyaan
-            ("lalu yang lain apa?") tanpa menjawab apa pun.
+            Lalu label "PUBLIK" di kanan item dihapus karena membingungkan.
+            Ternyata itu menimbulkan masalah baru: tanpa pemisah, "Jelajahi
+            direktori" menempel langsung ke judul "Area staf" sehingga terbaca
+            seolah bagian dari area staf.
+
+            Penyelesaiannya: jadikan ia grup tersendiri dengan judul
+            "Halaman publik" — sejajar dengan "Area staf" dan "Pengaturan".
+            Struktur jadi konsisten (judul grup + satu item), dan garis
+            pemisah muncul otomatis lewat `border-t` milik grup ini.
           */}
-          <div className="border-t border-border py-1">
-            <Link
-              href="/info"
-              role="menuitem"
-              onClick={closeMenu}
-              className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
-            >
-              <Compass className="size-4 shrink-0" aria-hidden={true} />
-              <span className="flex-1 truncate">Jelajahi direktori</span>
-            </Link>
+          <div className="border-t border-border pt-1">
+            {renderGroupHeading("Halaman publik", Globe)}
+            <div className="pb-1">
+              <Link
+                href="/info"
+                role="menuitem"
+                onClick={closeMenu}
+                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground outline-none transition-colors hover:bg-surface hover:text-foreground focus-visible:bg-surface focus-visible:text-foreground"
+              >
+                <Compass className="size-4 shrink-0" aria-hidden={true} />
+                <span className="flex-1 truncate">Jelajahi direktori</span>
+              </Link>
+            </div>
           </div>
 
           {staf.length > 0 ? (
             <>
+              <div className="border-t border-border" />
               {renderGroupHeading("Area staf", ShieldUser)}
               <div className="pb-1">{staf.map(renderItem)}</div>
             </>

@@ -15,7 +15,13 @@
  * Setiap entri WAJIB punya minimal satu sumber resmi — itu inti nilai
  * produk. Kuota/harga berubah cepat: verifikasi ulang tiap kali memperbarui.
  *
- * Jalankan: node scripts/seed-content.mjs
+ * Jalankan:
+ *   node scripts/seed-content.mjs --dry-run   → pratinjau, database TIDAK diubah
+ *   node scripts/seed-content.mjs             → sungguhan (menulis ke Supabase)
+ *
+ * Selalu mulai dengan `--dry-run`. Perintah ini tetap membaca database (supaya
+ * daftar entri baru/diperbarui/terhapus akurat) tetapi tidak pernah menulis:
+ * tidak ada baris yang dihapus, ditambah, diperbarui, atau diganti sumbernya.
  */
 import { readFileSync } from "node:fs";
 
@@ -34,6 +40,24 @@ const env = Object.fromEntries(
 
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+/**
+ * `--dry-run`: baca database, laporkan rencana, jangan menulis apa pun.
+ *
+ * Sengaja hanya menerima satu flag. Skrip ini menyentuh produksi dengan
+ * `service_role`, jadi kemampuan berbahaya (mis. `--force` yang melewati
+ * pengaman) tidak ditambahkan sampai benar-benar dibutuhkan.
+ */
+const DRY_RUN = process.argv.slice(2).includes("--dry-run");
+
+const flagTidakDikenal = process.argv
+  .slice(2)
+  .filter((arg) => arg !== "--dry-run");
+if (flagTidakDikenal.length > 0) {
+  console.error(`Argumen tidak dikenal: ${flagTidakDikenal.join(" ")}`);
+  console.error("Pilihan yang tersedia: --dry-run");
+  process.exit(1);
+}
 
 if (!url || !serviceKey) {
   console.error("Env Supabase tidak lengkap di .env.local");
@@ -583,6 +607,7 @@ if (allError) {
 
 const stale = (allRows ?? []).filter((row) => !keepSlugs.has(row.slug));
 let deleted = 0;
+const akanDihapus = [];
 for (const row of stale) {
   // Kontribusi manual (lewat form) memiliki riwayat kontribusi — JANGAN
   // dihapus oleh sinkronisasi seed. Tabel history append-only juga akan
@@ -596,6 +621,10 @@ for (const row of stale) {
     console.log(`  dipertahankan (kontribusi manual): ${row.slug}`);
     continue;
   }
+  if (DRY_RUN) {
+    akanDihapus.push(row.slug);
+    continue;
+  }
   const { error } = await admin.from("assistance_programs").delete().eq("id", row.id);
   if (error) {
     console.warn(`  gagal hapus ${row.slug}: ${error.message}`);
@@ -603,6 +632,16 @@ for (const row of stale) {
     deleted += 1;
     console.log(`  dihapus: ${row.slug}`);
   }
+}
+
+// Pratinjau penghapusan sengaja dicetak PALING AWAL dan dengan penanda tegas:
+// inilah bagian yang tidak bisa dibatalkan (cascade ke sumber & riwayat), jadi
+// harus paling terlihat saat membaca keluaran.
+if (DRY_RUN && akanDihapus.length > 0) {
+  console.log("");
+  console.log(`  AKAN DIHAPUS (${akanDihapus.length}) — tidak bisa dibatalkan:`);
+  for (const slug of akanDihapus) console.log(`    - ${slug}`);
+  console.log("");
 }
 
 let inserted = 0;
@@ -660,6 +699,14 @@ for (const entry of ENTRIES) {
 
   let programId = existing?.id;
 
+  if (DRY_RUN) {
+    // Hitung rencana saja. `programId` tidak dipakai karena blok sumber di
+    // bawah juga dilewati — tidak ada yang perlu ditulis.
+    if (programId) updated += 1;
+    else inserted += 1;
+    continue;
+  }
+
   if (programId) {
     const { error } = await admin
       .from("assistance_programs")
@@ -707,5 +754,11 @@ for (const entry of ENTRIES) {
 }
 
 console.log(
-  `selesai — dihapus: ${deleted}, ditambah: ${inserted}, diperbarui: ${updated}, gagal: ${failed}, total katalog: ${ENTRIES.length}`,
+  DRY_RUN
+    ? `PRATINJAU (database TIDAK diubah) — akan dihapus: ${akanDihapus.length}, akan ditambah: ${inserted}, akan diperbarui: ${updated}, gagal: ${failed}, total katalog: ${ENTRIES.length}`
+    : `selesai — dihapus: ${deleted}, ditambah: ${inserted}, diperbarui: ${updated}, gagal: ${failed}, total katalog: ${ENTRIES.length}`,
 );
+
+if (DRY_RUN) {
+  console.log("Jalankan tanpa --dry-run untuk menerapkan perubahan ini.");
+}

@@ -3,6 +3,9 @@
 blank_issues_enabled: false
 
 contact_links:
+  - name: Ajukan / koreksi entri katalog (form resmi)
+    url: https://aksesai-id.vercel.app/dashboard/kontribusi/baru
+    about: Semua usulan entri katalog WAJIB lewat form ini. Issue GitHub tidak diproses.
   - name: Laporkan kerentanan keamanan (privat)
     url: https://github.com/zann06/AksesAI/security/advisories/new
     about: Jangan buka issue publik untuk masalah keamanan. Gunakan Security Advisory.

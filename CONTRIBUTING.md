@@ -31,9 +31,9 @@ Proyek ini memakai [Contributor Covenant](CODE_OF_CONDUCT.md). Dengan berpartisi
 
 | Ingin… | Lakukan |
 |---|---|
-| Memperbaiki kesalahan data katalog | Buka issue **Koreksi data katalog** atau langsung PR ke `scripts/seed-content.mjs` |
-| Menambah sumber resmi untuk entri | Issue **Saran sumber** atau PR |
-| Mengusulkan entri baru | Issue **Usulan entri baru** (isi sumber resminya) |
+| Mengusulkan entri baru | **[Form kontribusi di situs](https://aksesai-id.vercel.app/dashboard/kontribusi/baru)** — wajib, lihat catatan di bawah |
+| Memperbaiki kesalahan data katalog | **[Form kontribusi di situs](https://aksesai-id.vercel.app/dashboard/kontribusi/baru)** — pilih jenis "Koreksi data" |
+| Menambah sumber resmi untuk entri | **[Form kontribusi di situs](https://aksesai-id.vercel.app/dashboard/kontribusi/baru)** — pilih jenis "Tambahan sumber resmi" |
 | Memperbaiki bug | Issue **Bug report**, lalu PR bila Anda bisa |
 | Menambah fitur | Buka issue diskusi dulu — fitur besar sebaiknya disepakati sebelum dikerjakan |
 | Memperbaiki dokumentasi | Langsung PR, tidak perlu issue |
@@ -142,7 +142,15 @@ Tulis pesan commit dan komentar kode dalam **Bahasa Indonesia** — konsisten de
 
 ## Menambah atau Memperbaiki Entri Katalog
 
-Sumber tunggal katalog adalah [`scripts/seed-content.mjs`](scripts/seed-content.mjs). Untuk memperbaiki atau menambah entri, ubah file itu.
+> ### ⚠️ Entri katalog TIDAK diterima lewat Pull Request
+>
+> Semua perubahan entri katalog **wajib** melalui **[form kontribusi di situs](https://aksesai-id.vercel.app/dashboard/kontribusi/baru)**. Pengajuan lewat PR, issue GitHub, atau berkas lain **tidak akan diproses** dan akan ditutup dengan penjelasan.
+>
+> **Kenapa:** [`scripts/seed-content.mjs`](scripts/seed-content.mjs) bukan berkas data biasa — ia skrip sinkronisasi yang berjalan dengan `SUPABASE_SERVICE_ROLE_KEY` (menembus RLS) dan melakukan **delete-and-replace**: entri yang slug-nya tidak ada di daftar akan **dihapus dari database** beserta cascade sumber dan riwayatnya.
+>
+> Artinya, PR yang mengubah berkas itu setara dengan **menerbitkan langsung ke produksi tanpa moderasi** — melewati antrean review, klaim reviewer, pemeriksaan duplikat, dan aturan "tidak boleh meninjau kiriman sendiri".
+>
+> Jalur yang benar memberi Anda hal yang tidak bisa diberikan PR: pengajuan tercatat di akun Anda, masuk antrean reviewer, dan statusnya bisa Anda pantau.
 
 ### Aturan wajib
 

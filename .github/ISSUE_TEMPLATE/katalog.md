@@ -6,6 +6,22 @@ labels: katalog
 assignees: ""
 ---
 
+> ### ⚠️ Baca dulu — issue ini TIDAK diproses otomatis
+>
+> Issue di GitHub **bukan** jalur pengajuan katalog. Pengajuan yang masuk lewat
+> sini **tidak masuk antrean review** dan **tidak akan diterbitkan**, karena
+> tidak tercatat di akun Anda dan tidak melewati proses moderasi.
+>
+> **Ajukan lewat form di situs:**
+> https://aksesai-id.vercel.app/dashboard/kontribusi/baru
+>
+> Form tersebut memandu field yang sama dengan template di bawah, memeriksa
+> duplikat, dan meneruskan pengajuan Anda ke antrean reviewer. Anda dapat
+> memantau statusnya di **Kontribusi saya**.
+>
+> Issue hanya berguna untuk **berdiskusi** soal data katalog (mis. "entri X
+> sepertinya sudah tidak berlaku, tapi saya tidak menemukan sumber resminya").
+
 ## Jenis usulan
 
 - [ ] Entri baru

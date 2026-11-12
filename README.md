@@ -429,6 +429,23 @@ Kami menerima kontribusi kode, perbaikan data katalog, dan laporan bug. Panduan 
 - **Semua perubahan lewat pull request** — `main` dilindungi dan CI wajib hijau
 - Satu PR untuk satu tujuan; perubahan besar sebaiknya didiskusikan lewat issue dulu
 
+### Dua jalur kontribusi yang berbeda
+
+Proyek ini memisahkan **kontribusi kode** dan **kontribusi data katalog**, karena keduanya punya tingkat risiko yang tidak sebanding:
+
+| Yang ingin diubah | Jalurnya |
+|---|---|
+| Kode aplikasi, dokumentasi, CI, migrasi DB | **Pull request** ke repo ini |
+| Entri katalog (tambah entri, koreksi data, tambah sumber resmi) | **Form di situs**: https://aksesai-id.vercel.app/dashboard/kontribusi/baru |
+
+**Entri katalog tidak diterima lewat pull request maupun issue GitHub.** Pengajuan lewat sana tidak akan diproses dan akan ditutup dengan penjelasan.
+
+**Alasannya bukan soal kepercayaan, tapi soal arsitektur.** Katalog tidak disunting lewat file data biasa. [`scripts/seed-content.mjs`](scripts/seed-content.mjs) adalah skrip sinkronisasi yang berjalan dengan `SUPABASE_SERVICE_ROLE_KEY` — kunci yang menembus Row Level Security — dan melakukan *delete-and-replace*: entri yang slug-nya tidak ada di daftar akan dihapus dari database beserta seluruh sumber dan riwayatnya.
+
+Konsekuensinya, PR yang mengubah berkas itu setara dengan **menerbitkan langsung ke produksi tanpa moderasi**: melewati antrean review, klaim reviewer, pemeriksaan duplikat, dan aturan bahwa seorang kontributor tidak boleh meninjau kirimannya sendiri.
+
+Lewat form, pengajuan Anda memberi hal yang tidak bisa diberikan PR: tercatat di akun Anda, masuk antrean reviewer, dan statusnya bisa dipantau di **Kontribusi saya**.
+
 Proyek ini memakai [Contributor Covenant](CODE_OF_CONDUCT.md). Dengan berpartisipasi, Anda diharapkan mematuhinya.
 
 > [!NOTE]
